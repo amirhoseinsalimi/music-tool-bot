@@ -1,0 +1,33 @@
+{
+  "name": "musictagbot",
+  "version": "0.0.1",
+  "description": "A Telegram bot to edit music tags",
+  "main": "app.js",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "download": "^7.1.0",
+    "mkdirp": "^0.5.1",
+    "node-id3": "^0.1.11",
+    "pm2": "^3.5.1",
+    "telegraf": "^3.32.0",
+    "telegraf-inline-menu": "^3.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.1.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "nodemon": "^1.19.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "music",
+    "mp3",
+    "tag"
+  ],
+  "author": "Amir Hosein Salimi",
+  "license": "ISC"
+}
