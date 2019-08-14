@@ -176,7 +176,7 @@ bot.command('done', (ctx) => {
           console.log('updated');
           ctx.telegram.sendDocument(ctx.from.id, {
             source: currentMusic,
-            filename: 'music.mp3'
+            filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`
           })
             .then(() => {
               currentMusic = '';
