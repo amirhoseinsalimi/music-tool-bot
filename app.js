@@ -23,9 +23,11 @@ const dirname = __dirname + '/user_data/';
 
 let currentTag = '';
 let currentMusic = '';
-let artistName = undefined;
-let albumName = undefined;
-let titleName = undefined;
+let newArtistName = undefined;
+let newAlbumName = undefined;
+let newTitle = undefined;
+let newGenre = undefined;
+let newYear = undefined;
 
 
 /* Bot configuration */
@@ -86,26 +88,35 @@ bot.on('audio', ctx => {
                 artist,
                 album,
                 title,
+                genre,
+                year
               } = tags;
 
-              artistName = artist;
-              albumName = album;
-              titleName = title;
+              console.log(tags);
 
-              console.log(artist, album, title);
+              newArtistName = artist;
+              newAlbumName = album;
+              newTitle = title;
+              newGenre = genre;
+              newYear = year;
+
+              console.log(newYear);
+              console.log(typeof newYear);
 
               currentMusic = `${dirname}/${userId}/${fileName}`.toString();
 
               const firstReply = "ℹ️ MP3 Info:\n\n" +
-                `👤 Artist: ${artistName}\n` +
-                `🎼 Album: ${albumName}\n` +
-                `🎵 Title: ${titleName}\n` +
+                `🗣 Artist: ${newArtistName}\n` +
+                `🎵 Title: ${newTitle}\n` +
+                `🎼 Album: ${newAlbumName}\n` +
+                `🎹 Genre: ${newGenre}\n` +
+                `📅 Year: ${newYear}\n` +
                 "\nWhich tag do you want to edit?";
 
               ctx.reply(firstReply, Markup
                 .keyboard([
-                  ['👤 Artist', '🎼 Album'],
-                  ['🎵 Title'],
+                  ['🗣 Artist', '🎵 Title'],
+                  ['🎼 Album', '🎹 Genre', '📅 Year'],
                   // ['📢 Ads', '⭐️ Rate us', '👥 Share']
                 ])
                 .resize()
@@ -126,39 +137,59 @@ bot.on('audio', ctx => {
 });
 
 
-bot.hears('👤 Artist', ctx => {
+bot.hears('🗣 Artist', ctx => {
   if (currentMusic === '') {
-    console.log('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
+    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
   } else {
     currentTag = 'artist';
     ctx.reply('Enter the name of the Artist:')
   }
 });
 
-bot.hears('🎼 Album', ctx => {
-  if (currentMusic === '') {
-    console.log('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
-  } else {
-    currentTag = 'album';
-    return ctx.reply('Enter the name of the Album:')
-  }
-});
-
 bot.hears('🎵 Title', ctx => {
   if (currentMusic === '') {
-    console.log('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
+    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
   } else {
     currentTag = 'title';
     return ctx.reply('Enter the Title of the music:')
   }
 });
 
+bot.hears('🎼 Album', ctx => {
+  if (currentMusic === '') {
+    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
+  } else {
+    currentTag = 'album';
+    return ctx.reply('Enter the name of the Album:')
+  }
+});
+
+bot.hears('🎹 Genre', ctx => {
+  if (currentMusic === '') {
+    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
+  } else {
+    currentTag = 'genre';
+    return ctx.reply('Enter the Genre:')
+  }
+});
+
+bot.hears('📅 Year', ctx => {
+  if (currentMusic === '') {
+    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
+  } else {
+    currentTag = 'year';
+    return ctx.reply('Enter the publish Year:')
+  }
+});
+
 
 bot.command('done', (ctx) => {
   const tags = {
-    artist: artistName,
-    album: albumName,
-    title: titleName,
+    artist: newArtistName,
+    title: newTitle,
+    album: newAlbumName,
+    genre: newGenre,
+    year: newYear
   };
 
   console.log('/done');
@@ -176,13 +207,15 @@ bot.command('done', (ctx) => {
           console.log('updated');
           ctx.telegram.sendDocument(ctx.from.id, {
             source: currentMusic,
-            filename: 'music.mp3'
+            filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`
           })
             .then(() => {
               currentMusic = '';
-              artistName = undefined;
-              albumName = undefined;
-              titleName = undefined;
+              newArtistName = undefined;
+              newAlbumName = undefined;
+              newTitle = undefined;
+              newGenre = undefined;
+              newYear = undefined;
 
               console.log('Finished!');
             })
@@ -198,14 +231,20 @@ bot.command('done', (ctx) => {
 
 bot.on('text', ctx => {
   if (currentTag === 'artist') {
-    artistName = ctx.update.message.text;
+    newArtistName = ctx.update.message.text;
     return ctx.reply('Artist name changed. If you\'re finished click /done');
-  } else if (currentTag === 'album') {
-    albumName = ctx.update.message.text;
-    return ctx.reply('Album name changed. If you\'re finished click /done');
   } else if (currentTag === 'title') {
-    titleName = ctx.update.message.text;
+    newTitle = ctx.update.message.text;
     return ctx.reply('Music title changed. If you\'re finished click /done');
+  } else if (currentTag === 'album') {
+    newAlbumName = ctx.update.message.text;
+    return ctx.reply('Album name changed. If you\'re finished click /done');
+  } else if (currentTag === 'genre') {
+    newGenre = ctx.update.message.text;
+    return ctx.reply('Genre changed. If you\'re finished click /done');
+  } else if (currentTag === 'year') {
+    newYear = ctx.update.message.text;
+    return ctx.reply('Published year changed. If you\'re finished click /done');
   } else {
     return ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
   }
