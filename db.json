@@ -1,0 +1,36 @@
+{
+  "sessions": [
+    {
+      "id": "599314511:599314511",
+      "data": {
+        "tagEditor": {
+          "musicPath": "/home/amirhosein/Programming/telegram-bots/MusicToolBot/user_data//599314511/file_5.mp3",
+          "tags": {
+            "artist": "A",
+            "title": "B",
+            "album": "C",
+            "genre": "D",
+            "year": "E"
+          }
+        },
+        "currentTag": "year"
+      }
+    },
+    {
+      "id": "61486951:61486951",
+      "data": {
+        "tagEditor": {
+          "musicPath": "/home/amirhosein/Programming/telegram-bots/MusicToolBot/user_data//61486951/file_4.mp3",
+          "tags": {
+            "artist": "Shadmehr Aghili",
+            "title": "Mitarsam",
+            "album": "Mitarsam Single",
+            "genre": "Pop",
+            "year": "123"
+          }
+        },
+        "currentTag": "year"
+      }
+    }
+  ]
+}

@@ -14,24 +14,22 @@ const NodeID3 = require('node-id3');
 const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
-const TelegrafInlineMenu = require('telegraf-inline-menu');
+const LocalSession = require('telegraf-session-local');
 
 
 /* Global variables */
-const token = '932660872:AAEZcszl7iBsthPVipj_a7_M9BNUKGDW80A';
+const token = '932660872:AAGc1X8vwlyp88Vhwb1B7EDT9v5SJ2-VYH8';
 const dirname = __dirname + '/user_data/';
-
-let currentTag = '';
-let currentMusic = '';
-let newArtistName = undefined;
-let newAlbumName = undefined;
-let newTitle = undefined;
-let newGenre = undefined;
-let newYear = undefined;
+const defaultMessage = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 
 
 /* Bot configuration */
 const bot = new Telegraf(token);
+
+
+/* Middlewares configuration */
+bot.use((new LocalSession({ database: 'db.json' })).middleware());
+bot.startPolling();
 
 
 /* Bot commands */
@@ -39,15 +37,18 @@ bot.start(ctx => {
   const userId = ctx.update.message.from.id;
 
   mkdirp(`${dirname}/${userId}`, (err) => {
+    let message;
+
     if (err) {
       console.log(`Error lunching the bot: ${err.name}: ${err.message}`);
-      ctx.reply('Bot Error!');
+      message = 'Bot Error!';
     } else {
-      console.log('Dir ready to use!');
+      message = 'Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!';
+      ctx.session.isStarted = ctx.session.isStarted || true;
     }
-  });
 
-  ctx.reply('Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!')
+    return ctx.reply(message);
+  });
 });
 
 bot.help(ctx =>
@@ -55,8 +56,148 @@ bot.help(ctx =>
 );
 
 
+bot.hears('🗣 Artist', ctx => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = defaultMessage;
+  } else {
+    ctx.session.currentTag = 'artist';
+    message = 'Enter the name of the Artist:';
+  }
+
+  return ctx.reply(message);
+});
+
+bot.hears('🎵 Title', ctx => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = defaultMessage;
+  } else {
+    ctx.session.currentTag = 'title';
+    message = 'Enter the Title of the music:';
+  }
+
+  return ctx.reply(message);
+});
+
+bot.hears('🎼 Album', ctx => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = defaultMessage;
+  } else {
+    ctx.session.currentTag = 'album';
+    message = 'Enter the name of the Album:';
+  }
+
+  return ctx.reply(message);
+});
+
+bot.hears('🎹 Genre', ctx => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = defaultMessage;
+  } else {
+    ctx.session.currentTag = 'genre';
+    message = 'Enter the Genre:';
+  }
+
+  return ctx.reply(message);
+});
+
+bot.hears('📅 Year', ctx => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = defaultMessage;
+  } else {
+    ctx.session.currentTag = 'year';
+    message = 'Enter the publish Year:';
+  }
+
+  return ctx.reply(message);
+});
+
+bot.command('done', (ctx) => {
+  let message;
+
+  const tags = ctx.session.tagEditor.tags || undefined;
+  const musicPath = ctx.session.tagEditor.musicPath || undefined;
+
+  if (musicPath) {
+    fs.readFile(musicPath, (err, data) => {
+      if (err) {
+        console.log(`Error reading the file: ${err.name}: ${err.message}`);
+        return ctx.reply('Bot Error!');
+      } else {
+        NodeID3.update(tags, musicPath, (err, buffer) => {
+          if (err) {
+            console.log(`Error updating tags: ${err.name}: ${err.message}`);
+            return ctx.reply('Bot Error!');
+          } else {
+            ctx.telegram.sendDocument(ctx.from.id, {
+              source: musicPath,
+              filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`
+            })
+              .then(() => {
+                console.log(ctx.session.tagEditor);
+                ctx.session.tagEditor = null;
+                console.log(ctx.session.tagEditor);
+
+                console.log('Finished!');
+              })
+              .catch((err) => {
+                console.log(`Error reading the file: ${err.name}: ${err.message}`);
+              });
+          }
+        });
+      }
+    })
+  } else {
+    return ctx.reply(defaultMessage);
+  }
+});
+
+
+bot.on('text', ctx => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = defaultMessage;
+  } else if (ctx.session.currentTag) {
+    const currentTag = ctx.session.currentTag;
+
+    if (currentTag === 'artist') {
+      ctx.session.tagEditor.tags.artist = ctx.update.message.text;
+      message = 'Artist name changed. If you\'re finished click /done';
+    } else if (currentTag === 'title') {
+      ctx.session.tagEditor.tags.title = ctx.update.message.text;
+      message = 'Music title changed. If you\'re finished click /done';
+    } else if (currentTag === 'album') {
+      ctx.session.tagEditor.tags.album = ctx.update.message.text;
+      message = 'Album name changed. If you\'re finished click /done';
+    } else if (currentTag === 'genre') {
+      ctx.session.tagEditor.tags.genre = ctx.update.message.text;
+      message = 'Genre changed. If you\'re finished click /done';
+    } else if (currentTag === 'year') {
+      ctx.session.tagEditor.tags.year = ctx.update.message.text;
+      message = 'Published year changed. If you\'re finished click /done';
+    } else {
+      message = defaultMessage;
+    }
+  }
+
+  return ctx.reply(message);
+});
+
+
 /* Catch Audio files */
-bot.on('audio', ctx => {
+bot.on('audio', (ctx) => {
+  ctx.session.tagEditor = {};
+
   const userId = ctx.update.message.from.id;
   const baseURL = 'https://api.telegram.org';
   const fileId = ctx.update.message.audio.file_id;
@@ -86,42 +227,39 @@ bot.on('audio', ctx => {
               const tags = NodeID3.read(`${dirname}/${userId}/${fileName}`);
               const {
                 artist,
-                album,
                 title,
+                album,
                 genre,
-                year
+                year,
               } = tags;
 
-              console.log(tags);
+              ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`.toString();
 
-              newArtistName = artist;
-              newAlbumName = album;
-              newTitle = title;
-              newGenre = genre;
-              newYear = year;
-
-              console.log(newYear);
-              console.log(typeof newYear);
-
-              currentMusic = `${dirname}/${userId}/${fileName}`.toString();
+              ctx.session.tagEditor.tags = {
+                artist: artist || undefined,
+                title: title || undefined,
+                album: album || undefined,
+                genre: genre || undefined,
+                year:  year || undefined,
+              };
 
               const firstReply = "ℹ️ MP3 Info:\n\n" +
-                `🗣 Artist: ${newArtistName}\n` +
-                `🎵 Title: ${newTitle}\n` +
-                `🎼 Album: ${newAlbumName}\n` +
-                `🎹 Genre: ${newGenre}\n` +
-                `📅 Year: ${newYear}\n` +
+                `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n` +
+                `🎵 Title: ${ctx.session.tagEditor.tags.title}\n` +
+                `🎼 Album: ${ctx.session.tagEditor.tags.album}\n` +
+                `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n` +
+                `📅 Year: ${ctx.session.tagEditor.tags.year}\n` +
                 "\nWhich tag do you want to edit?";
 
-              ctx.reply(firstReply, Markup
+              return ctx.reply(firstReply, Markup
                 .keyboard([
                   ['🗣 Artist', '🎵 Title'],
                   ['🎼 Album', '🎹 Genre', '📅 Year'],
-                  // ['📢 Ads', '⭐️ Rate us', '👥 Share']
                 ])
                 .resize()
                 .extra()
               );
+
             })
             .catch(err => {
               console.log(`Error downloading the music: ${err.name}: ${err.message}`);
@@ -134,120 +272,6 @@ bot.on('audio', ctx => {
     .catch(err => {
       console.log(`Error getting JSON: ${err.name}: ${err.message}`);
     });
-});
-
-
-bot.hears('🗣 Artist', ctx => {
-  if (currentMusic === '') {
-    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
-  } else {
-    currentTag = 'artist';
-    ctx.reply('Enter the name of the Artist:')
-  }
-});
-
-bot.hears('🎵 Title', ctx => {
-  if (currentMusic === '') {
-    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
-  } else {
-    currentTag = 'title';
-    return ctx.reply('Enter the Title of the music:')
-  }
-});
-
-bot.hears('🎼 Album', ctx => {
-  if (currentMusic === '') {
-    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
-  } else {
-    currentTag = 'album';
-    return ctx.reply('Enter the name of the Album:')
-  }
-});
-
-bot.hears('🎹 Genre', ctx => {
-  if (currentMusic === '') {
-    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
-  } else {
-    currentTag = 'genre';
-    return ctx.reply('Enter the Genre:')
-  }
-});
-
-bot.hears('📅 Year', ctx => {
-  if (currentMusic === '') {
-    ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
-  } else {
-    currentTag = 'year';
-    return ctx.reply('Enter the publish Year:')
-  }
-});
-
-
-bot.command('done', (ctx) => {
-  const tags = {
-    artist: newArtistName,
-    title: newTitle,
-    album: newAlbumName,
-    genre: newGenre,
-    year: newYear
-  };
-
-  console.log('/done');
-
-  fs.readFile(currentMusic, (err, data) => {
-    if (err) {
-      console.log(`Error reading the file: ${err.name}: ${err.message}`);
-      ctx.reply('Bot Error!');
-    } else {
-      NodeID3.update(tags, currentMusic, (err, buffer) => {
-        if (err) {
-          console.log(`Error updating tags: ${err.name}: ${err.message}`);
-          ctx.reply('Bot Error!');
-        } else {
-          console.log('updated');
-          ctx.telegram.sendDocument(ctx.from.id, {
-            source: currentMusic,
-            filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`
-          })
-            .then(() => {
-              currentMusic = '';
-              newArtistName = undefined;
-              newAlbumName = undefined;
-              newTitle = undefined;
-              newGenre = undefined;
-              newYear = undefined;
-
-              console.log('Finished!');
-            })
-            .catch((err) => {
-              console.log(`Error reading the file: ${err.name}: ${err.message}`);
-            });
-        }
-      });
-    }
-  })
-});
-
-
-bot.on('text', ctx => {
-  if (currentTag === 'artist') {
-    newArtistName = ctx.update.message.text;
-    return ctx.reply('Artist name changed. If you\'re finished click /done');
-  } else if (currentTag === 'title') {
-    newTitle = ctx.update.message.text;
-    return ctx.reply('Music title changed. If you\'re finished click /done');
-  } else if (currentTag === 'album') {
-    newAlbumName = ctx.update.message.text;
-    return ctx.reply('Album name changed. If you\'re finished click /done');
-  } else if (currentTag === 'genre') {
-    newGenre = ctx.update.message.text;
-    return ctx.reply('Genre changed. If you\'re finished click /done');
-  } else if (currentTag === 'year') {
-    newYear = ctx.update.message.text;
-    return ctx.reply('Published year changed. If you\'re finished click /done');
-  } else {
-    return ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
-  }
 });
 
 
@@ -266,7 +290,7 @@ bot.on([
   'poll',
   'venue',
 ], ctx => {
-  ctx.reply('Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁');
+  return ctx.reply(defaultMessage);
 });
 
 
