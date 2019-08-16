@@ -148,7 +148,12 @@ bot.command('done', (ctx) => {
                   ctx.session.tagEditor = null;
                   console.log(ctx.session.tagEditor);
 
-                  console.log('Finished!');
+                  fs.unlink(musicPath, (err) => {
+                    if (err) {
+                      console.log(`Error deleting the file: ${err.name}: ${err.message}`);
+                    }
+                    console.log('Finished!');
+                  });
                 })
                 .catch((err) => {
                   console.log(`Error reading the file: ${err.name}: ${err.message}`);
@@ -222,7 +227,7 @@ bot.on('audio', (ctx) => {
       axios({
         url,
         method: 'get',
-        baseURL: 'https://api.telegram.org',
+        baseURL,
         responseType: 'blob',
       })
         .then(res => {
@@ -237,7 +242,7 @@ bot.on('audio', (ctx) => {
                 year,
               } = tags;
 
-              ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`.toString();
+              ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`;
 
               ctx.session.tagEditor.tags = {
                 artist: artist || undefined,
