@@ -1,6 +1,5 @@
 /* Built-in Node.js modules */
 const fs = require('fs');
-const {execSync} = require("child_process");
 
 
 /* Third-part Node.js modules */
@@ -12,14 +11,14 @@ const NodeID3 = require('node-id3');
 
 /* Import Telegraf and its middlewares */
 const Telegraf = require('telegraf');
-const Extra = require('telegraf/extra');
+// const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
 
 
 /* Global variables */
 const token = '932660872:AAGc1X8vwlyp88Vhwb1B7EDT9v5SJ2-VYH8';
-const dirname = __dirname + '/user_data/';
+const dirname = `${__dirname}/user_data/`;
 const defaultMessage = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 
 
@@ -33,7 +32,7 @@ bot.startPolling();
 
 
 /* Bot commands */
-bot.start(ctx => {
+bot.start((ctx) => {
   const userId = ctx.update.message.from.id;
 
   mkdirp(`${dirname}/${userId}`, (err) => {
@@ -44,19 +43,16 @@ bot.start(ctx => {
       message = 'Bot Error!';
     } else {
       message = 'Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!';
-      ctx.session.isStarted = true;
     }
 
     return ctx.reply(message);
   });
 });
 
-bot.help(ctx =>
-  ctx.reply('It\'s simple! Just send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁')
-);
+bot.help((ctx) => ctx.reply('It\'s simple! Just send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁'));
 
 
-bot.hears('🗣 Artist', ctx => {
+bot.hears('🗣 Artist', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
@@ -69,7 +65,7 @@ bot.hears('🗣 Artist', ctx => {
   return ctx.reply(message);
 });
 
-bot.hears('🎵 Title', ctx => {
+bot.hears('🎵 Title', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
@@ -82,7 +78,7 @@ bot.hears('🎵 Title', ctx => {
   return ctx.reply(message);
 });
 
-bot.hears('🎼 Album', ctx => {
+bot.hears('🎼 Album', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
@@ -95,7 +91,7 @@ bot.hears('🎼 Album', ctx => {
   return ctx.reply(message);
 });
 
-bot.hears('🎹 Genre', ctx => {
+bot.hears('🎹 Genre', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
@@ -108,7 +104,7 @@ bot.hears('🎹 Genre', ctx => {
   return ctx.reply(message);
 });
 
-bot.hears('📅 Year', ctx => {
+bot.hears('📅 Year', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
@@ -122,46 +118,42 @@ bot.hears('📅 Year', ctx => {
 });
 
 bot.command('done', (ctx) => {
-  let message;
-
   if (ctx.session.tagEditor) {
     const tags = ctx.session.tagEditor.tags || undefined;
     const musicPath = ctx.session.tagEditor.musicPath || undefined;
 
     if (musicPath) {
-      fs.readFile(musicPath, (err, data) => {
+      fs.readFile(musicPath, (err) => {
         if (err) {
           console.log(`Error reading the file: ${err.name}: ${err.message}`);
           return ctx.reply('Bot Error!');
-        } else {
-          NodeID3.update(tags, musicPath, (err, buffer) => {
-            if (err) {
-              console.log(`Error updating tags: ${err.name}: ${err.message}`);
-              return ctx.reply('Bot Error!');
-            } else {
-              ctx.telegram.sendDocument(ctx.from.id, {
-                source: musicPath,
-                filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`
-              })
-                .then(() => {
-                  console.log(ctx.session.tagEditor);
-                  ctx.session.tagEditor = null;
-                  console.log(ctx.session.tagEditor);
-
-                  fs.unlink(musicPath, (err) => {
-                    if (err) {
-                      console.log(`Error deleting the file: ${err.name}: ${err.message}`);
-                    }
-                    console.log('Finished!');
-                  });
-                })
-                .catch((err) => {
-                  console.log(`Error reading the file: ${err.name}: ${err.message}`);
-                });
-            }
-          });
         }
-      })
+        NodeID3.update(tags, musicPath, (err) => {
+          if (err) {
+            console.log(`Error updating tags: ${err.name}: ${err.message}`);
+            return ctx.reply('Bot Error!');
+          }
+          ctx.telegram.sendDocument(ctx.from.id, {
+            source: musicPath,
+            filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
+          })
+            .then(() => {
+              console.log(ctx.session.tagEditor);
+              ctx.session.tagEditor = null;
+              console.log(ctx.session.tagEditor);
+
+              fs.unlink(musicPath, (err) => {
+                if (err) {
+                  console.log(`Error deleting the file: ${err.name}: ${err.message}`);
+                }
+                console.log('Finished!');
+              });
+            })
+            .catch((err) => {
+              console.log(`Error reading the file: ${err.name}: ${err.message}`);
+            });
+        });
+      });
     } else {
       return ctx.reply(defaultMessage);
     }
@@ -171,13 +163,13 @@ bot.command('done', (ctx) => {
 });
 
 
-bot.on('text', ctx => {
+bot.on('text', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
   } else if (ctx.session.tagEditor.currentTag) {
-    const currentTag = ctx.session.tagEditor.currentTag;
+    const { currentTag } = ctx.session.tagEditor;
 
     if (currentTag === 'artist') {
       ctx.session.tagEditor.tags.artist = ctx.update.message.text;
@@ -218,10 +210,9 @@ bot.on('audio', (ctx) => {
     method: 'get',
     responseType: 'json',
   })
-    .then(res => {
+    .then((res) => {
       const filePath = res.data.result.file_path;
       const fileName = filePath.split('/')[1];
-      const fileId = res.data.result.file_id;
       const url = `file/bot${token}/${filePath}`;
 
       axios({
@@ -230,7 +221,7 @@ bot.on('audio', (ctx) => {
         baseURL,
         responseType: 'blob',
       })
-        .then(res => {
+        .then(() => {
           download(`https://api.telegram.org/${url}`, `${dirname}/${userId}`)
             .then(() => {
               const tags = NodeID3.read(`${dirname}/${userId}/${fileName}`);
@@ -249,16 +240,16 @@ bot.on('audio', (ctx) => {
                 title: title || undefined,
                 album: album || undefined,
                 genre: genre || undefined,
-                year:  year || undefined,
+                year: year || undefined,
               };
 
-              const firstReply = "ℹ️ MP3 Info:\n\n" +
-                `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n` +
-                `🎵 Title: ${ctx.session.tagEditor.tags.title}\n` +
-                `🎼 Album: ${ctx.session.tagEditor.tags.album}\n` +
-                `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n` +
-                `📅 Year: ${ctx.session.tagEditor.tags.year}\n` +
-                "\nWhich tag do you want to edit?";
+              const firstReply = 'ℹ️ MP3 Info:\n\n'
+                + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+                + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+                + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+                + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+                + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+                + '\nWhich tag do you want to edit?';
 
               return ctx.reply(firstReply, Markup
                 .keyboard([
@@ -266,19 +257,17 @@ bot.on('audio', (ctx) => {
                   ['🎼 Album', '🎹 Genre', '📅 Year'],
                 ])
                 .resize()
-                .extra()
-              );
-
+                .extra());
             })
-            .catch(err => {
+            .catch((err) => {
               console.log(`Error downloading the music: ${err.name}: ${err.message}`);
             });
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(`Error getting blob: ${err.name}: ${err.message}`);
         });
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(`Error getting JSON: ${err.name}: ${err.message}`);
     });
 });
@@ -298,9 +287,7 @@ bot.on([
   'location',
   'poll',
   'venue',
-], ctx => {
-  return ctx.reply(defaultMessage);
-});
+], (ctx) => ctx.reply(defaultMessage));
 
 
 /* Launch bot! */
