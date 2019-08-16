@@ -46,6 +46,7 @@ pids
 
 # Logs and databases #
 ######################
+db.json
 logs
 *.log
 npm-debug.log*

@@ -44,7 +44,7 @@ bot.start(ctx => {
       message = 'Bot Error!';
     } else {
       message = 'Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!';
-      ctx.session.isStarted = ctx.session.isStarted || true;
+      ctx.session.isStarted = true;
     }
 
     return ctx.reply(message);
