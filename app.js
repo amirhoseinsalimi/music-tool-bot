@@ -62,7 +62,7 @@ bot.hears('🗣 Artist', ctx => {
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
   } else {
-    ctx.session.currentTag = 'artist';
+    ctx.session.tagEditor.currentTag = 'artist';
     message = 'Enter the name of the Artist:';
   }
 
@@ -75,7 +75,7 @@ bot.hears('🎵 Title', ctx => {
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
   } else {
-    ctx.session.currentTag = 'title';
+    ctx.session.tagEditor.currentTag = 'title';
     message = 'Enter the Title of the music:';
   }
 
@@ -88,7 +88,7 @@ bot.hears('🎼 Album', ctx => {
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
   } else {
-    ctx.session.currentTag = 'album';
+    ctx.session.tagEditor.currentTag = 'album';
     message = 'Enter the name of the Album:';
   }
 
@@ -101,7 +101,7 @@ bot.hears('🎹 Genre', ctx => {
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
   } else {
-    ctx.session.currentTag = 'genre';
+    ctx.session.tagEditor.currentTag = 'genre';
     message = 'Enter the Genre:';
   }
 
@@ -114,7 +114,7 @@ bot.hears('📅 Year', ctx => {
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
   } else {
-    ctx.session.currentTag = 'year';
+    ctx.session.tagEditor.currentTag = 'year';
     message = 'Enter the publish Year:';
   }
 
@@ -124,38 +124,42 @@ bot.hears('📅 Year', ctx => {
 bot.command('done', (ctx) => {
   let message;
 
-  const tags = ctx.session.tagEditor.tags || undefined;
-  const musicPath = ctx.session.tagEditor.musicPath || undefined;
+  if (ctx.session.tagEditor) {
+    const tags = ctx.session.tagEditor.tags || undefined;
+    const musicPath = ctx.session.tagEditor.musicPath || undefined;
 
-  if (musicPath) {
-    fs.readFile(musicPath, (err, data) => {
-      if (err) {
-        console.log(`Error reading the file: ${err.name}: ${err.message}`);
-        return ctx.reply('Bot Error!');
-      } else {
-        NodeID3.update(tags, musicPath, (err, buffer) => {
-          if (err) {
-            console.log(`Error updating tags: ${err.name}: ${err.message}`);
-            return ctx.reply('Bot Error!');
-          } else {
-            ctx.telegram.sendDocument(ctx.from.id, {
-              source: musicPath,
-              filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`
-            })
-              .then(() => {
-                console.log(ctx.session.tagEditor);
-                ctx.session.tagEditor = null;
-                console.log(ctx.session.tagEditor);
-
-                console.log('Finished!');
+    if (musicPath) {
+      fs.readFile(musicPath, (err, data) => {
+        if (err) {
+          console.log(`Error reading the file: ${err.name}: ${err.message}`);
+          return ctx.reply('Bot Error!');
+        } else {
+          NodeID3.update(tags, musicPath, (err, buffer) => {
+            if (err) {
+              console.log(`Error updating tags: ${err.name}: ${err.message}`);
+              return ctx.reply('Bot Error!');
+            } else {
+              ctx.telegram.sendDocument(ctx.from.id, {
+                source: musicPath,
+                filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`
               })
-              .catch((err) => {
-                console.log(`Error reading the file: ${err.name}: ${err.message}`);
-              });
-          }
-        });
-      }
-    })
+                .then(() => {
+                  console.log(ctx.session.tagEditor);
+                  ctx.session.tagEditor = null;
+                  console.log(ctx.session.tagEditor);
+
+                  console.log('Finished!');
+                })
+                .catch((err) => {
+                  console.log(`Error reading the file: ${err.name}: ${err.message}`);
+                });
+            }
+          });
+        }
+      })
+    } else {
+      return ctx.reply(defaultMessage);
+    }
   } else {
     return ctx.reply(defaultMessage);
   }
@@ -167,8 +171,8 @@ bot.on('text', ctx => {
 
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
-  } else if (ctx.session.currentTag) {
-    const currentTag = ctx.session.currentTag;
+  } else if (ctx.session.tagEditor.currentTag) {
+    const currentTag = ctx.session.tagEditor.currentTag;
 
     if (currentTag === 'artist') {
       ctx.session.tagEditor.tags.artist = ctx.update.message.text;
