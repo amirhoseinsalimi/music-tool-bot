@@ -17,6 +17,7 @@
   "rules": {
     "no-console": "off",
     "consistent-return": "off",
-    "no-shadow": "off"
+    "no-shadow": "off",
+    "no-plusplus": "off"
   }
 }
