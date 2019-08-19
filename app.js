@@ -11,7 +11,7 @@ const NodeID3 = require('node-id3');
 
 /* Import Telegraf and its middlewares */
 const Telegraf = require('telegraf');
-// const Extra = require('telegraf/extra');
+const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
 
@@ -156,7 +156,7 @@ bot.command('done', (ctx) => {
           ctx.telegram.sendDocument(ctx.from.id, {
             source: musicPath,
             filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
-          })
+          }, Extra.markup((m) => m.removeKeyboard()))
             .then(() => {
               console.log(ctx.session.tagEditor);
               ctx.session.tagEditor = null;
