@@ -35,6 +35,12 @@ bot.startPolling();
 bot.start((ctx) => {
   const userId = ctx.update.message.from.id;
 
+  ctx.session.status = ctx.session.status || {
+    firstInteraction: (new Date).toUTCString(),
+  };
+  ctx.session.status.active = true;
+  ctx.session.status.blocked = false;
+
   mkdirp(`${dirname}/${userId}`, (err) => {
     let message;
 
