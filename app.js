@@ -35,11 +35,25 @@ bot.startPolling();
 bot.start((ctx) => {
   const userId = ctx.update.message.from.id;
 
+  /* Set initial status */
   ctx.session.status = ctx.session.status || {
     firstInteraction: (new Date()).toUTCString(),
   };
   ctx.session.status.active = true;
   ctx.session.status.blocked = false;
+
+  /* Set initial stats */
+  ctx.session.stats = ctx.session.stats || {
+    tagEditor: 0,
+    toVoiceConverter: 0,
+    bitrateChanger: 0,
+    cutter: 0,
+  };
+
+  ctx.session.tagEditor = null;
+  ctx.session.toVoiceConverter = null;
+  ctx.session.bitrateChanger = null;
+  ctx.session.cutter = null;
 
   mkdirp(`${dirname}/${userId}`, (err) => {
     let message;
