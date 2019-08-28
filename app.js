@@ -65,7 +65,7 @@ bot.start((ctx) => {
       message = 'Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!';
     }
 
-    return ctx.reply(message);
+    return ctx.reply(message, Extra.markup((m) => m.removeKeyboard()));
   });
 });
 
