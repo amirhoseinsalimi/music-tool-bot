@@ -1,6 +1,6 @@
 {
   "name": "musictagbot",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A Telegram bot to edit music tags",
   "main": "app.js",
   "dependencies": {
@@ -10,7 +10,8 @@
     "node-id3": "^0.1.11",
     "pm2": "^3.5.1",
     "telegraf": "^3.32.0",
-    "telegraf-inline-menu": "^3.6.0"
+    "telegraf-inline-menu": "^3.6.0",
+    "telegraf-session-local": "^1.0.2"
   },
   "devDependencies": {
     "eslint": "^6.1.0",
