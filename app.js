@@ -158,7 +158,7 @@ bot.command('done', (ctx) => {
             filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
           }, Extra.markup((m) => m.removeKeyboard()))
             .then(() => {
-              console.log(ctx.session.tagEditor);
+              ctx.session.stats.tagEditor++;
               ctx.session.tagEditor = null;
               console.log(ctx.session.tagEditor);
 
