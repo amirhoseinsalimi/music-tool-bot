@@ -160,7 +160,6 @@ bot.command('done', (ctx) => {
             .then(() => {
               ctx.session.stats.tagEditor++;
               ctx.session.tagEditor = null;
-              console.log(ctx.session.tagEditor);
 
               fs.unlink(musicPath, (err) => {
                 if (err) {
@@ -188,27 +187,31 @@ bot.on('text', (ctx) => {
 
   if (!ctx.session.tagEditor) {
     message = defaultMessage;
-  } else if (ctx.session.tagEditor.currentTag) {
-    const { currentTag } = ctx.session.tagEditor;
+  } else if (ctx.session.tagEditor) {
+    if (ctx.session.tagEditor.currentTag) {
+      const { currentTag } = ctx.session.tagEditor;
 
-    if (currentTag === 'artist') {
-      ctx.session.tagEditor.tags.artist = ctx.update.message.text;
-      message = 'Artist name changed. If you\'re finished click /done';
-    } else if (currentTag === 'title') {
-      ctx.session.tagEditor.tags.title = ctx.update.message.text;
-      message = 'Music title changed. If you\'re finished click /done';
-    } else if (currentTag === 'album') {
-      ctx.session.tagEditor.tags.album = ctx.update.message.text;
-      message = 'Album name changed. If you\'re finished click /done';
-    } else if (currentTag === 'genre') {
-      ctx.session.tagEditor.tags.genre = ctx.update.message.text;
-      message = 'Genre changed. If you\'re finished click /done';
-    } else if (currentTag === 'year') {
-      ctx.session.tagEditor.tags.year = ctx.update.message.text;
-      message = 'Published year changed. If you\'re finished click /done';
+      if (currentTag === 'artist') {
+        ctx.session.tagEditor.tags.artist = ctx.update.message.text;
+        message = 'Artist name changed. If you\'re finished click /done';
+      } else if (currentTag === 'title') {
+        ctx.session.tagEditor.tags.title = ctx.update.message.text;
+        message = 'Music title changed. If you\'re finished click /done';
+      } else if (currentTag === 'album') {
+        ctx.session.tagEditor.tags.album = ctx.update.message.text;
+        message = 'Album name changed. If you\'re finished click /done';
+      } else if (currentTag === 'genre') {
+        ctx.session.tagEditor.tags.genre = ctx.update.message.text;
+        message = 'Genre changed. If you\'re finished click /done';
+      } else if (currentTag === 'year') {
+        ctx.session.tagEditor.tags.year = ctx.update.message.text;
+        message = 'Year changed. If you\'re finished click /done';
+      }
     } else {
-      message = defaultMessage;
+      message = 'Please select the tag you want to edit! 😅';
     }
+  } else {
+    message = defaultMessage;
   }
 
   return ctx.reply(message);
@@ -262,6 +265,8 @@ bot.on('audio', (ctx) => {
                 genre: genre || undefined,
                 year: year || undefined,
               };
+
+              ctx.session.tagEditor.currentTag = '';
 
               const firstReply = 'ℹ️ MP3 Info:\n\n'
                 + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
