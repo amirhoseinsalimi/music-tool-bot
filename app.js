@@ -146,7 +146,7 @@ bot.command('done', (ctx) => {
       fs.readFile(musicPath, (err) => {
         if (err) {
           console.log(`Error reading the file: ${err.name}: ${err.message}`);
-          return ctx.reply('Bot Error!');
+          return ctx.reply('Oops! Did you forget to send me a file? 🤔');
         }
         NodeID3.update(tags, musicPath, (err) => {
           if (err) {
