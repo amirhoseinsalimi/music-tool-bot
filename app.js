@@ -1,3 +1,6 @@
+/**/
+const config = require('./config');
+
 /* Built-in Node.js modules */
 const fs = require('fs');
 
@@ -7,6 +10,7 @@ const axios = require('axios');
 const download = require('download');
 const mkdirp = require('mkdirp');
 const NodeID3 = require('node-id3');
+const mm = require('music-metadata');
 
 
 /* Import Telegraf and its middlewares */
@@ -17,13 +21,12 @@ const LocalSession = require('telegraf-session-local');
 
 
 /* Global variables */
-const token = '932660872:AAGc1X8vwlyp88Vhwb1B7EDT9v5SJ2-VYH8';
 const dirname = `${__dirname}/user_data/`;
 const defaultMessage = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 
 
 /* Bot configuration */
-const bot = new Telegraf(token);
+const bot = new Telegraf(config.BOT_TOKEN);
 
 
 /* Middlewares configuration */
@@ -225,7 +228,7 @@ bot.on('audio', (ctx) => {
   const userId = ctx.update.message.from.id;
   const baseURL = 'https://api.telegram.org';
   const fileId = ctx.update.message.audio.file_id;
-  const url = `bot${token}/getFile?file_id=${fileId}`;
+  const url = `bot${config.BOT_TOKEN}/getFile?file_id=${fileId}`;
 
   axios({
     baseURL,
@@ -236,7 +239,7 @@ bot.on('audio', (ctx) => {
     .then((res) => {
       const filePath = res.data.result.file_path;
       const fileName = filePath.split('/')[1];
-      const url = `file/bot${token}/${filePath}`;
+      const url = `file/bot${config.BOT_TOKEN}/${filePath}`;
 
       axios({
         url,
@@ -247,43 +250,49 @@ bot.on('audio', (ctx) => {
         .then(() => {
           download(`https://api.telegram.org/${url}`, `${dirname}/${userId}`)
             .then(() => {
-              const tags = NodeID3.read(`${dirname}/${userId}/${fileName}`);
-              const {
-                artist,
-                title,
-                album,
-                genre,
-                year,
-              } = tags;
+              mm.parseFile(`${dirname}/${userId}/${fileName}`, { native: true })
+                .then((metadata) => {
+                  const {
+                    artist,
+                    title,
+                    album,
+                    genre,
+                    year,
+                  } = metadata.common;
 
-              ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`;
+                  ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`;
 
-              ctx.session.tagEditor.tags = {
-                artist: artist || undefined,
-                title: title || undefined,
-                album: album || undefined,
-                genre: genre || undefined,
-                year: year || undefined,
-              };
+                  ctx.session.tagEditor.tags = {
+                    artist: artist || undefined,
+                    title: title || undefined,
+                    album: album || undefined,
+                    genre: genre || undefined,
+                    year: year || undefined,
+                  };
 
-              ctx.session.tagEditor.currentTag = '';
+                  ctx.session.tagEditor.currentTag = '';
 
-              const firstReply = 'ℹ️ MP3 Info:\n\n'
-                + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-                + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-                + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-                + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-                + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-                + '\nWhich tag do you want to edit?';
+                  const firstReply = 'ℹ️ MP3 Info:\n\n'
+                      + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+                      + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+                      + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+                      + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+                      + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+                      + '\nWhich tag do you want to edit?';
 
-              return ctx.reply(firstReply, Markup
-                .keyboard([
-                  ['🗣 Artist', '🎵 Title'],
-                  ['🎼 Album', '🎹 Genre', '📅 Year'],
-                ])
-                .resize()
-                .extra());
+                  return ctx.reply(firstReply, Markup
+                    .keyboard([
+                      ['🗣 Artist', '🎵 Title'],
+                      ['🎼 Album', '🎹 Genre', '📅 Year'],
+                    ])
+                    .resize()
+                    .extra());
+                });
             })
+            .catch((err) => {
+              console.error(err.message);
+            })
+
             .catch((err) => {
               console.log(`Error downloading the music: ${err.name}: ${err.message}`);
             });
