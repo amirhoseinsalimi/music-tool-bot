@@ -1,5 +1,4 @@
 /**/
-const config = require('./config');
 
 /* Built-in Node.js modules */
 const fs = require('fs');
@@ -18,6 +17,7 @@ const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
+const config = require('./config');
 
 
 /* Global variables */
@@ -37,7 +37,7 @@ bot.startPolling();
 /* Bot commands */
 bot.start((ctx) => {
   const userId = ctx.update.message.from.id;
-  const username = ctx.update.message.from.username;
+  const { username } = ctx.update.message.from;
 
   /* Set initial status */
   ctx.session.status = ctx.session.status || {
@@ -187,6 +187,26 @@ bot.command('done', (ctx) => {
 });
 
 
+bot.command('preview', (ctx) => {
+  if (ctx.session.tagEditor) {
+    const musicPath = ctx.session.tagEditor.musicPath || undefined;
+
+    if (musicPath) {
+      return ctx.reply('ℹ️ MP3 Info:\n\n'
+          + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+          + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+          + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+          + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+          + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+          + '\nWhich tag do you want to edit?'
+          + '\n\nClick /done to save your changes.');
+    }
+    return ctx.reply(defaultMessage);
+  }
+  return ctx.reply(defaultMessage);
+});
+
+
 bot.on('text', (ctx) => {
   let message;
 
@@ -198,19 +218,19 @@ bot.on('text', (ctx) => {
 
       if (currentTag === 'artist') {
         ctx.session.tagEditor.tags.artist = ctx.update.message.text;
-        message = 'Artist name changed. If you\'re finished click /done';
+        message = 'Artist name changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
       } else if (currentTag === 'title') {
         ctx.session.tagEditor.tags.title = ctx.update.message.text;
-        message = 'Music title changed. If you\'re finished click /done';
+        message = 'Music title changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
       } else if (currentTag === 'album') {
         ctx.session.tagEditor.tags.album = ctx.update.message.text;
-        message = 'Album name changed. If you\'re finished click /done';
+        message = 'Album name changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
       } else if (currentTag === 'genre') {
         ctx.session.tagEditor.tags.genre = ctx.update.message.text;
-        message = 'Genre changed. If you\'re finished click /done';
+        message = 'Genre changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
       } else if (currentTag === 'year') {
         ctx.session.tagEditor.tags.year = ctx.update.message.text;
-        message = 'Year changed. If you\'re finished click /done';
+        message = 'Year changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
       }
     } else {
       message = 'Please select the tag you want to edit! 😅';
