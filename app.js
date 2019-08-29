@@ -1,3 +1,6 @@
+/**/
+const config = require('./config');
+
 /* Built-in Node.js modules */
 const fs = require('fs');
 
@@ -18,13 +21,12 @@ const LocalSession = require('telegraf-session-local');
 
 
 /* Global variables */
-const token = '932660872:AAGc1X8vwlyp88Vhwb1B7EDT9v5SJ2-VYH8';
 const dirname = `${__dirname}/user_data/`;
 const defaultMessage = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 
 
 /* Bot configuration */
-const bot = new Telegraf(token);
+const bot = new Telegraf(config.BOT_TOKEN);
 
 
 /* Middlewares configuration */
@@ -226,7 +228,7 @@ bot.on('audio', (ctx) => {
   const userId = ctx.update.message.from.id;
   const baseURL = 'https://api.telegram.org';
   const fileId = ctx.update.message.audio.file_id;
-  const url = `bot${token}/getFile?file_id=${fileId}`;
+  const url = `bot${config.BOT_TOKEN}/getFile?file_id=${fileId}`;
 
   axios({
     baseURL,
@@ -237,7 +239,7 @@ bot.on('audio', (ctx) => {
     .then((res) => {
       const filePath = res.data.result.file_path;
       const fileName = filePath.split('/')[1];
-      const url = `file/bot${token}/${filePath}`;
+      const url = `file/bot${config.BOT_TOKEN}/${filePath}`;
 
       axios({
         url,
@@ -250,8 +252,6 @@ bot.on('audio', (ctx) => {
             .then(() => {
               mm.parseFile(`${dirname}/${userId}/${fileName}`, { native: true })
                 .then((metadata) => {
-                  console.log(metadata.common);
-
                   const {
                     artist,
                     title,
