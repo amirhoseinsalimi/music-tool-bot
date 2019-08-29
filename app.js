@@ -7,6 +7,7 @@ const axios = require('axios');
 const download = require('download');
 const mkdirp = require('mkdirp');
 const NodeID3 = require('node-id3');
+const mm = require('music-metadata');
 
 
 /* Import Telegraf and its middlewares */
@@ -247,43 +248,51 @@ bot.on('audio', (ctx) => {
         .then(() => {
           download(`https://api.telegram.org/${url}`, `${dirname}/${userId}`)
             .then(() => {
-              const tags = NodeID3.read(`${dirname}/${userId}/${fileName}`);
-              const {
-                artist,
-                title,
-                album,
-                genre,
-                year,
-              } = tags;
+              mm.parseFile(`${dirname}/${userId}/${fileName}`, { native: true })
+                .then((metadata) => {
+                  console.log(metadata.common);
 
-              ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`;
+                  const {
+                    artist,
+                    title,
+                    album,
+                    genre,
+                    year,
+                  } = metadata.common;
 
-              ctx.session.tagEditor.tags = {
-                artist: artist || undefined,
-                title: title || undefined,
-                album: album || undefined,
-                genre: genre || undefined,
-                year: year || undefined,
-              };
+                  ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`;
 
-              ctx.session.tagEditor.currentTag = '';
+                  ctx.session.tagEditor.tags = {
+                    artist: artist || undefined,
+                    title: title || undefined,
+                    album: album || undefined,
+                    genre: genre || undefined,
+                    year: year || undefined,
+                  };
 
-              const firstReply = 'ℹ️ MP3 Info:\n\n'
-                + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-                + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-                + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-                + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-                + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-                + '\nWhich tag do you want to edit?';
+                  ctx.session.tagEditor.currentTag = '';
 
-              return ctx.reply(firstReply, Markup
-                .keyboard([
-                  ['🗣 Artist', '🎵 Title'],
-                  ['🎼 Album', '🎹 Genre', '📅 Year'],
-                ])
-                .resize()
-                .extra());
+                  const firstReply = 'ℹ️ MP3 Info:\n\n'
+                      + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+                      + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+                      + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+                      + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+                      + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+                      + '\nWhich tag do you want to edit?';
+
+                  return ctx.reply(firstReply, Markup
+                    .keyboard([
+                      ['🗣 Artist', '🎵 Title'],
+                      ['🎼 Album', '🎹 Genre', '📅 Year'],
+                    ])
+                    .resize()
+                    .extra());
+                });
             })
+            .catch((err) => {
+              console.error(err.message);
+            })
+
             .catch((err) => {
               console.log(`Error downloading the music: ${err.name}: ${err.message}`);
             });
