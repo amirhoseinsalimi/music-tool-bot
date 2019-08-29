@@ -37,6 +37,7 @@ bot.startPolling();
 /* Bot commands */
 bot.start((ctx) => {
   const userId = ctx.update.message.from.id;
+  const username = ctx.update.message.from.username;
 
   /* Set initial status */
   ctx.session.status = ctx.session.status || {
@@ -44,6 +45,7 @@ bot.start((ctx) => {
   };
   ctx.session.status.active = true;
   ctx.session.status.blocked = false;
+  ctx.session.status.name = username;
 
   /* Set initial stats */
   ctx.session.stats = ctx.session.stats || {
