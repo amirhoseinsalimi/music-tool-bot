@@ -73,7 +73,7 @@ bot.start((ctx) => {
     let message;
 
     if (err) {
-      console.log(`Error lunching the bot: ${err.name}: ${err.message}`);
+      console.log(`Error launching the bot: ${err.name}: ${err.message}`);
       message = 'Bot Error!';
     } else {
       message = 'Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!';
@@ -347,5 +347,5 @@ bot.launch()
     console.log('Bot started successfully!');
   })
   .catch((err) => {
-    console.log(`Error lunching the bot: ${err.name}: ${err.message}`);
+    console.log(`Error launching the bot: ${err.name}: ${err.message}`);
   });
