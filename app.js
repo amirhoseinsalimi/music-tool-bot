@@ -294,7 +294,7 @@ bot.on('audio', (ctx) => {
             .extra());
         }).catch((err) => {
           console.log(err);
-          ctx.reply(ERR_ON_DOWNLOAD_MESSAGE)
+          ctx.reply(ERR_ON_READING_TAGS)
             .then(() => {
             }).catch((err) => {
               console.log(err);
