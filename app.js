@@ -1,12 +1,9 @@
-/**/
 
 /* Built-in Node.js modules */
 const fs = require('fs');
 
 
 /* Third-part Node.js modules */
-const axios = require('axios');
-const download = require('download');
 const mkdirp = require('mkdirp');
 const NodeID3 = require('node-id3');
 const mm = require('music-metadata');
@@ -17,7 +14,8 @@ const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
-const config = require('./config');
+const downloader = require('./my_modules/downloader');
+const config = require('./my_modules/config');
 
 
 /* Global variables */
@@ -27,6 +25,11 @@ const defaultMessage = 'Send or forward me an audio track, an MP3 file or a musi
 
 /* Bot configuration */
 const bot = new Telegraf(config.BOT_TOKEN);
+
+/* Error Messages */
+const REPORT_BUG_MESSAGE = 'This bug will be reported and fixed very soon!';
+const ERR_ON_DOWNLOAD_MESSAGE = `Sorry, I could't download your file... That's my fault! ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_READING_TAGS = `Sorry, I could't read the tags of the file... That's my fault! ${REPORT_BUG_MESSAGE}`;
 
 
 /* Middlewares configuration */
@@ -247,85 +250,65 @@ bot.on('text', (ctx) => {
 bot.on('audio', (ctx) => {
   ctx.session.tagEditor = {};
 
-  const userId = ctx.update.message.from.id;
-  const baseURL = 'https://api.telegram.org';
   const fileId = ctx.update.message.audio.file_id;
   const url = `bot${config.BOT_TOKEN}/getFile?file_id=${fileId}`;
 
-  axios({
-    baseURL,
-    url,
-    method: 'get',
-    responseType: 'json',
-  })
-    .then((res) => {
-      const filePath = res.data.result.file_path;
-      const fileName = filePath.split('/')[1];
-      const url = `file/bot${config.BOT_TOKEN}/${filePath}`;
+  downloader(ctx, url, 'audio')
+    .then(({ downloadPath, fileName }) => {
+      mm.parseFile(`${downloadPath}/${fileName}`, { native: true })
+        .then((metadata) => {
+          const {
+            artist,
+            title,
+            album,
+            genre,
+            year,
+          } = metadata.common;
 
-      axios({
-        url,
-        method: 'get',
-        baseURL,
-        responseType: 'blob',
-      })
-        .then(() => {
-          download(`https://api.telegram.org/${url}`, `${dirname}/${userId}`)
+          ctx.session.tagEditor.musicPath = `${downloadPath}/${fileName}`;
+
+          ctx.session.tagEditor.tags = {
+            artist: artist || undefined,
+            title: title || undefined,
+            album: album || undefined,
+            genre: genre || undefined,
+            year: year || undefined,
+          };
+
+          ctx.session.tagEditor.currentTag = '';
+
+          const firstReply = 'ℹ️ MP3 Info:\n\n'
+                  + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+                  + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+                  + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+                  + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+                  + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+                  + '\nWhich tag do you want to edit?';
+
+          return ctx.reply(firstReply, Markup
+            .keyboard([
+              ['🗣 Artist', '🎵 Title'],
+              ['🎼 Album', '🎹 Genre', '📅 Year'],
+            ])
+            .resize()
+            .extra());
+        }).catch((err) => {
+          console.log(err);
+          ctx.reply(ERR_ON_DOWNLOAD_MESSAGE)
             .then(() => {
-              mm.parseFile(`${dirname}/${userId}/${fileName}`, { native: true })
-                .then((metadata) => {
-                  const {
-                    artist,
-                    title,
-                    album,
-                    genre,
-                    year,
-                  } = metadata.common;
-
-                  ctx.session.tagEditor.musicPath = `${dirname}/${userId}/${fileName}`;
-
-                  ctx.session.tagEditor.tags = {
-                    artist: artist || undefined,
-                    title: title || undefined,
-                    album: album || undefined,
-                    genre: genre || undefined,
-                    year: year || undefined,
-                  };
-
-                  ctx.session.tagEditor.currentTag = '';
-
-                  const firstReply = 'ℹ️ MP3 Info:\n\n'
-                      + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-                      + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-                      + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-                      + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-                      + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-                      + '\nWhich tag do you want to edit?';
-
-                  return ctx.reply(firstReply, Markup
-                    .keyboard([
-                      ['🗣 Artist', '🎵 Title'],
-                      ['🎼 Album', '🎹 Genre', '📅 Year'],
-                    ])
-                    .resize()
-                    .extra());
-                });
-            })
-            .catch((err) => {
-              console.error(err.message);
-            })
-
-            .catch((err) => {
-              console.log(`Error downloading the music: ${err.name}: ${err.message}`);
+            }).catch((err) => {
+              console.log(err);
             });
-        })
-        .catch((err) => {
-          console.log(`Error getting blob: ${err.name}: ${err.message}`);
         });
     })
-    .catch((err) => {
-      console.log(`Error getting JSON: ${err.name}: ${err.message}`);
-    });
+    .catch(((err) => {
+      console.log(err);
+      ctx.reply(ERR_ON_DOWNLOAD_MESSAGE)
+        .then(() => {
+        }).catch((err) => {
+          console.log(err);
+        });
+    }));
 });
 
 
