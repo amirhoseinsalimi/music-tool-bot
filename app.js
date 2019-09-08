@@ -201,14 +201,14 @@ bot.command('preview', (ctx) => {
     const musicPath = ctx.session.tagEditor.musicPath || undefined;
 
     if (musicPath) {
-      return ctx.reply('ℹ️ MP3 Info:\n\n'
+      return ctx.reply('ℹ️ Modified MP3 Info:\n\n'
         + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
         + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
         + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
         + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
         + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-        + `\n${ASK_WHICH_TAG}`
-        + `\n\n${CLICK_DONE_MESSAGE}`);
+        // + `\n${ASK_WHICH_TAG}`
+        + `\n${CLICK_DONE_MESSAGE} Or feel free to continue editing tags.`);
     }
     return ctx.reply(DEFAULT_MESSAGE);
   }
