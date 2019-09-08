@@ -231,8 +231,14 @@ bot.on('text', (ctx) => {
         ctx.session.tagEditor.tags.genre = ctx.update.message.text;
         message = 'Genre changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
       } else if (currentTag === 'year') {
-        ctx.session.tagEditor.tags.year = ctx.update.message.text;
-        message = 'Year changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+        const year = ctx.update.message.text;
+        ctx.session.tagEditor.tags.year = year;
+
+        if (Number.isNaN(Number(year))) {
+          message = 'You entered a string instead of a number. While this is not a problem, but I guess you entered this value by mistake. However, If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+        } else {
+          message = 'Year changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+        }
       }
     } else {
       message = 'Please select the tag you want to edit! 😅';
