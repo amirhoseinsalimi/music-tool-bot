@@ -26,6 +26,8 @@ const bot = new Telegraf(config.BOT_TOKEN);
 
 
 /* Messages */
+const START_MESSAGE = 'Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!';
+const HELP_MESSAGE = 'It\'s simple! Just send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 const DEFAULT_MESSAGE = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 const ASK_WHICH_TAG = 'Which tag do you want to edit?';
 const CLICK_PREVIEW_MESSAGE = 'If you want to preview your changes click /preview.';
@@ -76,14 +78,14 @@ bot.start((ctx) => {
       console.log(`Error launching the bot: ${err.name}: ${err.message}`);
       message = 'Bot Error!';
     } else {
-      message = 'Hello there! 👋\nLet\'s get started. Just send me a music and see how awesome I am!';
+      message = `${START_MESSAGE}`;
     }
 
     return ctx.reply(message, Extra.markup((m) => m.removeKeyboard()));
   });
 });
 
-bot.help((ctx) => ctx.reply('It\'s simple! Just send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁'));
+bot.help((ctx) => ctx.reply(`${HELP_MESSAGE}`));
 
 
 bot.hears('🗣 Artist', (ctx) => {
