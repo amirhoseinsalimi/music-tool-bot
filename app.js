@@ -25,6 +25,13 @@ const defaultMessage = 'Send or forward me an audio track, an MP3 file or a musi
 /* Bot configuration */
 const bot = new Telegraf(config.BOT_TOKEN);
 
+
+/* Messages */
+const CLICK_PREVIEW_MESSAGE = 'If you want to preview your changes click /preview.';
+const CLICK_DONE_MESSAGE = 'Click /done to save your changes.';
+const ASK_WHICH_TAG = 'Which tag do you want to edit?';
+
+
 /* Error Messages */
 const REPORT_BUG_MESSAGE = 'This bug will be reported and fixed very soon!';
 const ERR_ON_DOWNLOAD_MESSAGE = `Sorry, I could't download your file... That's my fault! ${REPORT_BUG_MESSAGE}`;
@@ -195,13 +202,13 @@ bot.command('preview', (ctx) => {
 
     if (musicPath) {
       return ctx.reply('ℹ️ MP3 Info:\n\n'
-          + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-          + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-          + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-          + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-          + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-          + '\nWhich tag do you want to edit?'
-          + '\n\nClick /done to save your changes.');
+        + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+        + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+        + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+        + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+        + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+        + `\n${ASK_WHICH_TAG}`
+        + `\n\n${CLICK_DONE_MESSAGE}`);
     }
     return ctx.reply(defaultMessage);
   }
@@ -220,24 +227,24 @@ bot.on('text', (ctx) => {
 
       if (currentTag === 'artist') {
         ctx.session.tagEditor.tags.artist = ctx.update.message.text;
-        message = 'Artist name changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+        message = `Artist name changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
       } else if (currentTag === 'title') {
         ctx.session.tagEditor.tags.title = ctx.update.message.text;
-        message = 'Music title changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+        message = `Title name changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
       } else if (currentTag === 'album') {
         ctx.session.tagEditor.tags.album = ctx.update.message.text;
-        message = 'Album name changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+        message = `Album name changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
       } else if (currentTag === 'genre') {
         ctx.session.tagEditor.tags.genre = ctx.update.message.text;
-        message = 'Genre changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+        message = `Genre changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
       } else if (currentTag === 'year') {
         const year = ctx.update.message.text;
         ctx.session.tagEditor.tags.year = year;
 
         if (Number.isNaN(Number(year))) {
-          message = 'You entered a string instead of a number. While this is not a problem, but I guess you entered this value by mistake. However, If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+          message = `You entered a string instead of a number. While this is not a problem, I guess you entered this input by mistake. However, ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         } else {
-          message = 'Year changed. If you want to preview your changes click /preview.\n\nClick /done to save your changes.';
+          message = `Year changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         }
       }
     } else {
@@ -283,12 +290,12 @@ bot.on('audio', (ctx) => {
           ctx.session.tagEditor.currentTag = '';
 
           const firstReply = 'ℹ️ MP3 Info:\n\n'
-                  + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-                  + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-                  + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-                  + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-                  + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-                  + '\nWhich tag do you want to edit?';
+            + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+            + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+            + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+            + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+            + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+            + `\n${ASK_WHICH_TAG}`;
 
           return ctx.reply(firstReply, Markup
             .keyboard([
