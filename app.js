@@ -19,7 +19,6 @@ const config = require('./my_modules/config');
 
 /* Global variables */
 const dirname = `${__dirname}/user_data/`;
-const defaultMessage = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 
 
 /* Bot configuration */
@@ -27,9 +26,10 @@ const bot = new Telegraf(config.BOT_TOKEN);
 
 
 /* Messages */
+const DEFAULT_MESSAGE = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
+const ASK_WHICH_TAG = 'Which tag do you want to edit?';
 const CLICK_PREVIEW_MESSAGE = 'If you want to preview your changes click /preview.';
 const CLICK_DONE_MESSAGE = 'Click /done to save your changes.';
-const ASK_WHICH_TAG = 'Which tag do you want to edit?';
 
 
 /* Error Messages */
@@ -90,7 +90,7 @@ bot.hears('🗣 Artist', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
-    message = defaultMessage;
+    message = DEFAULT_MESSAGE;
   } else {
     ctx.session.tagEditor.currentTag = 'artist';
     message = 'Enter the name of the Artist:';
@@ -103,7 +103,7 @@ bot.hears('🎵 Title', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
-    message = defaultMessage;
+    message = DEFAULT_MESSAGE;
   } else {
     ctx.session.tagEditor.currentTag = 'title';
     message = 'Enter the Title of the music:';
@@ -116,7 +116,7 @@ bot.hears('🎼 Album', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
-    message = defaultMessage;
+    message = DEFAULT_MESSAGE;
   } else {
     ctx.session.tagEditor.currentTag = 'album';
     message = 'Enter the name of the Album:';
@@ -129,7 +129,7 @@ bot.hears('🎹 Genre', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
-    message = defaultMessage;
+    message = DEFAULT_MESSAGE;
   } else {
     ctx.session.tagEditor.currentTag = 'genre';
     message = 'Enter the Genre:';
@@ -142,7 +142,7 @@ bot.hears('📅 Year', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
-    message = defaultMessage;
+    message = DEFAULT_MESSAGE;
   } else {
     ctx.session.tagEditor.currentTag = 'year';
     message = 'Enter the publish Year:';
@@ -188,10 +188,10 @@ bot.command('done', (ctx) => {
         });
       });
     } else {
-      return ctx.reply(defaultMessage);
+      return ctx.reply(DEFAULT_MESSAGE);
     }
   } else {
-    return ctx.reply(defaultMessage);
+    return ctx.reply(DEFAULT_MESSAGE);
   }
 });
 
@@ -210,9 +210,9 @@ bot.command('preview', (ctx) => {
         + `\n${ASK_WHICH_TAG}`
         + `\n\n${CLICK_DONE_MESSAGE}`);
     }
-    return ctx.reply(defaultMessage);
+    return ctx.reply(DEFAULT_MESSAGE);
   }
-  return ctx.reply(defaultMessage);
+  return ctx.reply(DEFAULT_MESSAGE);
 });
 
 
@@ -220,7 +220,7 @@ bot.on('text', (ctx) => {
   let message;
 
   if (!ctx.session.tagEditor) {
-    message = defaultMessage;
+    message = DEFAULT_MESSAGE;
   } else if (ctx.session.tagEditor) {
     if (ctx.session.tagEditor.currentTag) {
       const { currentTag } = ctx.session.tagEditor;
@@ -251,7 +251,7 @@ bot.on('text', (ctx) => {
       message = 'Please select the tag you want to edit! 😅';
     }
   } else {
-    message = defaultMessage;
+    message = DEFAULT_MESSAGE;
   }
 
   return ctx.reply(message);
@@ -338,7 +338,7 @@ bot.on([
   'location',
   'poll',
   'venue',
-], (ctx) => ctx.reply(defaultMessage));
+], (ctx) => ctx.reply(DEFAULT_MESSAGE));
 
 
 /* Launch bot! */
