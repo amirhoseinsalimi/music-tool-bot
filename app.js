@@ -1,4 +1,3 @@
-
 /* Built-in Node.js modules */
 const fs = require('fs');
 
@@ -331,6 +330,9 @@ bot.on([
 
 /* Launch bot! */
 bot.launch()
+  .then(() => {
+    console.log('Bot started successfully!');
+  })
   .catch((err) => {
     console.log(`Error lunching the bot: ${err.name}: ${err.message}`);
   });
