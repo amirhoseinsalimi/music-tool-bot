@@ -37,15 +37,15 @@ const downloader = (ctx, url, fileType) => new Promise((resolve, reject) => {
               });
             })
             .catch((err) => {
-              reject(new Error(`Error downloading the music: ${err.name}: ${err.message}`));
+              reject(new Error(`Error downloading the file: ${err.name}: ${err.message}`));
             });
         })
         .catch((err) => {
-          reject(new Error(`Error downloading the music: ${err.name}: ${err.message}`));
+          reject(new Error(`Error downloading the file: ${err.name}: ${err.message}`));
         });
     })
     .catch((err) => {
-      reject(new Error(`Error downloading the music: ${err.name}: ${err.message}`));
+      reject(new Error(`Error downloading the file: ${err.name}: ${err.message}`));
     });
 });
 
