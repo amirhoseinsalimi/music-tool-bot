@@ -7,7 +7,7 @@ const BASE_DIR = `${__dirname}/../user_data/`;
 
 const downloader = (ctx, fileType) => new Promise((resolve, reject) => {
   const userId = ctx.update.message.from.id;
-  const fileId = ctx.update.message[fileType].file_id;
+  const fileId = fileType === 'photo' ? ctx.update.message[fileType][0].file_id : ctx.update.message[fileType].file_id;
   const url = `bot${config.BOT_TOKEN}/getFile?file_id=${fileId}`;
 
   axios({
