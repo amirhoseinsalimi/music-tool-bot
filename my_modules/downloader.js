@@ -5,7 +5,7 @@ const config = require('./config');
 const BASE_URL = 'https://api.telegram.org';
 const BASE_DIR = `${__dirname}/../user_data/`;
 
-const downloader = (ctx, url, fileType) => new Promise((resolve, reject) => {
+const downloader = (ctx, fileType) => new Promise((resolve, reject) => {
   const userId = ctx.update.message.from.id;
   const fileId = ctx.update.message[fileType].file_id;
   const url = `bot${config.BOT_TOKEN}/getFile?file_id=${fileId}`;

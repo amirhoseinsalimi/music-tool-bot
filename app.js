@@ -264,10 +264,7 @@ bot.on('text', (ctx) => {
 bot.on('audio', (ctx) => {
   ctx.session.tagEditor = {};
 
-  const fileId = ctx.update.message.audio.file_id;
-  const url = `bot${config.BOT_TOKEN}/getFile?file_id=${fileId}`;
-
-  downloader(ctx, url, 'audio')
+  downloader(ctx, 'audio')
     .then(({ downloadPath, fileName }) => {
       mm.parseFile(`${downloadPath}/${fileName}`, { native: true })
         .then((metadata) => {
