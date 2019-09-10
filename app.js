@@ -14,6 +14,7 @@ const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
 const downloader = require('./my_modules/downloader');
+const albumArter = require('./my_modules/album-arter');
 const config = require('./my_modules/config');
 
 
@@ -350,6 +351,53 @@ bot.on('audio', (ctx) => {
 });
 
 
+bot.on('photo', (ctx) => {
+  let message = DEFAULT_MESSAGE;
+
+  if (ctx.session.tagEditor) {
+    if (ctx.session.tagEditor.currentTag) {
+      if (ctx.session.tagEditor.currentTag === 'album-art') {
+        ctx.session.tagEditor.tags.albumArt.tempAlbumArt = '';
+
+        downloader(ctx, 'photo')
+          .then(({ downloadPath, fileName }) => {
+            ctx.session.tagEditor.tags.albumArt = {
+              tempAlbumArt: `${downloadPath}/${fileName}`,
+            };
+
+            message = `Album art changed! ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+            return ctx.reply(message)
+              .then(() => {
+              }).catch((err) => {
+                console.error(err);
+              });
+          })
+          .catch(((err) => {
+            console.error(err);
+            return ctx.reply(ERR_ON_DOWNLOAD_PHOTO_MESSAGE)
+              .then(() => {
+              }).catch((err) => {
+                console.error(err);
+              });
+          }));
+      } else {
+        message = DEFAULT_MESSAGE;
+      }
+    } else {
+      message = DEFAULT_MESSAGE;
+    }
+  } else {
+    message = DEFAULT_MESSAGE;
+  }
+
+  return ctx.reply(message)
+    .then(() => {
+    }).catch((err) => {
+      console.error(err);
+    });
+});
+
+
 /* Replies to anything except audio files */
 bot.on([
   'video',
@@ -357,7 +405,6 @@ bot.on([
   'document',
   'game',
   'animation',
-  'photo',
   'sticker',
   'voice',
   'contact',
