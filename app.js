@@ -156,6 +156,19 @@ bot.hears('📅 Year', (ctx) => {
   return ctx.reply(message);
 });
 
+bot.hears('🖼 Album Art', (ctx) => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = DEFAULT_MESSAGE;
+  } else {
+    ctx.session.tagEditor.currentTag = 'album-art';
+    message = 'Now send me a photo:';
+  }
+
+  return ctx.reply(message);
+});
+
 bot.command('done', (ctx) => {
   if (ctx.session.tagEditor) {
     const tags = ctx.session.tagEditor.tags || undefined;
@@ -212,6 +225,7 @@ bot.command('preview', (ctx) => {
         + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
         + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
         + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+        + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists}\n`
         // + `\n${ASK_WHICH_TAG}`
         + `\n${CLICK_DONE_MESSAGE} Or feel free to continue editing tags.`);
     }
@@ -266,6 +280,11 @@ bot.on('text', (ctx) => {
 /* Catch Audio files */
 bot.on('audio', (ctx) => {
   ctx.session.tagEditor = {};
+  ctx.session.tagEditor.tags = {};
+  ctx.session.tagEditor.tags.albumArt = {
+    exists: false,
+    data: '',
+  };
 
   downloader(ctx, 'audio')
     .then(({ downloadPath, fileName }) => {
@@ -289,6 +308,10 @@ bot.on('audio', (ctx) => {
             year: year || undefined,
           };
 
+          ctx.session.tagEditor.tags.albumArt = {
+            exists: albumArter.hasAlbumArt(metadata),
+            data: albumArter.extractAlbumArt(ctx, metadata).then((result) => `${result.path}/${result.fileName}`),
+          };
           ctx.session.tagEditor.currentTag = '';
 
           const firstReply = 'ℹ️ MP3 Info:\n\n'
@@ -297,12 +320,13 @@ bot.on('audio', (ctx) => {
             + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
             + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
             + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+            + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
             + `\n${ASK_WHICH_TAG}`;
 
           return ctx.reply(firstReply, Markup
             .keyboard([
-              ['🗣 Artist', '🎵 Title'],
-              ['🎼 Album', '🎹 Genre', '📅 Year'],
+              ['🗣 Artist', '🎵 Title', '🎼 Album'],
+              ['🎹 Genre', '📅 Year', '🖼 Album Art'],
             ])
             .resize()
             .extra());
