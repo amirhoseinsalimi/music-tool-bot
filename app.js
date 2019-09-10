@@ -35,9 +35,12 @@ const CLICK_DONE_MESSAGE = 'Click /done to save your changes.';
 
 
 /* Error Messages */
-const REPORT_BUG_MESSAGE = 'This bug will be reported and fixed very soon!';
-const ERR_ON_DOWNLOAD_MESSAGE = `Sorry, I could't download your file... That's my fault! ${REPORT_BUG_MESSAGE}`;
-const ERR_ON_READING_TAGS = `Sorry, I could't read the tags of the file... That's my fault! ${REPORT_BUG_MESSAGE}`;
+const REPORT_BUG_MESSAGE = 'That\'s my fault!. This bug will be reported and fixed very soon!';
+const REPORT_CREATING_USER_FOLDER = `Error initializing myself for you... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_DOWNLOAD_MP3_MESSAGE = `Sorry, I could't download your file... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_DOWNLOAD_PHOTO_MESSAGE = `Sorry, I could't download your file... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_READING_TAGS = `Sorry, I could't read the tags of the file... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_UPDATING_TAGS = `Sorry, I could't tags the tags of the file... ${REPORT_BUG_MESSAGE}`;
 
 
 /* Middlewares configuration */
@@ -75,17 +78,17 @@ bot.start((ctx) => {
     let message;
 
     if (err) {
-      console.log(`Error launching the bot: ${err.name}: ${err.message}`);
-      message = 'Bot Error!';
+      console.error(`Error creating user directory: ${err.name}: ${err.message}`);
+      message = REPORT_CREATING_USER_FOLDER;
     } else {
-      message = `${START_MESSAGE}`;
+      message = START_MESSAGE;
     }
 
     return ctx.reply(message, Extra.markup((m) => m.removeKeyboard()));
   });
 });
 
-bot.help((ctx) => ctx.reply(`${HELP_MESSAGE}`));
+bot.help((ctx) => ctx.reply(HELP_MESSAGE));
 
 
 bot.hears('🗣 Artist', (ctx) => {
@@ -161,13 +164,13 @@ bot.command('done', (ctx) => {
     if (musicPath) {
       fs.readFile(musicPath, (err) => {
         if (err) {
-          console.log(`Error reading the file: ${err.name}: ${err.message}`);
+          console.error(`Error reading the file: ${err.name}: ${err.message}`);
           return ctx.reply('Oops! Did you forget to send me a file? 🤔');
         }
         NodeID3.update(tags, musicPath, (err) => {
           if (err) {
-            console.log(`Error updating tags: ${err.name}: ${err.message}`);
-            return ctx.reply('Bot Error!');
+            console.error(`Error updating tags: ${err.name}: ${err.message}`);
+            return ctx.reply(ERR_ON_UPDATING_TAGS);
           }
           ctx.telegram.sendDocument(ctx.from.id, {
             source: musicPath,
@@ -179,13 +182,13 @@ bot.command('done', (ctx) => {
 
               fs.unlink(musicPath, (err) => {
                 if (err) {
-                  console.log(`Error deleting the file: ${err.name}: ${err.message}`);
+                  console.error(`Error deleting the file: ${err.name}: ${err.message}`);
                 }
                 console.log('Finished!');
               });
             })
             .catch((err) => {
-              console.log(`Error reading the file: ${err.name}: ${err.message}`);
+              console.error(`Error reading the file: ${err.name}: ${err.message}`);
             });
         });
       });
@@ -304,20 +307,20 @@ bot.on('audio', (ctx) => {
             .resize()
             .extra());
         }).catch((err) => {
-          console.log(err);
+          console.error(`Error reading tags: ${err.name}: ${err.message}`);
           ctx.reply(ERR_ON_READING_TAGS)
             .then(() => {
             }).catch((err) => {
-              console.log(err);
+              console.error(err);
             });
         });
     })
     .catch(((err) => {
-      console.log(err);
-      ctx.reply(ERR_ON_DOWNLOAD_MESSAGE)
+      console.error(err);
+      ctx.reply(ERR_ON_DOWNLOAD_MP3_MESSAGE)
         .then(() => {
         }).catch((err) => {
-          console.log(err);
+          console.error(err);
         });
     }));
 });
@@ -346,5 +349,5 @@ bot.launch()
     console.log('Bot started successfully!');
   })
   .catch((err) => {
-    console.log(`Error launching the bot: ${err.name}: ${err.message}`);
+    console.error(`Error launching the bot: ${err.name}: ${err.message}`);
   });
