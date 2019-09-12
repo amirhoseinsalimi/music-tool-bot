@@ -311,8 +311,9 @@ bot.on('audio', (ctx) => {
 
           ctx.session.tagEditor.tags.albumArt = {
             exists: albumArter.hasAlbumArt(metadata),
-            data: albumArter.extractAlbumArt(ctx, metadata).then((result) => `${result.path}/${result.fileName}`),
+            data: `${albumArter.extractAlbumArt(ctx, metadata).path}`,
           };
+
           ctx.session.tagEditor.currentTag = '';
 
           const firstReply = 'ℹ️ MP3 Info:\n\n'

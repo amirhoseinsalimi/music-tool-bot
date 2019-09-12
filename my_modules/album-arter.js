@@ -8,31 +8,38 @@ const BASE_DIR = `${__dirname}/../user_data`;
 const hasAlbumArt = (metadata) => (isPng(metadata.common.picture[0].data
                                   || isJpg(metadata.common.picture[0].data)));
 
-const extractAlbumArt = (ctx, metadata) => new Promise((resolve, reject) => {
+const extractAlbumArt = (ctx, metadata) => {
   if (!hasAlbumArt(metadata)) {
-    resolve({
+    return {
       message: 'No album art!',
       path: undefined,
       fileName: undefined,
-    });
-  } else {
-    const userId = ctx.update.message.from.id;
-    const albumArt = metadata.common.picture[0].data;
-    const fileName = `${BASE_DIR}/${userId}/album-art.${isPng(albumArt) ? 'png' : 'jpg'}`;
-
-    fs.writeFile(fileName, albumArt, (err) => {
-      if (err) {
-        reject(new Error(`Error creating a temp album art: ${err.name}: ${err.message}`));
-      } else {
-        resolve({
-          message: `Album art successfully extracted to ${BASE_DIR}/${userId}`,
-          path: `${BASE_DIR}/${userId}`,
-          fileName,
-        });
-      }
-    });
+    };
   }
-});
+  const userId = ctx.update.message.from.id;
+  const albumArt = metadata.common.picture[0].data;
+  const fileName = `${BASE_DIR}/${userId}/album-art.${isPng(albumArt) ? 'png' : 'jpg'}`;
+
+  // fs.writeFile(fileName, albumArt, (err) => {
+  //   if (err) {
+  //     // reject(new Error(`Error creating a temp album art: ${err.name}: ${err.message}`));
+  //   } else {
+  //     return {
+  //       message: `Album art successfully extracted to ${BASE_DIR}/${userId}`,
+  //       path: `${BASE_DIR}/${userId}/${fileName}`,
+  //       fileName,
+  //     };
+  //   }
+  // });
+
+  fs.writeFileSync(fileName, albumArt);
+
+  return {
+    message: `Album art successfully extracted to ${BASE_DIR}/${userId}`,
+    path: `${BASE_DIR}/${userId}/${fileName}`,
+    fileName,
+  };
+};
 
 function updateAlbumArt(musicPath, albumArtPath) {
   return new Promise((resolve, reject) => {
