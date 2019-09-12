@@ -14,6 +14,7 @@ const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
 const downloader = require('./my_modules/downloader');
+const albumArter = require('./my_modules/album-arter');
 const config = require('./my_modules/config');
 
 
@@ -30,14 +31,18 @@ const START_MESSAGE = 'Hello there! 👋\nLet\'s get started. Just send me a mus
 const HELP_MESSAGE = 'It\'s simple! Just send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 const DEFAULT_MESSAGE = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 const ASK_WHICH_TAG = 'Which tag do you want to edit?';
+const EXPECTED_NUMBER_MESSAGE = 'You entered a string instead of a number. Although this is not a problem, I guess you entered this input by mistake.';
 const CLICK_PREVIEW_MESSAGE = 'If you want to preview your changes click /preview.';
 const CLICK_DONE_MESSAGE = 'Click /done to save your changes.';
 
 
 /* Error Messages */
-const REPORT_BUG_MESSAGE = 'This bug will be reported and fixed very soon!';
-const ERR_ON_DOWNLOAD_MESSAGE = `Sorry, I could't download your file... That's my fault! ${REPORT_BUG_MESSAGE}`;
-const ERR_ON_READING_TAGS = `Sorry, I could't read the tags of the file... That's my fault! ${REPORT_BUG_MESSAGE}`;
+const REPORT_BUG_MESSAGE = 'That\'s my fault!. This bug will be reported and fixed very soon!';
+const REPORT_CREATING_USER_FOLDER = `Error initializing myself for you... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_DOWNLOAD_MP3_MESSAGE = `Sorry, I could't download your file... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_DOWNLOAD_PHOTO_MESSAGE = `Sorry, I could't download your file... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_READING_TAGS = `Sorry, I could't read the tags of the file... ${REPORT_BUG_MESSAGE}`;
+const ERR_ON_UPDATING_TAGS = `Sorry, I could't tags the tags of the file... ${REPORT_BUG_MESSAGE}`;
 
 
 /* Middlewares configuration */
@@ -75,17 +80,17 @@ bot.start((ctx) => {
     let message;
 
     if (err) {
-      console.log(`Error launching the bot: ${err.name}: ${err.message}`);
-      message = 'Bot Error!';
+      console.error(`Error creating user directory: ${err.name}: ${err.message}`);
+      message = REPORT_CREATING_USER_FOLDER;
     } else {
-      message = `${START_MESSAGE}`;
+      message = START_MESSAGE;
     }
 
     return ctx.reply(message, Extra.markup((m) => m.removeKeyboard()));
   });
 });
 
-bot.help((ctx) => ctx.reply(`${HELP_MESSAGE}`));
+bot.help((ctx) => ctx.reply(HELP_MESSAGE));
 
 
 bot.hears('🗣 Artist', (ctx) => {
@@ -153,6 +158,19 @@ bot.hears('📅 Year', (ctx) => {
   return ctx.reply(message);
 });
 
+bot.hears('🖼 Album Art', (ctx) => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = DEFAULT_MESSAGE;
+  } else {
+    ctx.session.tagEditor.currentTag = 'album-art';
+    message = 'Now send me a photo:';
+  }
+
+  return ctx.reply(message);
+});
+
 bot.command('done', (ctx) => {
   if (ctx.session.tagEditor) {
     const tags = ctx.session.tagEditor.tags || undefined;
@@ -161,32 +179,41 @@ bot.command('done', (ctx) => {
     if (musicPath) {
       fs.readFile(musicPath, (err) => {
         if (err) {
-          console.log(`Error reading the file: ${err.name}: ${err.message}`);
+          console.error(`Error reading the file: ${err.name}: ${err.message}`);
           return ctx.reply('Oops! Did you forget to send me a file? 🤔');
         }
         NodeID3.update(tags, musicPath, (err) => {
           if (err) {
-            console.log(`Error updating tags: ${err.name}: ${err.message}`);
-            return ctx.reply('Bot Error!');
+            console.error(`Error updating tags: ${err.name}: ${err.message}`);
+            return ctx.reply(ERR_ON_UPDATING_TAGS);
           }
-          ctx.telegram.sendDocument(ctx.from.id, {
-            source: musicPath,
-            filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
-          }, Extra.markup((m) => m.removeKeyboard()))
-            .then(() => {
-              ctx.session.stats.tagEditor++;
-              ctx.session.tagEditor = null;
 
-              fs.unlink(musicPath, (err) => {
-                if (err) {
-                  console.log(`Error deleting the file: ${err.name}: ${err.message}`);
-                }
-                console.log('Finished!');
+          const image = { image: ctx.session.tagEditor.tags.albumArt.tempAlbumArt };
+
+          NodeID3.update(image, musicPath, (err) => {
+            if (err) {
+              console.error(`Error updating tags: ${err.name}: ${err.message}`);
+              return ctx.reply(ERR_ON_UPDATING_TAGS);
+            }
+
+            ctx.telegram.sendDocument(ctx.from.id, {
+              source: musicPath,
+              filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
+            }, Extra.markup((m) => m.removeKeyboard()))
+              .then(() => {
+                ctx.session.stats.tagEditor++;
+                ctx.session.tagEditor = null;
+
+                fs.unlink(musicPath, (err) => {
+                  if (err) {
+                    console.error(`Error deleting the file: ${err.name}: ${err.message}`);
+                  }
+                });
+              })
+              .catch((err) => {
+                console.error(`Error reading the file: ${err.name}: ${err.message}`);
               });
-            })
-            .catch((err) => {
-              console.log(`Error reading the file: ${err.name}: ${err.message}`);
-            });
+          });
         });
       });
     } else {
@@ -209,6 +236,7 @@ bot.command('preview', (ctx) => {
         + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
         + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
         + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+        + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists}\n`
         // + `\n${ASK_WHICH_TAG}`
         + `\n${CLICK_DONE_MESSAGE} Or feel free to continue editing tags.`);
     }
@@ -241,10 +269,10 @@ bot.on('text', (ctx) => {
         message = `Genre changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
       } else if (currentTag === 'year') {
         const year = ctx.update.message.text;
-        ctx.session.tagEditor.tags.year = year;
+        ctx.session.tagEditor.tags.year = ctx.update.message.text;
 
         if (Number.isNaN(Number(year))) {
-          message = `You entered a string instead of a number. While this is not a problem, I guess you entered this input by mistake. However, ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+          message = `${EXPECTED_NUMBER_MESSAGE} ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         } else {
           message = `Year changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         }
@@ -263,11 +291,13 @@ bot.on('text', (ctx) => {
 /* Catch Audio files */
 bot.on('audio', (ctx) => {
   ctx.session.tagEditor = {};
+  ctx.session.tagEditor.tags = {};
+  ctx.session.tagEditor.tags.albumArt = {
+    exists: false,
+    data: '',
+  };
 
-  const fileId = ctx.update.message.audio.file_id;
-  const url = `bot${config.BOT_TOKEN}/getFile?file_id=${fileId}`;
-
-  downloader(ctx, url, 'audio')
+  downloader(ctx, 'audio')
     .then(({ downloadPath, fileName }) => {
       mm.parseFile(`${downloadPath}/${fileName}`, { native: true })
         .then((metadata) => {
@@ -289,6 +319,11 @@ bot.on('audio', (ctx) => {
             year: year || undefined,
           };
 
+          ctx.session.tagEditor.tags.albumArt = {
+            exists: albumArter.hasAlbumArt(metadata),
+            data: `${albumArter.extractAlbumArt(ctx, metadata).path}`,
+          };
+
           ctx.session.tagEditor.currentTag = '';
 
           const firstReply = 'ℹ️ MP3 Info:\n\n'
@@ -297,32 +332,80 @@ bot.on('audio', (ctx) => {
             + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
             + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
             + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+            + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
             + `\n${ASK_WHICH_TAG}`;
 
           return ctx.reply(firstReply, Markup
             .keyboard([
-              ['🗣 Artist', '🎵 Title'],
-              ['🎼 Album', '🎹 Genre', '📅 Year'],
+              ['🗣 Artist', '🎵 Title', '🎼 Album'],
+              ['🎹 Genre', '📅 Year', '🖼 Album Art'],
             ])
             .resize()
             .extra());
         }).catch((err) => {
-          console.log(err);
+          console.error(`Error reading tags: ${err.name}: ${err.message}`);
           ctx.reply(ERR_ON_READING_TAGS)
             .then(() => {
             }).catch((err) => {
-              console.log(err);
+              console.error(err);
             });
         });
     })
     .catch(((err) => {
-      console.log(err);
-      ctx.reply(ERR_ON_DOWNLOAD_MESSAGE)
+      console.error(err);
+      ctx.reply(ERR_ON_DOWNLOAD_MP3_MESSAGE)
         .then(() => {
         }).catch((err) => {
-          console.log(err);
+          console.error(err);
         });
     }));
+});
+
+
+bot.on('photo', (ctx) => {
+  let message = DEFAULT_MESSAGE;
+
+  if (ctx.session.tagEditor) {
+    if (ctx.session.tagEditor.currentTag) {
+      if (ctx.session.tagEditor.currentTag === 'album-art') {
+        ctx.session.tagEditor.tags.albumArt.tempAlbumArt = '';
+
+        downloader(ctx, 'photo')
+          .then(({ downloadPath, fileName }) => {
+            ctx.session.tagEditor.tags.albumArt = {
+              tempAlbumArt: `${downloadPath}/${fileName}`,
+            };
+
+            message = `Album art changed! ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+            return ctx.reply(message)
+              .then(() => {
+              }).catch((err) => {
+                console.error(err);
+              });
+          })
+          .catch(((err) => {
+            console.error(err);
+            return ctx.reply(ERR_ON_DOWNLOAD_PHOTO_MESSAGE)
+              .then(() => {
+              }).catch((err) => {
+                console.error(err);
+              });
+          }));
+      } else {
+        message = DEFAULT_MESSAGE;
+      }
+    } else {
+      message = DEFAULT_MESSAGE;
+    }
+  } else {
+    message = DEFAULT_MESSAGE;
+  }
+
+  return ctx.reply(message)
+    .then(() => {
+    }).catch((err) => {
+      console.error(err);
+    });
 });
 
 
@@ -333,7 +416,6 @@ bot.on([
   'document',
   'game',
   'animation',
-  'photo',
   'sticker',
   'voice',
   'contact',
@@ -349,5 +431,5 @@ bot.launch()
     console.log('Bot started successfully!');
   })
   .catch((err) => {
-    console.log(`Error launching the bot: ${err.name}: ${err.message}`);
+    console.error(`Error launching the bot: ${err.name}: ${err.message}`);
   });
