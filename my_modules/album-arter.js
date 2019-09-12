@@ -3,7 +3,7 @@ const mm = require('music-metadata');
 const isPng = require('is-png');
 const isJpg = require('is-jpg');
 
-const BASE_DIR = `${__dirname}/../user_data/`;
+const BASE_DIR = `${__dirname}/../user_data`;
 
 const hasAlbumArt = (metadata) => (isPng(metadata.common.picture[0].data
                                   || isJpg(metadata.common.picture[0].data)));

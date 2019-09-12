@@ -3,7 +3,7 @@ const axios = require('axios');
 const config = require('./config');
 
 const BASE_URL = 'https://api.telegram.org';
-const BASE_DIR = `${__dirname}/../user_data/`;
+const BASE_DIR = `${__dirname}/../user_data`;
 
 const downloader = (ctx, fileType) => new Promise((resolve, reject) => {
   const userId = ctx.update.message.from.id;
