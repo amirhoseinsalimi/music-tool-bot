@@ -186,24 +186,33 @@ bot.command('done', (ctx) => {
             console.error(`Error updating tags: ${err.name}: ${err.message}`);
             return ctx.reply(ERR_ON_UPDATING_TAGS);
           }
-          ctx.telegram.sendDocument(ctx.from.id, {
-            source: musicPath,
-            filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
-          }, Extra.markup((m) => m.removeKeyboard()))
-            .then(() => {
-              ctx.session.stats.tagEditor++;
-              ctx.session.tagEditor = null;
 
-              fs.unlink(musicPath, (err) => {
-                if (err) {
-                  console.error(`Error deleting the file: ${err.name}: ${err.message}`);
-                }
-                console.log('Finished!');
+          const image = { image: ctx.session.tagEditor.tags.albumArt.tempAlbumArt };
+
+          NodeID3.update(image, musicPath, (err) => {
+            if (err) {
+              console.error(`Error updating tags: ${err.name}: ${err.message}`);
+              return ctx.reply(ERR_ON_UPDATING_TAGS);
+            }
+
+            ctx.telegram.sendDocument(ctx.from.id, {
+              source: musicPath,
+              filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
+            }, Extra.markup((m) => m.removeKeyboard()))
+              .then(() => {
+                ctx.session.stats.tagEditor++;
+                ctx.session.tagEditor = null;
+
+                fs.unlink(musicPath, (err) => {
+                  if (err) {
+                    console.error(`Error deleting the file: ${err.name}: ${err.message}`);
+                  }
+                });
+              })
+              .catch((err) => {
+                console.error(`Error reading the file: ${err.name}: ${err.message}`);
               });
-            })
-            .catch((err) => {
-              console.error(`Error reading the file: ${err.name}: ${err.message}`);
-            });
+          });
         });
       });
     } else {
@@ -259,7 +268,7 @@ bot.on('text', (ctx) => {
         message = `Genre changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
       } else if (currentTag === 'year') {
         const year = ctx.update.message.text;
-        ctx.session.tagEditor.tags.year = year;
+        ctx.session.tagEditor.tags.year = ctx.update.message.text;
 
         if (Number.isNaN(Number(year))) {
           message = `You entered a string instead of a number. While this is not a problem, I guess you entered this input by mistake. However, ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
