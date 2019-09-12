@@ -31,6 +31,7 @@ const START_MESSAGE = 'Hello there! 👋\nLet\'s get started. Just send me a mus
 const HELP_MESSAGE = 'It\'s simple! Just send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 const DEFAULT_MESSAGE = 'Send or forward me an audio track, an MP3 file or a music. I\'m waiting... 😁';
 const ASK_WHICH_TAG = 'Which tag do you want to edit?';
+const EXPECTED_NUMBER_MESSAGE = 'You entered a string instead of a number. Although this is not a problem, I guess you entered this input by mistake.';
 const CLICK_PREVIEW_MESSAGE = 'If you want to preview your changes click /preview.';
 const CLICK_DONE_MESSAGE = 'Click /done to save your changes.';
 
@@ -271,7 +272,7 @@ bot.on('text', (ctx) => {
         ctx.session.tagEditor.tags.year = ctx.update.message.text;
 
         if (Number.isNaN(Number(year))) {
-          message = `You entered a string instead of a number. While this is not a problem, I guess you entered this input by mistake. However, ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+          message = `${EXPECTED_NUMBER_MESSAGE} ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         } else {
           message = `Year changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         }
