@@ -236,7 +236,7 @@ bot.command('preview', (ctx) => {
         + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
         + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
         + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-        + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists}\n`
+        + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
         // + `\n${ASK_WHICH_TAG}`
         + `\n${CLICK_DONE_MESSAGE} Or feel free to continue editing tags.`);
     }
