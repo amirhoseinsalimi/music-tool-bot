@@ -14,7 +14,7 @@ const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
 const downloader = require('./my_modules/downloader');
-const albumArter = require('./my_modules/album-arter');
+const { hasAlbumArt, extractAlbumArt } = require('./my_modules/album-arter');
 const config = require('./my_modules/config');
 
 
@@ -320,8 +320,8 @@ bot.on('audio', (ctx) => {
           };
 
           ctx.session.tagEditor.tags.albumArt = {
-            exists: albumArter.hasAlbumArt(metadata),
-            data: `${albumArter.extractAlbumArt(ctx, metadata).path}`,
+            exists: hasAlbumArt(metadata),
+            data: `${extractAlbumArt(ctx, metadata).path}`,
           };
 
           ctx.session.tagEditor.currentTag = '';
