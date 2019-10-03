@@ -288,7 +288,7 @@ bot.on('text', (ctx) => {
 });
 
 
-/* Catch Audio files */
+/* Catch audio files */
 bot.on('audio', (ctx) => {
   ctx.session.tagEditor = {};
   ctx.session.tagEditor.tags = {};
@@ -362,8 +362,9 @@ bot.on('audio', (ctx) => {
 });
 
 
+/* Catch photos */
 bot.on('photo', (ctx) => {
-  let message = DEFAULT_MESSAGE;
+  let message;
 
   if (ctx.session.tagEditor) {
     if (ctx.session.tagEditor.currentTag) {
