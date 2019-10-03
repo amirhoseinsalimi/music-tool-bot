@@ -15,7 +15,7 @@ const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
 const downloader = require('./my_modules/downloader');
 const { hasAlbumArt, extractAlbumArt } = require('./my_modules/album-arter');
-const config = require('./my_modules/config');
+const config = require('./config');
 
 
 /* Global variables */

@@ -1,6 +1,6 @@
 const download = require('download');
 const axios = require('axios');
-const config = require('./config');
+const config = require('../config');
 
 const BASE_URL = 'https://api.telegram.org';
 const BASE_DIR = `${__dirname}/../user_data`;

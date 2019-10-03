@@ -5,6 +5,7 @@ node_modules/
 jspm_packages/
 lib-cov
 user_data
+config.js
 
 
 # Environment #
