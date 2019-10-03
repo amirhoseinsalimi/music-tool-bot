@@ -14,7 +14,7 @@ const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const LocalSession = require('telegraf-session-local');
 const downloader = require('./my_modules/downloader');
-const albumArter = require('./my_modules/album-arter');
+const { hasAlbumArt, extractAlbumArt } = require('./my_modules/album-arter');
 const config = require('./my_modules/config');
 
 
@@ -236,7 +236,7 @@ bot.command('preview', (ctx) => {
         + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
         + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
         + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-        + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists}\n`
+        + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
         // + `\n${ASK_WHICH_TAG}`
         + `\n${CLICK_DONE_MESSAGE} Or feel free to continue editing tags.`);
     }
@@ -288,7 +288,7 @@ bot.on('text', (ctx) => {
 });
 
 
-/* Catch Audio files */
+/* Catch audio files */
 bot.on('audio', (ctx) => {
   ctx.session.tagEditor = {};
   ctx.session.tagEditor.tags = {};
@@ -320,8 +320,8 @@ bot.on('audio', (ctx) => {
           };
 
           ctx.session.tagEditor.tags.albumArt = {
-            exists: albumArter.hasAlbumArt(metadata),
-            data: `${albumArter.extractAlbumArt(ctx, metadata).path}`,
+            exists: hasAlbumArt(metadata),
+            data: `${extractAlbumArt(ctx, metadata).path}`,
           };
 
           ctx.session.tagEditor.currentTag = '';
@@ -362,8 +362,9 @@ bot.on('audio', (ctx) => {
 });
 
 
+/* Catch photos */
 bot.on('photo', (ctx) => {
-  let message = DEFAULT_MESSAGE;
+  let message;
 
   if (ctx.session.tagEditor) {
     if (ctx.session.tagEditor.currentTag) {
