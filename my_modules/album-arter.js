@@ -5,8 +5,9 @@ const isJpg = require('is-jpg');
 
 const BASE_DIR = `${__dirname}/../user_data`;
 
-const hasAlbumArt = (metadata) => (isPng(metadata.common.picture[0].data
-                                  || isJpg(metadata.common.picture[0].data)));
+const hasAlbumArt = (metadata) => (Object.prototype.hasOwnProperty.call(metadata.common, 'picture')
+                                  && (isPng(metadata.common.picture[0].data
+                                    || isJpg(metadata.common.picture[0].data))));
 
 const extractAlbumArt = (ctx, metadata) => {
   if (!hasAlbumArt(metadata)) {
