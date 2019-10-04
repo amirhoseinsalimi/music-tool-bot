@@ -11,7 +11,6 @@
     "mkdirp": "^0.5.1",
     "music-metadata": "^4.4.0",
     "node-id3": "^0.1.11",
-    "pm2": "^3.5.1",
     "read-chunk": "^3.2.0",
     "telegraf": "^3.32.0",
     "telegraf-inline-menu": "^3.6.0",
@@ -27,7 +26,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "pm2 start app.js --name music-tool-bot",
     "restart": "pm2 restart music-tool-bot",
-    "stop": "pm2 stop music-tool-bot",
+    "stop": "pm2 stop music-tool-bot"
   },
   "keywords": [
     "telegram",
