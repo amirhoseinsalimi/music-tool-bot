@@ -1,7 +1,7 @@
 {
   "name": "musictagbot",
   "version": "0.1.2",
-  "description": "A Telegram bot to edit music tags",
+  "description": "The one and only bot you need to manage your musics and MP3 files. https://t.me/MusicToolBot",
   "main": "app.js",
   "dependencies": {
     "axios": "^0.19.0",
@@ -11,7 +11,6 @@
     "mkdirp": "^0.5.1",
     "music-metadata": "^4.4.0",
     "node-id3": "^0.1.11",
-    "pm2": "^3.5.1",
     "read-chunk": "^3.2.0",
     "telegraf": "^3.32.0",
     "telegraf-inline-menu": "^3.6.0",
@@ -24,7 +23,10 @@
     "nodemon": "^1.19.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start app.js --name music-tool-bot",
+    "restart": "pm2 restart music-tool-bot",
+    "stop": "pm2 stop music-tool-bot"
   },
   "keywords": [
     "telegram",
