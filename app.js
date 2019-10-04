@@ -188,7 +188,15 @@ bot.command('done', (ctx) => {
             return ctx.reply(ERR_ON_UPDATING_TAGS);
           }
 
-          const image = { image: ctx.session.tagEditor.tags.albumArt.tempAlbumArt };
+          let image;
+
+          if (ctx.session.tagEditor.tags.albumArt.original) {
+            image = { image: ctx.session.tagEditor.tags.albumArt.original };
+          } else if (ctx.session.tagEditor.tags.albumArt.tempAlbumArt) {
+            image = { image: ctx.session.tagEditor.tags.albumArt.tempAlbumArt };
+          } else {
+            image = { image: '' };
+          }
 
           NodeID3.update(image, musicPath, (err) => {
             if (err) {
@@ -321,7 +329,7 @@ bot.on('audio', (ctx) => {
 
           ctx.session.tagEditor.tags.albumArt = {
             exists: hasAlbumArt(metadata),
-            data: `${extractAlbumArt(ctx, metadata).path}`,
+            original: extractAlbumArt(ctx, metadata).filePath,
           };
 
           ctx.session.tagEditor.currentTag = '';

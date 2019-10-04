@@ -13,13 +13,12 @@ const extractAlbumArt = (ctx, metadata) => {
   if (!hasAlbumArt(metadata)) {
     return {
       message: 'No album art!',
-      path: undefined,
-      fileName: undefined,
+      filePath: undefined,
     };
   }
   const userId = ctx.update.message.from.id;
   const albumArt = metadata.common.picture[0].data;
-  const fileName = `${BASE_DIR}/${userId}/album-art.${isPng(albumArt) ? 'png' : 'jpg'}`;
+  const filePath = `${BASE_DIR}/${userId}/album-art.${isPng(albumArt) ? 'png' : 'jpg'}`;
 
   // fs.writeFile(fileName, albumArt, (err) => {
   //   if (err) {
@@ -33,12 +32,11 @@ const extractAlbumArt = (ctx, metadata) => {
   //   }
   // });
 
-  fs.writeFileSync(fileName, albumArt);
+  fs.writeFileSync(filePath, albumArt);
 
   return {
     message: `Album art successfully extracted to ${BASE_DIR}/${userId}`,
-    path: `${BASE_DIR}/${userId}/${fileName}`,
-    fileName,
+    filePath,
   };
 };
 
