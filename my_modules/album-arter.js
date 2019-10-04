@@ -14,7 +14,6 @@ const extractAlbumArt = (ctx, metadata) => {
     return {
       message: 'No album art!',
       path: undefined,
-      fileName: undefined,
     };
   }
   const userId = ctx.update.message.from.id;
@@ -38,7 +37,6 @@ const extractAlbumArt = (ctx, metadata) => {
   return {
     message: `Album art successfully extracted to ${BASE_DIR}/${userId}`,
     path: `${BASE_DIR}/${userId}/${fileName}`,
-    fileName,
   };
 };
 
