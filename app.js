@@ -356,13 +356,18 @@ bot.on('audio', (ctx) => {
             + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
             + `\n${ASK_WHICH_TAG}`;
 
-          return ctx.reply(firstReply, Markup
-            .keyboard([
-              ['🗣 Artist', '🎵 Title', '🎼 Album'],
-              ['🎹 Genre', '📅 Year', '🖼 Album Art'],
-            ])
-            .resize()
-            .extra());
+          return ctx.reply(firstReply, {
+            reply_to_message_id: ctx.message.message_id,
+            reply_markup: {
+              keyboard: [
+                ['🗣 Artist', '🎵 Title', '🎼 Album'],
+                ['🎹 Genre', '📅 Year', '🖼 Album Art'],
+              ],
+              resize_keyboard: true,
+              one_time_keyboard: true,
+
+            },
+          });
         }).catch((err) => {
           console.error(`Error reading tags: ${err.name}: ${err.message}`);
           ctx.reply(ERR_ON_READING_TAGS)
