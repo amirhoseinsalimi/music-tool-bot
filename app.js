@@ -204,10 +204,23 @@ bot.command('done', (ctx) => {
               return ctx.reply(ERR_ON_UPDATING_TAGS);
             }
 
-            ctx.telegram.sendDocument(ctx.from.id, {
+            const caption = `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+                + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+                + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+                + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+                + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+                + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n\n`
+                + '🆔 @MusicToolBot\n';
+
+            ctx.telegram.sendAudio(ctx.from.id, {
               source: musicPath,
               filename: `@MusicToolBot_${tags.artist}_${tags.title}.mp3`,
-            }, Extra.markup((m) => m.removeKeyboard()))
+            }, {
+              caption,
+              reply_markup: {
+                remove_keyboard: true,
+              },
+            })
               .then(() => {
                 ctx.session.stats.tagEditor++;
                 ctx.session.tagEditor = null;
