@@ -171,6 +171,32 @@ bot.hears('🖼 Album Art', (ctx) => {
   return ctx.reply(message);
 });
 
+bot.hears('💿 Disk number', (ctx) => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = DEFAULT_MESSAGE;
+  } else {
+    ctx.session.tagEditor.currentTag = 'disk-number';
+    message = 'Now send me a number:';
+  }
+
+  return ctx.reply(message);
+});
+
+bot.hears('▶️ Track Number', (ctx) => {
+  let message;
+
+  if (!ctx.session.tagEditor) {
+    message = DEFAULT_MESSAGE;
+  } else {
+    ctx.session.tagEditor.currentTag = 'track-number';
+    message = 'Now send me a number:';
+  }
+
+  return ctx.reply(message);
+});
+
 bot.command('done', (ctx) => {
   if (ctx.session.tagEditor) {
     const tags = ctx.session.tagEditor.tags || undefined;
@@ -209,7 +235,9 @@ bot.command('done', (ctx) => {
                 + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
                 + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
                 + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-                + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n\n`
+                + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
+                + `💿 Disk Number: ${ctx.session.tagEditor.tags.diskNumber}\n`
+                + `▶️ Track Number: ${ctx.session.tagEditor.tags.trackNumber}\n\n`
                 + '🆔 @MusicToolBot\n';
 
             ctx.telegram.sendAudio(ctx.from.id, {
@@ -251,15 +279,20 @@ bot.command('preview', (ctx) => {
     const musicPath = ctx.session.tagEditor.musicPath || undefined;
 
     if (musicPath) {
-      return ctx.reply('ℹ️ Modified MP3 Info:\n\n'
-        + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-        + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-        + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-        + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-        + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
-        + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
-        // + `\n${ASK_WHICH_TAG}`
-        + `\n${CLICK_DONE_MESSAGE} Or feel free to continue editing tags.`);
+      const previewReply = 'ℹ️ Modified MP3 Info:\n\n'
+            + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
+            + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
+            + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
+            + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
+            + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+            + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
+            + `💿 Disk number: ${ctx.session.tagEditor.tags.diskNumber}\n`
+            + `▶️ Track Number: ${ctx.session.tagEditor.tags.trackNumber}\n`
+            // + `\n${ASK_WHICH_TAG}`
+            + `\n${CLICK_DONE_MESSAGE} Or feel free to continue editing tags.`;
+      return ctx.reply(previewReply, {
+        reply_to_message_id: ctx.message.message_id,
+      });
     }
     return ctx.reply(DEFAULT_MESSAGE);
   }
@@ -297,6 +330,24 @@ bot.on('text', (ctx) => {
         } else {
           message = `Year changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         }
+      } else if (currentTag === 'disk-number') {
+        const diskNumber = ctx.update.message.text;
+        ctx.session.tagEditor.tags.diskNumber = ctx.update.message.text;
+
+        if (Number.isNaN(Number(diskNumber))) {
+          message = `${EXPECTED_NUMBER_MESSAGE} ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        } else {
+          message = `Disk number changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        }
+      } else if (currentTag === 'track-number') {
+        const trackNumber = ctx.update.message.text;
+        ctx.session.tagEditor.tags.trackNumber = ctx.update.message.text;
+
+        if (Number.isNaN(Number(trackNumber))) {
+          message = `${EXPECTED_NUMBER_MESSAGE} ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        } else {
+          message = `Track number changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        }
       }
     } else {
       message = 'Please select the tag you want to edit! 😅';
@@ -328,6 +379,8 @@ bot.on('audio', (ctx) => {
             album,
             genre,
             year,
+            diskNumber,
+            trackNumber,
           } = metadata.common;
 
           ctx.session.tagEditor.musicPath = `${downloadPath}/${fileName}`;
@@ -338,6 +391,8 @@ bot.on('audio', (ctx) => {
             album: album || undefined,
             genre: genre || undefined,
             year: year || undefined,
+            diskNumber: diskNumber || undefined,
+            trackNumber: trackNumber || undefined,
           };
 
           ctx.session.tagEditor.tags.albumArt = {
@@ -354,6 +409,8 @@ bot.on('audio', (ctx) => {
             + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
             + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
             + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
+            + `💿 Disk number: ${ctx.session.tagEditor.tags.diskNumber ? 'Included' : 'Not Included'}\n`
+            + `▶️ Track Number: ${ctx.session.tagEditor.tags.trackNumber ? 'Included' : 'Not Included'}\n`
             + `\n${ASK_WHICH_TAG}`;
 
           return ctx.reply(firstReply, {
@@ -362,6 +419,7 @@ bot.on('audio', (ctx) => {
               keyboard: [
                 ['🗣 Artist', '🎵 Title', '🎼 Album'],
                 ['🎹 Genre', '📅 Year', '🖼 Album Art'],
+                ['💿 Disk number', '▶️ Track Number'],
               ],
               resize_keyboard: true,
               one_time_keyboard: true,
