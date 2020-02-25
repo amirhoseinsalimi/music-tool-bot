@@ -470,6 +470,8 @@ bot.on('photo', (ctx) => {
             };
 
             message = `Album art changed! ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+            ctx.session.tagEditor.tags.albumArt.exists = true;
+
             return ctx.reply(message)
               .then(() => {
               }).catch((err) => {
