@@ -396,13 +396,13 @@ bot.on('audio', (ctx) => {
           ctx.session.tagEditor.musicPath = `${downloadPath}/${fileName}`;
 
           ctx.session.tagEditor.tags = {
-            artist: artist || undefined,
-            title: title || undefined,
-            album: album || undefined,
-            genre: genre || undefined,
-            year: year || undefined,
-            diskNumber: diskNumber || undefined,
-            trackNumber: trackNumber || undefined,
+            artist: artist || '',
+            title: title || '',
+            album: album || '',
+            genre: genre || 0,
+            year: year || 0,
+            diskNumber: diskNumber || 0,
+            trackNumber: trackNumber || 0,
           };
 
           ctx.session.tagEditor.tags.albumArt = {
