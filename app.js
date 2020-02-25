@@ -432,8 +432,6 @@ bot.on('audio', (ctx) => {
                 ['💿 Disk number', '▶️ Track Number'],
               ],
               resize_keyboard: true,
-              one_time_keyboard: true,
-
             },
           });
         }).catch((err) => {
