@@ -280,11 +280,11 @@ bot.command('preview', (ctx) => {
 
     if (musicPath) {
       const previewReply = 'ℹ️ Modified MP3 Info:\n\n'
-            + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-            + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-            + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-            + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-            + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+            + `🗣 Artist: ${ctx.session.tagEditor.tags.artist ? ctx.session.tagEditor.tags.artist : '(empty)'}\n`
+            + `🎵 Title: ${ctx.session.tagEditor.tags.title ? ctx.session.tagEditor.tags.title : '(empty)'}\n`
+            + `🎼 Album: ${ctx.session.tagEditor.tags.album ? ctx.session.tagEditor.tags.album : '(empty)'}\n`
+            + `🎹 Genre: ${ctx.session.tagEditor.tags.genre ? ctx.session.tagEditor.tags.genre : '(empty)'}\n`
+            + `📅 Year: ${ctx.session.tagEditor.tags.year ? ctx.session.tagEditor.tags.year : '(empty)'}\n`
             + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
             + `💿 Disk number: ${ctx.session.tagEditor.tags.diskNumber}\n`
             + `▶️ Track Number: ${ctx.session.tagEditor.tags.trackNumber}\n`
@@ -403,14 +403,14 @@ bot.on('audio', (ctx) => {
           ctx.session.tagEditor.currentTag = '';
 
           const firstReply = 'ℹ️ MP3 Info:\n\n'
-            + `🗣 Artist: ${ctx.session.tagEditor.tags.artist}\n`
-            + `🎵 Title: ${ctx.session.tagEditor.tags.title}\n`
-            + `🎼 Album: ${ctx.session.tagEditor.tags.album}\n`
-            + `🎹 Genre: ${ctx.session.tagEditor.tags.genre}\n`
-            + `📅 Year: ${ctx.session.tagEditor.tags.year}\n`
+            + `🗣 Artist: ${ctx.session.tagEditor.tags.artist ? ctx.session.tagEditor.tags.artist : '(empty)'}\n`
+            + `🎵 Title: ${ctx.session.tagEditor.tags.title ? ctx.session.tagEditor.tags.title : '(empty)'}\n`
+            + `🎼 Album: ${ctx.session.tagEditor.tags.album ? ctx.session.tagEditor.tags.album : '(empty)'}\n`
+            + `🎹 Genre: ${ctx.session.tagEditor.tags.genre ? ctx.session.tagEditor.tags.genre : '(empty)'}\n`
+            + `📅 Year: ${ctx.session.tagEditor.tags.year ? ctx.session.tagEditor.tags.year : '(empty)'}\n`
             + `🖼 Album Art: ${ctx.session.tagEditor.tags.albumArt.exists ? 'Included' : 'Not Included'}\n`
-            + `💿 Disk number: ${ctx.session.tagEditor.tags.diskNumber ? 'Included' : 'Not Included'}\n`
-            + `▶️ Track Number: ${ctx.session.tagEditor.tags.trackNumber ? 'Included' : 'Not Included'}\n`
+            + `💿 Disk number: ${ctx.session.tagEditor.tags.diskNumber ? ctx.session.tagEditor.tags.diskNumber : 0}\n`
+            + `▶️ Track Number: ${ctx.session.tagEditor.tags.trackNumber ? ctx.session.tagEditor.tags.trackNumber : 0}\n`
             + `\n${ASK_WHICH_TAG}`;
 
           return ctx.reply(firstReply, {
