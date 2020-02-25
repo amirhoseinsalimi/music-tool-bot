@@ -312,15 +312,19 @@ bot.on('text', (ctx) => {
       if (currentTag === 'artist') {
         ctx.session.tagEditor.tags.artist = ctx.update.message.text;
         message = `Artist name changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        ctx.session.tagEditor.currentTag = undefined;
       } else if (currentTag === 'title') {
         ctx.session.tagEditor.tags.title = ctx.update.message.text;
         message = `Title name changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        ctx.session.tagEditor.currentTag = undefined;
       } else if (currentTag === 'album') {
         ctx.session.tagEditor.tags.album = ctx.update.message.text;
         message = `Album name changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        ctx.session.tagEditor.currentTag = undefined;
       } else if (currentTag === 'genre') {
         ctx.session.tagEditor.tags.genre = ctx.update.message.text;
         message = `Genre changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
+        ctx.session.tagEditor.currentTag = undefined;
       } else if (currentTag === 'year') {
         const year = ctx.update.message.text;
         ctx.session.tagEditor.tags.year = ctx.update.message.text;
@@ -330,6 +334,8 @@ bot.on('text', (ctx) => {
         } else {
           message = `Year changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         }
+
+        ctx.session.tagEditor.currentTag = undefined;
       } else if (currentTag === 'disk-number') {
         const diskNumber = ctx.update.message.text;
         ctx.session.tagEditor.tags.diskNumber = ctx.update.message.text;
@@ -339,6 +345,8 @@ bot.on('text', (ctx) => {
         } else {
           message = `Disk number changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         }
+
+        ctx.session.tagEditor.currentTag = undefined;
       } else if (currentTag === 'track-number') {
         const trackNumber = ctx.update.message.text;
         ctx.session.tagEditor.tags.trackNumber = ctx.update.message.text;
@@ -348,6 +356,8 @@ bot.on('text', (ctx) => {
         } else {
           message = `Track number changed. ${CLICK_PREVIEW_MESSAGE}\n\n${CLICK_DONE_MESSAGE}`;
         }
+
+        ctx.session.tagEditor.currentTag = undefined;
       }
     } else {
       message = 'Please select the tag you want to edit! 😅';
