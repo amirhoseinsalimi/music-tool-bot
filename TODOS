@@ -1,0 +1,10 @@
+TODO: Better folder structure
+TODO: Add hot reload
+TODO: Heroku support
+TODO: Check if
+TODO: Write tests
+TODO: Delete files immediately after a user gets back her file
+TODO: Delete files older than 7 days
+TODO: Properly save data in Redis
+TODO: Only accept audio files and documents which are audio files
+TODO: Proper error handling
