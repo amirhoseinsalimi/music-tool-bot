@@ -12,6 +12,8 @@ from redisconfig import persistence
 
 # Global variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+updater = Updater(BOT_TOKEN, persistence=persistence)
+dispatcher = updater.dispatcher
 
 
 def hello(update: Update, context: CallbackContext) -> None:
@@ -19,9 +21,7 @@ def hello(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
 
-updater = Updater(os.getenv("BOT_TOKEN"), persistence=persistence)
-
-updater.dispatcher.add_handler(CommandHandler('hello', hello))
+dispatcher.add_handler(CommandHandler('hello', hello))
 
 updater.start_polling()
 updater.idle()
