@@ -13,8 +13,6 @@ from redisconfig import persistence
 # Global variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-print(BOT_TOKEN)
-
 
 def hello(update: Update, context: CallbackContext) -> None:
     print(json.dumps(update, sort_keys=True, indent=4, default=str))

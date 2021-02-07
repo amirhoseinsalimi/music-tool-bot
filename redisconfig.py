@@ -11,5 +11,3 @@ redis_client = redis.Redis(
     password=os.getenv("REDIS_PASSWORD")
 )
 persistence = RedisPersistence(redis_client)
-
-print(os.getenv("REDIS_PORT"))
