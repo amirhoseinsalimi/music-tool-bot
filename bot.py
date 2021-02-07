@@ -47,12 +47,35 @@ updater = Updater(BOT_TOKEN, persistence=persistence)
 dispatcher = updater.dispatcher
 
 
-def hello(update: Update, context: CallbackContext) -> None:
+############################
+# Handlers #################
+############################
+def command_start(update: Update, context: CallbackContext) -> None:
+    # Clear the user data here
+    update.message.reply_text(START_MESSAGE)
+
+
+def command_help(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(HELP_MESSAGE)
+
+
+def echo_name(update: Update, context: CallbackContext) -> None:
     print(json.dumps(update, sort_keys=True, indent=4, default=str))
     update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
 
-dispatcher.add_handler(CommandHandler('hello', hello))
+start_command_handler = CommandHandler('start', command_start)
+help_command_handler = CommandHandler('help', command_help)
+name_echoer_command_handler = CommandHandler('hello', echo_name)
+# music_handler = MessageHandler(Filters.audio & (~Filters.command), music_downloader())
+
+
+############################
+# Register handlers ########
+############################
+dispatcher.add_handler(start_command_handler)
+dispatcher.add_handler(help_command_handler)
+dispatcher.add_handler(name_echoer_command_handler)
 
 updater.start_polling()
 updater.idle()
