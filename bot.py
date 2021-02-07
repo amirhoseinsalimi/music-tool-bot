@@ -1,13 +1,19 @@
-# Built-in modules
+############################
+# Built-in modules #########
+############################
 import os
 import json
 import env
 
-# Third-party modules
+############################
+# Third-party modules ######
+############################
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
-# My modules
+############################
+# My modules ###############
+############################
 from redisconfig import persistence
 
 ############################
