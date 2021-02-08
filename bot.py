@@ -68,20 +68,34 @@ def echo_name(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
 
-def music_downloader(update: Update, context: CallbackContext) -> None:
+def download_file(update: Update, context: CallbackContext, file_type: str) -> None:
+    message = update.message
+
     user_id = update.effective_user.id
     user_download_dir = f"downloads/{user_id}"
 
-    file_id = context.bot.getFile(update.message.audio.file_id)
-    file_name = update.message.audio.file_name
-    file_extension = file_name.split(".")[-1]
+    file_id = ''
+    file_name = ''
+    file_extension = ''
+
+    if file_type == 'audio':
+        file_id = context.bot.get_file(message.audio.file_id)
+        file_name = message.audio.file_name
+        file_extension = file_name.split(".")[-1]
+    elif file_type == 'photo':
+        file_id = context.bot.get_file(message.photo[0].file_id)
+        file_extension = 'jpg'
 
     Path(user_download_dir).mkdir(parents=True, exist_ok=True)
     file_id.download(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
-    music_downloader(update, context)
+    download_file(update, context, 'audio')
+
+
+def handle_photo_message(update: Update, context: CallbackContext) -> None:
+    download_file(update, context, 'photo')
 
 
 dispatcher.add_handler(CommandHandler('start', command_start))
