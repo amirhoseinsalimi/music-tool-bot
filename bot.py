@@ -35,11 +35,11 @@ CLICK_DONE_MESSAGE = "Click /done to save your changes."
 # Bot Common Errors ########
 ############################
 REPORT_BUG_MESSAGE = "That's my fault!. This bug will be reported and fixed very soon!"
-REPORT_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_MESSAGE}"
-ERR_ON_DOWNLOAD_MP3_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
+ERR_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_MESSAGE}"
+ERR_ON_DOWNLOAD_AUDIO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
-ERR_ON_READING_TAGS = "Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
-ERR_ON_UPDATING_TAGS = "Sorry, I couldn't tags the tags of the file... {REPORT_BUG_MESSAGE}"
+ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
+ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't tags the tags of the file... {REPORT_BUG_MESSAGE}"
 
 ############################
 # Global variables #########
@@ -68,33 +68,75 @@ def echo_name(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
 
-def download_file(update: Update, context: CallbackContext, file_type: str) -> None:
-    message = update.message
-
-    user_id = update.effective_user.id
+def create_user_directory(user_id: int) -> None:
     user_download_dir = f"downloads/{user_id}"
 
+    try:
+        Path(user_download_dir).mkdir(parents=True, exist_ok=True)
+    except:
+        raise Exception(f"Can't create directory for user_id: {user_id}")
+
+
+def download_file(user_id: int, file_to_download, file_type: str, context: CallbackContext) -> None:
+    user_download_dir = f"downloads/{user_id}"
     file_id = ''
     file_extension = ''
 
     if file_type == 'audio':
-        file_id = context.bot.get_file(message.audio.file_id)
-        file_name = message.audio.file_name
+        file_id = context.bot.get_file(file_to_download.file_id)
+        file_name = file_to_download.file_name
         file_extension = file_name.split(".")[-1]
     elif file_type == 'photo':
-        file_id = context.bot.get_file(message.photo[0].file_id)
+        file_id = context.bot.get_file(file_to_download.file_id)
         file_extension = 'jpg'
 
-    Path(user_download_dir).mkdir(parents=True, exist_ok=True)
-    file_id.download(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
+
+    try:
+        file_id.download(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
+    except:
+        raise Exception(f"Couldn't download the file with file_id: {file_id}")
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
-    download_file(update, context, 'audio')
+    message = update.message
+    user_id = update.effective_user.id
+
+    try:
+        create_user_directory(user_id)
+    except:
+        message.reply_text(ERR_CREATING_USER_FOLDER)
+        return
+
+    try:
+        download_file(
+            user_id=user_id,
+            file_to_download=message.audio,
+            file_type='audio',
+            context=context
+        )
+    except:
+        message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
 
 
 def handle_photo_message(update: Update, context: CallbackContext) -> None:
-    download_file(update, context, 'photo')
+    message = update.message
+    user_id = update.effective_user.id
+
+    try:
+        create_user_directory(user_id)
+    except:
+        message.reply_text(ERR_CREATING_USER_FOLDER)
+        return
+
+    try:
+        download_file(
+            user_id=user_id,
+            file_to_download=message.photo[0],
+            file_type='photo',
+            context=context
+        )
+    except:
+        message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
 
 
 dispatcher.add_handler(CommandHandler('start', command_start))
