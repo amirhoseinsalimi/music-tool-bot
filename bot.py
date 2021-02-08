@@ -75,7 +75,6 @@ def download_file(update: Update, context: CallbackContext, file_type: str) -> N
     user_download_dir = f"downloads/{user_id}"
 
     file_id = ''
-    file_name = ''
     file_extension = ''
 
     if file_type == 'audio':
