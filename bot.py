@@ -84,19 +84,11 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     music_downloader(update, context)
 
 
-start_command_handler = CommandHandler('start', command_start)
-help_command_handler = CommandHandler('help', command_help)
-name_echoer_command_handler = CommandHandler('hello', echo_name)
-music_handler = MessageHandler(Filters.audio & (~Filters.command), handle_music_message)
-
-
-############################
-# Register handlers ########
-############################
-dispatcher.add_handler(start_command_handler)
-dispatcher.add_handler(help_command_handler)
-dispatcher.add_handler(name_echoer_command_handler)
-dispatcher.add_handler(music_handler)
+dispatcher.add_handler(CommandHandler('start', command_start))
+dispatcher.add_handler(CommandHandler('help', command_help))
+dispatcher.add_handler(CommandHandler('hello', echo_name))
+dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
+dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
 updater.start_polling()
 updater.idle()
