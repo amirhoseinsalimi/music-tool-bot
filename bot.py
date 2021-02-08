@@ -3,13 +3,15 @@
 ############################
 import os
 import json
+from pathlib import Path
 import env
 
 ############################
 # Third-party modules ######
 ############################
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
+import requests
 
 ############################
 # My modules ###############
@@ -43,8 +45,10 @@ ERR_ON_UPDATING_TAGS = "Sorry, I couldn't tags the tags of the file... {REPORT_B
 # Global variables #########
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+ORIGIN_URL = 'https://api.telegram.org'
 updater = Updater(BOT_TOKEN, persistence=persistence)
 dispatcher = updater.dispatcher
+post = requests.post
 
 
 ############################
@@ -64,10 +68,26 @@ def echo_name(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
 
+def music_downloader(update: Update, context: CallbackContext) -> None:
+    user_id = update.effective_user.id
+    user_download_dir = f"downloads/{user_id}"
+
+    file_id = context.bot.getFile(update.message.audio.file_id)
+    file_name = update.message.audio.file_name
+    file_extension = file_name.split(".")[-1]
+
+    Path(user_download_dir).mkdir(parents=True, exist_ok=True)
+    file_id.download(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
+
+
+def handle_music_message(update: Update, context: CallbackContext) -> None:
+    music_downloader(update, context)
+
+
 start_command_handler = CommandHandler('start', command_start)
 help_command_handler = CommandHandler('help', command_help)
 name_echoer_command_handler = CommandHandler('hello', echo_name)
-# music_handler = MessageHandler(Filters.audio & (~Filters.command), music_downloader())
+music_handler = MessageHandler(Filters.audio & (~Filters.command), handle_music_message)
 
 
 ############################
@@ -76,6 +96,7 @@ name_echoer_command_handler = CommandHandler('hello', echo_name)
 dispatcher.add_handler(start_command_handler)
 dispatcher.add_handler(help_command_handler)
 dispatcher.add_handler(name_echoer_command_handler)
+dispatcher.add_handler(music_handler)
 
 updater.start_polling()
 updater.idle()
