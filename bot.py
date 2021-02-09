@@ -68,14 +68,16 @@ def echo_name(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
 
-def create_user_directory(user_id: int) -> None:
+def create_user_directory(user_id: int) -> str:
     user_download_dir = f"downloads/{user_id}"
 
     try:
         Path(user_download_dir).mkdir(parents=True, exist_ok=True)
     except:
+        user_download_dir = None
         raise Exception(f"Can't create directory for user_id: {user_id}")
 
+    return user_download_dir
 
 def download_file(user_id: int, file_to_download, file_type: str, context: CallbackContext) -> None:
     user_download_dir = f"downloads/{user_id}"
