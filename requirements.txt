@@ -3,3 +3,4 @@ redis-persistence
 python-dotenv~=0.15.0
 redis~=3.5.3
 requests
+music_tag
