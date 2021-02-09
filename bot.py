@@ -107,6 +107,7 @@ def download_file(user_id: int, file_to_download, file_type: str, context: Callb
 def handle_music_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
+    file_download_path = ''
 
     try:
         create_user_directory(user_id)
@@ -115,7 +116,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         return
 
     try:
-        download_file(
+        file_download_path = download_file(
             user_id=user_id,
             file_to_download=message.audio,
             file_type='audio',
