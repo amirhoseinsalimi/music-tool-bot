@@ -298,14 +298,14 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     tag_editor_context = context.user_data['tag_editor']
 
     message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}"
+        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
         # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['discnumber'] if tag_editor_context['discnumber'] else '-'}"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n"
+        f"*💿 Disk Number:* {tag_editor_context['discnumber'] if tag_editor_context['discnumber'] else '-'}\n"
+        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"🆔 @MusicToolBot\n",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
@@ -326,8 +326,8 @@ dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters
 dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
 
-dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
 dispatcher.add_handler(CommandHandler('preview', display_preview))
+dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
 
 updater.start_polling()
 updater.idle()
