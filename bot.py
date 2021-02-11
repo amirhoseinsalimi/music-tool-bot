@@ -60,6 +60,9 @@ post = requests.post
 ############################
 def command_start(update: Update, context: CallbackContext) -> None:
     # Clear the user data here
+
+    # Reset the bot for the user. No feature is activated yet
+    context.user_data['current_active_feature'] = ''
     update.message.reply_text(START_MESSAGE)
 
 
