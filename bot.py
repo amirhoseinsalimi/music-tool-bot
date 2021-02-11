@@ -10,7 +10,7 @@ from uuid import uuid4
 ############################
 # Third-party modules ######
 ############################
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
 import requests
 from downloader import download_file
@@ -137,6 +137,15 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     tag_editor_context['discnumber'] = str(discnumber)
     tag_editor_context['tracknumber'] = str(tracknumber)
 
+    tag_editor_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🗣 Artist', '🎵 Title', '🎼 Album'],
+            ['🎹 Genre', '📅 Year', '🖼 Album Art'],
+            ['💿 Disk number', '▶️ Track Number']
+        ],
+        resize_keyboard=True,
+    )
+
     message.reply_text(
         f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
         f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
@@ -148,7 +157,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"🆔 @MusicToolBot\n",
         parse_mode='Markdown',
-        reply_to_message_id=update.effective_message.message_id
+        reply_to_message_id=update.effective_message.message_id,
+        reply_markup=tag_editor_keyboard
     )
 
 
