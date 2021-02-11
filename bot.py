@@ -281,17 +281,35 @@ def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -
 
 def handle_responses(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
-    current_tag = user_data['tag_editor']['current_tag']
     message_text: str
 
     if user_data['current_active_feature'] == 'tag_editor':
-        save_text_into_tag(update.message.text, current_tag, context)
-        message_text = f"{current_tag.capitalize()} changed. {CLICK_PREVIEW_MESSAGE}"
+        save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
+        message_text = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. {CLICK_PREVIEW_MESSAGE}"
     else:
         # Not implemented
         message_text = ERR_NOT_IMPLEMENTED
 
     update.message.reply_text(message_text)
+
+
+def display_preview(update: Update, context: CallbackContext) -> None:
+    message = update.message
+    tag_editor_context = context.user_data['tag_editor']
+
+    message.reply_text(
+        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}"
+        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}"
+        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}"
+        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}"
+        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}"
+        # f"*🖼 Album Art:* {music['artist']}\n"
+        f"*💿 Disk Number:* {tag_editor_context['discnumber'] if tag_editor_context['discnumber'] else '-'}"
+        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n"
+        f"🆔 @MusicToolBot\n",
+        parse_mode='Markdown',
+        reply_to_message_id=update.effective_message.message_id,
+    )
 
 
 dispatcher.add_handler(CommandHandler('start', command_start))
@@ -309,6 +327,7 @@ dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~
 dispatcher.add_handler(MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
 
 dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
+dispatcher.add_handler(CommandHandler('preview', display_preview))
 
 updater.start_polling()
 updater.idle()
