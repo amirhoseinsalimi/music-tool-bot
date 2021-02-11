@@ -141,7 +141,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         [
             ['🗣 Artist', '🎵 Title', '🎼 Album'],
             ['🎹 Genre', '📅 Year', '🖼 Album Art'],
-            ['💿 Disk number', '▶️ Track Number']
+            ['💿 Disk Number', '▶️ Track Number']
         ],
         resize_keyboard=True,
     )
