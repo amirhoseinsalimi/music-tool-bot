@@ -267,6 +267,25 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(message_text)
 
 
+def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -> None:
+    context.user_data['tag_editor'][current_tag] = value
+
+
+def handle_responses(update: Update, context: CallbackContext) -> None:
+    user_data = context.user_data
+    current_tag = user_data['tag_editor']['current_tag']
+    message_text: str
+
+    if user_data['current_active_feature'] == 'tag_editor':
+        save_text_into_tag(update.message.text, current_tag, context)
+        message_text = f"{current_tag.capitalize()} changed. {CLICK_PREVIEW_MESSAGE}"
+    else:
+        # Not implemented
+        message_text = ERR_NOT_IMPLEMENTED
+
+    update.message.reply_text(message_text)
+
+
 dispatcher.add_handler(CommandHandler('start', command_start))
 dispatcher.add_handler(CommandHandler('help', command_help))
 dispatcher.add_handler(CommandHandler('hello', echo_name))
