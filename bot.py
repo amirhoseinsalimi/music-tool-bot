@@ -3,8 +3,9 @@
 ############################
 import os
 import json
-from pathlib import Path
 import env
+from pathlib import Path
+from uuid import uuid4
 
 ############################
 # Third-party modules ######
@@ -86,6 +87,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
     file_download_path = ''
+    music = None
 
     try:
         create_user_directory(user_id)
@@ -102,6 +104,27 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         )
     except:
         message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
+        return
+
+    try:
+        music = music_tag.load_file(file_download_path)
+    except:
+        message.reply_text(ERR_ON_READING_TAGS)
+        return
+
+    message.reply_text(
+        f"*🗣 Artist:* {music['artist'] if music['artist'] else '-'}\n"
+        f"*🎵 Title:* {music['title'] if music['title'] else '-'}\n"
+        f"*🎼 Album:* {music['album'] if music['album'] else '-'}\n"
+        f"*🎹 Genre:* {music['genre'] if music['genre'] else '-'}\n"
+        f"*📅 Year:* {music['year'] if music['year'] else '-'}\n"
+        # f"*🖼 Album Art:* {music['artist']}\n"
+        f"*💿 Disk Number:* {music['discnumber'] if music['discnumber'] else '-'}\n"
+        f"*▶️ Track Number:* {music['tracknumber'] if music['tracknumber'] else '-'}\n\n"
+        f"🆔 @MusicToolBot\n",
+        parse_mode='Markdown',
+        reply_to_message_id=update.effective_message.message_id
+    )
 
 
 def handle_photo_message(update: Update, context: CallbackContext) -> None:
