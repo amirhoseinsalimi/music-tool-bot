@@ -88,6 +88,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
     file_download_path = ''
     music = None
+    user_data = context.user_data
 
     try:
         create_user_directory(user_id)
@@ -106,21 +107,45 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
         return
 
+    user_data['tag_editor'] = {}
+
+    # Store value
+    context.user_data['tag_editor']['music_path'] = file_download_path
+    # Send the key to the user
+
     try:
         music = music_tag.load_file(file_download_path)
     except:
         message.reply_text(ERR_ON_READING_TAGS)
         return
 
+    tag_editor_context = context.user_data['tag_editor']
+
+    artist = music['artist']
+    title = music['title']
+    album = music['album']
+    genre = music['genre']
+    year = music['year']
+    discnumber = music['discnumber']
+    tracknumber = music['tracknumber']
+
+    tag_editor_context['artist'] = str(artist)
+    tag_editor_context['title'] = str(title)
+    tag_editor_context['album'] = str(album)
+    tag_editor_context['genre'] = str(genre)
+    tag_editor_context['year'] = str(year)
+    tag_editor_context['discnumber'] = str(discnumber)
+    tag_editor_context['tracknumber'] = str(tracknumber)
+
     message.reply_text(
-        f"*🗣 Artist:* {music['artist'] if music['artist'] else '-'}\n"
-        f"*🎵 Title:* {music['title'] if music['title'] else '-'}\n"
-        f"*🎼 Album:* {music['album'] if music['album'] else '-'}\n"
-        f"*🎹 Genre:* {music['genre'] if music['genre'] else '-'}\n"
-        f"*📅 Year:* {music['year'] if music['year'] else '-'}\n"
+        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
         # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {music['discnumber'] if music['discnumber'] else '-'}\n"
-        f"*▶️ Track Number:* {music['tracknumber'] if music['tracknumber'] else '-'}\n\n"
+        f"*💿 Disk Number:* {tag_editor_context['discnumber'] if tag_editor_context['discnumber'] else '-'}\n"
+        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"🆔 @MusicToolBot\n",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id
