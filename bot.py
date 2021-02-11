@@ -42,7 +42,8 @@ ERR_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_ME
 ERR_ON_DOWNLOAD_AUDIO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
 ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
-ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't tags the tags of the file... {REPORT_BUG_MESSAGE}"
+ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE}"
+ERR_NOT_IMPLEMENTED = f"This feature has not been implemented yet. Sorry!"
 
 ############################
 # Global variables #########
