@@ -183,11 +183,103 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
 
 
+def prepare_for_artist_name(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'artist'
+        message_text = "Enter the name of the artist:"
+
+    update.message.reply_text(message_text)
+
+
+def prepare_for_title(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'title'
+        message_text = "Enter the title of the music:"
+
+    update.message.reply_text(message_text)
+
+
+def prepare_for_album(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'album'
+        message_text = "Enter the name of the album:"
+
+    update.message.reply_text(message_text)
+
+
+def prepare_for_genre(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'genre'
+        message_text = "Enter the Genre:"
+
+    update.message.reply_text(message_text)
+
+
+def prepare_for_year(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'year'
+        message_text = "Enter the publish year:"
+
+    update.message.reply_text(message_text)
+
+
+def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'disknumber'
+        message_text = "Now send me a number as the disk number:"
+
+    update.message.reply_text(message_text)
+
+
+def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'tracknumber'
+        message_text = "Now send me a number as the track number:"
+
+    update.message.reply_text(message_text)
+
+
 dispatcher.add_handler(CommandHandler('start', command_start))
 dispatcher.add_handler(CommandHandler('help', command_help))
 dispatcher.add_handler(CommandHandler('hello', echo_name))
 dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
 dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
+
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$'), prepare_for_artist_name))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$'), prepare_for_title))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$'), prepare_for_album))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$'), prepare_for_genre))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$'), prepare_for_year))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$'), prepare_for_disknumber))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(▶️ Track Number)$'), prepare_for_tracknumber))
 
 updater.start_polling()
 updater.idle()
