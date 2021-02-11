@@ -94,6 +94,10 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     music = None
     user_data = context.user_data
 
+    # This line should be deleted later, cause the user will have
+    #   the option to choose the current active feature using glassy buttons
+    user_data['current_active_feature'] = 'tag_editor'
+
     try:
         create_user_directory(user_id)
     except:
