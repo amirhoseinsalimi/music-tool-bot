@@ -97,6 +97,24 @@ def create_user_directory(user_id: int) -> str:
     return user_download_dir
 
 
+def show_module_selector(update: Update, context: CallbackContext = object()) -> None:
+    module_selector_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🎵 Tag Editor', '🎙 MP3 to Voice Converter'],
+            ['✂️ Music Cutter', '📅 Bitrate Changer']
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+    update.message.reply_text(
+        "What do you want to do with this file?",
+        parse_mode='Markdown',
+        reply_to_message_id=update.effective_message.message_id,
+        reply_markup=module_selector_keyboard
+    )
+
+
 def handle_music_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
@@ -132,21 +150,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     context.user_data['music_path'] = file_download_path
     # Send the key to the user
 
-    module_selector_keyboard = ReplyKeyboardMarkup(
-        [
-            ['🎵 Tag Editor', '🎙 MP3 to Voice Converter'],
-            ['✂️ Music Cutter', '📅 Bitrate Changer']
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
-
-    update.message.reply_text(
-        "What do you want to do with this file?",
-        parse_mode='Markdown',
-        reply_to_message_id=update.effective_message.message_id,
-        reply_markup=module_selector_keyboard
-    )
+    show_module_selector(update)
 
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
@@ -184,7 +188,8 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
         [
             ['🗣 Artist', '🎵 Title', '🎼 Album'],
             ['🎹 Genre', '📅 Year', '🖼 Album Art'],
-            ['💿 Disk Number', '▶️ Track Number']
+            ['💿 Disk Number', '▶️ Track Number'],
+            ['🔙 Back']
         ],
         resize_keyboard=True,
     )
@@ -425,6 +430,8 @@ dispatcher.add_handler(CommandHandler('hello', echo_name))
 dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
 dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
+                                      show_module_selector))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
                                       handle_music_tag_editor))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 MP3 to Voice Converter)$') & (~Filters.command),
