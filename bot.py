@@ -16,6 +16,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 import requests
 from downloader import download_file
 import music_tag
+import ffmpeg
 
 ############################
 # My modules ###############
@@ -205,11 +206,19 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_feature'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
+    user_data = context.user_data
+    input_music_path = user_data['music_path']
+    output_music_path = f"{user_data['music_path']}.ogg"
+    user_data['current_active_feature'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
-    update.message.reply_text(ERR_NOT_IMPLEMENTED)
+    os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
+    os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
 
-    context.user_data['current_active_feature'] = ''
+    context.bot.send_voice(
+        voice=open(output_music_path, 'rb'),
+        chat_id=update.message.chat_id,
+        caption='@MusicToolBot'
+    )
 
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
