@@ -3,6 +3,7 @@
 ############################
 import os
 import json
+import logging
 import env
 from pathlib import Path
 from uuid import uuid4
@@ -53,6 +54,14 @@ ORIGIN_URL = 'https://api.telegram.org'
 updater = Updater(BOT_TOKEN, persistence=persistence)
 dispatcher = updater.dispatcher
 post = requests.post
+
+############################
+# Logger ###################
+############################
+logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    )
+logger = logging.getLogger(__name__)
 
 
 ############################
