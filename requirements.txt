@@ -1,0 +1,7 @@
+python-telegram-bot~=13.1
+redis-persistence
+python-dotenv~=0.15.0
+redis~=3.5.3
+requests
+music_tag
+ffmpeg-python
