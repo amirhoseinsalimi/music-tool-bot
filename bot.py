@@ -285,7 +285,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
     if user_data['current_active_feature'] == 'tag_editor':
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
-        message_text = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. {CLICK_PREVIEW_MESSAGE}"
+        message_text = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
+                       f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
     else:
         # Not implemented
         message_text = ERR_NOT_IMPLEMENTED
@@ -306,9 +307,48 @@ def display_preview(update: Update, context: CallbackContext) -> None:
         # f"*🖼 Album Art:* {music['artist']}\n"
         f"*💿 Disk Number:* {tag_editor_context['discnumber'] if tag_editor_context['discnumber'] else '-'}\n"
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+        f"{CLICK_DONE_MESSAGE}\n\n"
         f"🆔 @MusicToolBot\n",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
+    )
+
+
+def save_tags_to_file(file: str, tags: dict) -> str:
+    music = music_tag.load_file(file)
+
+    try:
+        music['artist'] = tags['artist'] if tags['artist'] else ''
+        music['title'] = tags['title'] if tags['title'] else ''
+        music['album'] = tags['album'] if tags['album'] else ''
+        music['genre'] = tags['genre'] if tags['genre'] else ''
+        music['year'] = int(tags['year']) if tags['year'] else 0
+        music['discnumber'] = int(tags['discnumber']) if tags['discnumber'] else 0
+        music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
+    except:
+        raise Exception("Couldn't set hashtags")
+
+    music.save()
+
+    return file
+
+
+def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+    music_path = context.user_data['tag_editor']['music_path']
+    music_tags = context.user_data['tag_editor']
+
+    try:
+        save_tags_to_file(
+            file=music_path,
+            tags=music_tags,
+        )
+    except:
+        update.message.reply_text(ERR_ON_UPDATING_TAGS)
+
+    context.bot.send_document(
+        document=open(music_path, 'rb'),
+        chat_id=update.message.chat_id,
+        caption='@MusicToolBot'
     )
 
 
@@ -326,6 +366,7 @@ dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters
 dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
 
+dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
 dispatcher.add_handler(CommandHandler('preview', display_preview))
 dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
 
