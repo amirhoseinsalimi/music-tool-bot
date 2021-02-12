@@ -168,17 +168,15 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     album = music['album']
     genre = music['genre']
     year = music['year']
-    discnumber = music['discnumber']
+    disknumber = music['disknumber']
     tracknumber = music['tracknumber']
-
-    print(discnumber)
 
     tag_editor_context['artist'] = str(artist)
     tag_editor_context['title'] = str(title)
     tag_editor_context['album'] = str(album)
     tag_editor_context['genre'] = str(genre)
     tag_editor_context['year'] = str(year)
-    tag_editor_context['discnumber'] = str(discnumber)
+    tag_editor_context['disknumber'] = str(disknumber)
     tag_editor_context['tracknumber'] = str(tracknumber)
 
     tag_editor_keyboard = ReplyKeyboardMarkup(
@@ -197,7 +195,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
         f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
         f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
         # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['discnumber'] if tag_editor_context['discnumber'] else '-'}\n"
+        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"🆔 @MusicToolBot\n",
         parse_mode='Markdown',
@@ -365,7 +363,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
         f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
         f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
         # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['discnumber'] if tag_editor_context['discnumber'] else '-'}\n"
+        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"{CLICK_DONE_MESSAGE}\n\n"
         f"🆔 @MusicToolBot\n",
@@ -383,7 +381,7 @@ def save_tags_to_file(file: str, tags: dict) -> str:
         music['album'] = tags['album'] if tags['album'] else ''
         music['genre'] = tags['genre'] if tags['genre'] else ''
         music['year'] = int(tags['year']) if tags['year'] else 0
-        music['discnumber'] = int(tags['discnumber']) if tags['discnumber'] else 0
+        music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] else 0
         music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
     except:
         raise Exception("Couldn't set hashtags")
