@@ -4,6 +4,7 @@
 import os
 import json
 import logging
+import re
 import env
 from pathlib import Path
 from uuid import uuid4
@@ -46,6 +47,7 @@ ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPOR
 ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_NOT_IMPLEMENTED = f"This feature has not been implemented yet. Sorry!"
+ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. Sorry!"
 
 ############################
 # Global variables #########
@@ -146,8 +148,10 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     user_data['tag_editor'] = {}
 
     # Store value
-    context.user_data['tag_editor']['music_path'] = file_download_path
-    context.user_data['music_path'] = file_download_path
+    user_data['tag_editor']['music_path'] = file_download_path
+    user_data['music_path'] = file_download_path
+    user_data['music_duration'] = message.audio.duration
+
     # Send the key to the user
 
     show_module_selector(update)
@@ -227,11 +231,18 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_feature'] = 'mp3_music_cutter'
+    user_data = context.user_data
+    user_data['current_active_feature'] = 'music_cutter'
 
-    update.message.reply_text(ERR_NOT_IMPLEMENTED)
-
-    context.user_data['current_active_feature'] = ''
+    # TODO: What about music file that are longer than 1 hour?
+    update.message.reply_text("Now send me which part of the music you want to cut out?\n"
+                              "Valid patterns are:\n"
+                              "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
+                              "*ss-ss*: i.e. 75-120\n\n"
+                              "- m = minute, s = second\n"
+                              "- Leading zeroes are optional\n"
+                              "- Extra spaces are ignored"
+                              )
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
@@ -351,19 +362,63 @@ def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -
     context.user_data['tag_editor'][current_tag] = value
 
 
+def parse_cutting_scope(text: str) -> (int, int):
+    text = re.sub(' ', '', text)
+    beginning, _, ending = text.partition('-')
+
+    beginning_sec = 0
+    ending_sec = 0
+
+    if ':' in text:
+        beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
+                            beginning.partition(':')[0].lstrip('0') else 0)*60\
+                        + int(beginning.partition(':')[2].lstrip('0') if
+                              beginning.partition(':')[2].lstrip('0') else 0)
+
+        ending_sec = int(ending.partition(':')[0].lstrip('0') if
+                         ending.partition(':')[0].lstrip('0') else 0)*60\
+            + int(ending.partition(':')[2].lstrip('0') if
+                  ending.partition(':')[2].lstrip('0') else 0)
+    else:
+        beginning_sec = int(beginning)
+        ending_sec = int(ending)
+
+    print(beginning_sec)
+    print(ending_sec)
+
+    return beginning_sec, ending_sec
+
+
 def handle_responses(update: Update, context: CallbackContext) -> None:
+    message_text = update.message.text
     user_data = context.user_data
-    message_text: str
+    music_path = user_data['music_path']
 
     if user_data['current_active_feature'] == 'tag_editor':
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
-        message_text = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
-                       f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
+        reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
+                        f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
+        update.message.reply_text(reply_message)
+    elif user_data['current_active_feature'] == 'music_cutter':
+        beginning_sec, ending_sec = parse_cutting_scope(message_text)
+
+        if beginning_sec >= ending_sec:
+            reply_message = ERR_BEGINNING_POINT_IS_GREATER
+            update.message.reply_text(reply_message)
+        else:
+            diff_sec = ending_sec - beginning_sec
+
+            os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path}_cut.mp3")
+
+            context.bot.send_document(
+                document=open(music_path, 'rb'),
+                chat_id=update.message.chat_id,
+                caption='@MusicToolBot'
+            )
     else:
         # Not implemented
-        message_text = ERR_NOT_IMPLEMENTED
-
-    update.message.reply_text(message_text)
+        reply_message = ERR_NOT_IMPLEMENTED
+        update.message.reply_text(reply_message)
 
 
 def display_preview(update: Update, context: CallbackContext) -> None:
