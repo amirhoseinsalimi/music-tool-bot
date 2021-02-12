@@ -128,10 +128,35 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     # Store value
     context.user_data['tag_editor']['music_path'] = file_download_path
+    context.user_data['music_path'] = file_download_path
     # Send the key to the user
 
+    module_selector_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🎵 Tag Editor', '🎙 MP3 to Voice Converter'],
+            ['✂️ Music Cutter', '📅 Bitrate Changer']
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+    update.message.reply_text(
+        "What do you want to do with this file?",
+        parse_mode='Markdown',
+        reply_to_message_id=update.effective_message.message_id,
+        reply_markup=module_selector_keyboard
+    )
+
+
+def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
+    message = update.message
+    user_id = update.effective_user.id
+    file_download_path = ''
+    music = None
+    user_data = context.user_data
+
     try:
-        music = music_tag.load_file(file_download_path)
+        music = music_tag.load_file(user_data['music_path'])
     except:
         message.reply_text(ERR_ON_READING_TAGS)
         return
@@ -145,6 +170,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     year = music['year']
     discnumber = music['discnumber']
     tracknumber = music['tracknumber']
+
+    print(discnumber)
 
     tag_editor_context['artist'] = str(artist)
     tag_editor_context['title'] = str(title)
@@ -177,6 +204,30 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=tag_editor_keyboard
     )
+
+
+def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
+    context.user_data['current_active_feature'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
+
+    update.message.reply_text(ERR_NOT_IMPLEMENTED)
+
+    context.user_data['current_active_feature'] = ''
+
+
+def handle_music_cutter(update: Update, context: CallbackContext) -> None:
+    context.user_data['current_active_feature'] = 'mp3_music_cutter'
+
+    update.message.reply_text(ERR_NOT_IMPLEMENTED)
+
+    context.user_data['current_active_feature'] = ''
+
+
+def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
+    context.user_data['current_active_feature'] = 'bitrate_changer'
+
+    update.message.reply_text(ERR_NOT_IMPLEMENTED)
+
+    context.user_data['current_active_feature'] = ''
 
 
 def handle_photo_message(update: Update, context: CallbackContext) -> None:
@@ -366,6 +417,15 @@ dispatcher.add_handler(CommandHandler('help', command_help))
 dispatcher.add_handler(CommandHandler('hello', echo_name))
 dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
 dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
+
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
+                                      handle_music_tag_editor))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 MP3 to Voice Converter)$') & (~Filters.command),
+                                      handle_music_to_voice_converter))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
+                                      handle_music_cutter))
+dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
+                                      handle_music_bitrate_changer))
 
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
