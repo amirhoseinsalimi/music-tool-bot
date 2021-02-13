@@ -480,8 +480,21 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     )
 
 
+def command_about(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(f"This bot is created by Amir Hosein Salimi (@amirhoseinsalimi) in Python language.\n"
+                              f"The source code of this project is available on"
+                              f"[GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).\n\n"
+                              f" If you have any question or feedback feel free to message me on Telegram."
+                              f" Or if you are a developer and have an idea to make this bot better, I appreciate your"
+                              f" PRs.\n\n"
+                              f"@MusicToolBot",
+                              parse_mode='Markdown'
+                              )
+
+
 dispatcher.add_handler(CommandHandler('start', command_start))
 dispatcher.add_handler(CommandHandler('help', command_help))
+dispatcher.add_handler(CommandHandler('about', command_about))
 dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
 dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
