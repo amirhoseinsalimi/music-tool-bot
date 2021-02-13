@@ -241,13 +241,15 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     )
 
     # TODO: What about music file that are longer than 1 hour?
-    update.message.reply_text("Now send me which part of the music you want to cut out?\n"
+    update.message.reply_text("Now send me which part of the music you want to cut out?\n\n"
                               "Valid patterns are:\n"
                               "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
                               "*ss-ss*: i.e. 75-120\n\n"
                               "- m = minute, s = second\n"
                               "- Leading zeroes are optional\n"
-                              "- Extra spaces are ignored"
+                              "- Extra spaces are ignored",
+                              parse_mode='Markdown',
+                              reply_markup=back_button_keyboard
                               )
 
 
