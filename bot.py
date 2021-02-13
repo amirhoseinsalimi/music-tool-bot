@@ -102,8 +102,8 @@ def create_user_directory(user_id: int) -> str:
 def show_module_selector(update: Update, context: CallbackContext = object()) -> None:
     module_selector_keyboard = ReplyKeyboardMarkup(
         [
-            ['🎵 Tag Editor', '🎙 MP3 to Voice Converter'],
-            ['✂️ Music Cutter', '📅 Bitrate Changer']
+            ['🎵 Tag Editor', '🗣 MP3 to Voice Converter'],
+            ['✂️ Music Cutter', '🎙 Bitrate Changer']
         ],
         resize_keyboard=True,
         one_time_keyboard=True,
@@ -489,11 +489,11 @@ dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters
                                       show_module_selector))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
                                       handle_music_tag_editor))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 MP3 to Voice Converter)$') & (~Filters.command),
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
                                       handle_music_to_voice_converter))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
                                       handle_music_cutter))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
                                       handle_music_bitrate_changer))
 
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
