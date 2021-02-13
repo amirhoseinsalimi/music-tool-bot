@@ -389,9 +389,6 @@ def parse_cutting_scope(text: str) -> (int, int):
         beginning_sec = int(beginning)
         ending_sec = int(ending)
 
-    print(beginning_sec)
-    print(ending_sec)
-
     return beginning_sec, ending_sec
 
 
