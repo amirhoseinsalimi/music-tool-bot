@@ -419,7 +419,10 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             context.bot.send_document(
                 document=open(music_path, 'rb'),
                 chat_id=update.message.chat_id,
-                caption='@MusicToolBot'
+                caption=f"*From*: {beginning_sec} sec\n"
+                        f"*To*: {ending_sec} sec\n\n"
+                        '@MusicToolBot',
+                parse_mode='Markdown'
             )
     else:
         # Not implemented
