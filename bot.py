@@ -74,7 +74,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
     # Clear the user data here
 
     # Reset the bot for the user. No feature is activated yet
-    context.user_data['current_active_feature'] = ''
+    context.user_data['current_active_module'] = ''
     update.message.reply_text(START_MESSAGE)
 
 
@@ -100,7 +100,7 @@ def create_user_directory(user_id: int) -> str:
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_feature'] = ''
+    context.user_data['current_active_module'] = ''
 
     module_selector_keyboard = ReplyKeyboardMarkup(
         [
@@ -216,7 +216,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     user_data = context.user_data
     input_music_path = user_data['music_path']
     output_music_path = f"{user_data['music_path']}.ogg"
-    user_data['current_active_feature'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
+    user_data['current_active_module'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
@@ -230,7 +230,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
-    user_data['current_active_feature'] = 'music_cutter'
+    user_data['current_active_module'] = 'music_cutter'
 
     back_button_keyboard = ReplyKeyboardMarkup(
         [
@@ -254,11 +254,11 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_feature'] = 'bitrate_changer'
+    context.user_data['current_active_module'] = 'bitrate_changer'
 
     update.message.reply_text(ERR_NOT_IMPLEMENTED)
 
-    context.user_data['current_active_feature'] = ''
+    context.user_data['current_active_module'] = ''
 
 
 def handle_photo_message(update: Update, context: CallbackContext) -> None:
@@ -402,12 +402,12 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     music_path = user_data['music_path']
 
-    if user_data['current_active_feature'] == 'tag_editor':
+    if user_data['current_active_module'] == 'tag_editor':
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
         reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
         update.message.reply_text(reply_message)
-    elif user_data['current_active_feature'] == 'music_cutter':
+    elif user_data['current_active_module'] == 'music_cutter':
         beginning_sec, ending_sec = parse_cutting_scope(message_text)
 
         if beginning_sec >= ending_sec:
