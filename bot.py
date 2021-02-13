@@ -7,7 +7,6 @@ import logging
 import re
 import env
 from pathlib import Path
-from uuid import uuid4
 
 ############################
 # Third-party modules ######
