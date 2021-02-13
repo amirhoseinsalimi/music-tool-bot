@@ -232,6 +232,14 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     user_data['current_active_feature'] = 'music_cutter'
 
+    back_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🔙 Back'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
     # TODO: What about music file that are longer than 1 hour?
     update.message.reply_text("Now send me which part of the music you want to cut out?\n"
                               "Valid patterns are:\n"
