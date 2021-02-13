@@ -27,7 +27,8 @@ from redisconfig import persistence
 ############################
 START_MESSAGE = "Hello there! 👋" \
                 " Let's get started. Just send me a music and see how awesome I am!"
-HELP_MESSAGE = "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
+HELP_MESSAGE = "It's simple! Just send or forward me an audio track, an MP3 file or a music." \
+               " I'm waiting... 😁"
 DEFAULT_MESSAGE = "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
 ASK_WHICH_TAG = "Which tag do you want to edit?"
 EXPECTED_NUMBER_MESSAGE = "You entered a string instead of a number. Although this is not a problem," \
@@ -190,15 +191,15 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     )
 
     message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"🆔 @MusicToolBot\n",
+        f"""*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}
+        *🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}
+        *🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}
+        *🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}
+        *📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}
+        *💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}
+        *▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}
+        
+        🆔 @MusicToolBot""",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=tag_editor_keyboard
@@ -234,13 +235,15 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     )
 
     # TODO: What about music file that are longer than 1 hour?
-    update.message.reply_text("Now send me which part of the music you want to cut out?\n\n"
-                              "Valid patterns are:\n"
-                              "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
-                              "*ss-ss*: i.e. 75-120\n\n"
-                              "- m = minute, s = second\n"
-                              "- Leading zeroes are optional\n"
-                              "- Extra spaces are ignored",
+    update.message.reply_text("""Now send me which part of the music you want to cut out?
+    
+                              "Valid patterns are:
+                              *mm:ss-mm:ss*: i.e. 00:10-02:30
+                              *ss-ss*: i.e. 75-120
+                              
+                              - m = minute, s = second
+                              - Leading zeroes are optional
+                              - Extra spaces are ignored""",
                               parse_mode='Markdown',
                               reply_markup=back_button_keyboard
                               )
@@ -427,16 +430,17 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     tag_editor_context = context.user_data['tag_editor']
 
     message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"{CLICK_DONE_MESSAGE}\n\n"
-        f"🆔 @MusicToolBot\n",
+        f"""*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}
+        *🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}
+        *🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}
+        *🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}
+        *📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}
+        *💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}
+        *▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}
+        
+        {CLICK_DONE_MESSAGE}
+        
+        🆔 @MusicToolBot""",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
     )
