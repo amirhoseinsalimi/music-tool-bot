@@ -80,11 +80,6 @@ def command_help(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(HELP_MESSAGE)
 
 
-def echo_name(update: Update, context: CallbackContext) -> None:
-    print(json.dumps(update, sort_keys=True, indent=4, default=str))
-    update.message.reply_text(f'Hello {update.effective_user.first_name}')
-
-
 def create_user_directory(user_id: int) -> str:
     user_download_dir = f"downloads/{user_id}"
 
@@ -487,7 +482,6 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
 dispatcher.add_handler(CommandHandler('start', command_start))
 dispatcher.add_handler(CommandHandler('help', command_help))
-dispatcher.add_handler(CommandHandler('hello', echo_name))
 dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
 dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
