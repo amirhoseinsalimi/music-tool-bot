@@ -152,7 +152,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     # Send the key to the user
 
-    show_module_selector(update)
+    show_module_selector(update, context)
 
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
