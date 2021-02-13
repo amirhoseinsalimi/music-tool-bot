@@ -7,7 +7,6 @@ import logging
 import re
 import env
 from pathlib import Path
-from uuid import uuid4
 
 ############################
 # Third-party modules ######
@@ -17,7 +16,6 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 import requests
 from downloader import download_file
 import music_tag
-import ffmpeg
 
 ############################
 # My modules ###############
@@ -29,7 +27,8 @@ from redisconfig import persistence
 ############################
 START_MESSAGE = "Hello there! 👋" \
                 " Let's get started. Just send me a music and see how awesome I am!"
-HELP_MESSAGE = "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
+HELP_MESSAGE = "It's simple! Just send or forward me an audio track, an MP3 file or a music." \
+               " I'm waiting... 😁"
 DEFAULT_MESSAGE = "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
 ASK_WHICH_TAG = "Which tag do you want to edit?"
 EXPECTED_NUMBER_MESSAGE = "You entered a string instead of a number. Although this is not a problem," \
@@ -74,17 +73,12 @@ def command_start(update: Update, context: CallbackContext) -> None:
     # Clear the user data here
 
     # Reset the bot for the user. No feature is activated yet
-    context.user_data['current_active_feature'] = ''
+    context.user_data['current_active_module'] = ''
     update.message.reply_text(START_MESSAGE)
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(HELP_MESSAGE)
-
-
-def echo_name(update: Update, context: CallbackContext) -> None:
-    print(json.dumps(update, sort_keys=True, indent=4, default=str))
-    update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
 
 def create_user_directory(user_id: int) -> str:
@@ -99,11 +93,13 @@ def create_user_directory(user_id: int) -> str:
     return user_download_dir
 
 
-def show_module_selector(update: Update, context: CallbackContext = object()) -> None:
+def show_module_selector(update: Update, context: CallbackContext) -> None:
+    context.user_data['current_active_module'] = ''
+
     module_selector_keyboard = ReplyKeyboardMarkup(
         [
-            ['🎵 Tag Editor', '🎙 MP3 to Voice Converter'],
-            ['✂️ Music Cutter', '📅 Bitrate Changer']
+            ['🎵 Tag Editor', '🗣 MP3 to Voice Converter'],
+            ['✂️ Music Cutter', '🎙 Bitrate Changer']
         ],
         resize_keyboard=True,
         one_time_keyboard=True,
@@ -123,10 +119,6 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     file_download_path = ''
     music = None
     user_data = context.user_data
-
-    # This line should be deleted later, cause the user will have
-    #   the option to choose the current active feature using glassy buttons
-    user_data['current_active_feature'] = 'tag_editor'
 
     try:
         create_user_directory(user_id)
@@ -154,7 +146,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     # Send the key to the user
 
-    show_module_selector(update)
+    show_module_selector(update, context)
 
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
@@ -199,15 +191,15 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     )
 
     message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"🆔 @MusicToolBot\n",
+        f"""*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}
+        *🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}
+        *🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}
+        *🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}
+        *📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}
+        *💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}
+        *▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}
+        
+        🆔 @MusicToolBot""",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=tag_editor_keyboard
@@ -218,7 +210,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     user_data = context.user_data
     input_music_path = user_data['music_path']
     output_music_path = f"{user_data['music_path']}.ogg"
-    user_data['current_active_feature'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
+    user_data['current_active_module'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
@@ -232,25 +224,37 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
-    user_data['current_active_feature'] = 'music_cutter'
+    user_data['current_active_module'] = 'music_cutter'
+
+    back_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🔙 Back'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
 
     # TODO: What about music file that are longer than 1 hour?
-    update.message.reply_text("Now send me which part of the music you want to cut out?\n"
-                              "Valid patterns are:\n"
-                              "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
-                              "*ss-ss*: i.e. 75-120\n\n"
-                              "- m = minute, s = second\n"
-                              "- Leading zeroes are optional\n"
-                              "- Extra spaces are ignored"
+    update.message.reply_text("""Now send me which part of the music you want to cut out?
+    
+                              "Valid patterns are:
+                              *mm:ss-mm:ss*: i.e. 00:10-02:30
+                              *ss-ss*: i.e. 75-120
+                              
+                              - m = minute, s = second
+                              - Leading zeroes are optional
+                              - Extra spaces are ignored""",
+                              parse_mode='Markdown',
+                              reply_markup=back_button_keyboard
                               )
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_feature'] = 'bitrate_changer'
+    context.user_data['current_active_module'] = 'bitrate_changer'
 
     update.message.reply_text(ERR_NOT_IMPLEMENTED)
 
-    context.user_data['current_active_feature'] = ''
+    context.user_data['current_active_module'] = ''
 
 
 def handle_photo_message(update: Update, context: CallbackContext) -> None:
@@ -383,9 +387,6 @@ def parse_cutting_scope(text: str) -> (int, int):
         beginning_sec = int(beginning)
         ending_sec = int(ending)
 
-    print(beginning_sec)
-    print(ending_sec)
-
     return beginning_sec, ending_sec
 
 
@@ -394,12 +395,12 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     music_path = user_data['music_path']
 
-    if user_data['current_active_feature'] == 'tag_editor':
+    if user_data['current_active_module'] == 'tag_editor':
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
         reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
         update.message.reply_text(reply_message)
-    elif user_data['current_active_feature'] == 'music_cutter':
+    elif user_data['current_active_module'] == 'music_cutter':
         beginning_sec, ending_sec = parse_cutting_scope(message_text)
 
         if beginning_sec >= ending_sec:
@@ -413,7 +414,10 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             context.bot.send_document(
                 document=open(music_path, 'rb'),
                 chat_id=update.message.chat_id,
-                caption='@MusicToolBot'
+                caption=f"*From*: {beginning_sec} sec\n"
+                        f"*To*: {ending_sec} sec\n\n"
+                        '@MusicToolBot',
+                parse_mode='Markdown'
             )
     else:
         # Not implemented
@@ -426,16 +430,17 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     tag_editor_context = context.user_data['tag_editor']
 
     message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"{CLICK_DONE_MESSAGE}\n\n"
-        f"🆔 @MusicToolBot\n",
+        f"""*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}
+        *🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}
+        *🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}
+        *🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}
+        *📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}
+        *💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}
+        *▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}
+        
+        {CLICK_DONE_MESSAGE}
+        
+        🆔 @MusicToolBot""",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
     )
@@ -481,7 +486,6 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
 dispatcher.add_handler(CommandHandler('start', command_start))
 dispatcher.add_handler(CommandHandler('help', command_help))
-dispatcher.add_handler(CommandHandler('hello', echo_name))
 dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
 dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
@@ -489,11 +493,11 @@ dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters
                                       show_module_selector))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
                                       handle_music_tag_editor))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 MP3 to Voice Converter)$') & (~Filters.command),
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
                                       handle_music_to_voice_converter))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
                                       handle_music_cutter))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
+dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
                                       handle_music_bitrate_changer))
 
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
