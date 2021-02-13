@@ -99,7 +99,9 @@ def create_user_directory(user_id: int) -> str:
     return user_download_dir
 
 
-def show_module_selector(update: Update, context: CallbackContext = object()) -> None:
+def show_module_selector(update: Update, context: CallbackContext) -> None:
+    context.user_data['current_active_feature'] = ''
+
     module_selector_keyboard = ReplyKeyboardMarkup(
         [
             ['🎵 Tag Editor', '🗣 MP3 to Voice Converter'],
