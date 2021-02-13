@@ -16,7 +16,6 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 import requests
 from downloader import download_file
 import music_tag
-import ffmpeg
 
 ############################
 # My modules ###############
