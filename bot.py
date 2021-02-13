@@ -51,6 +51,7 @@ ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. So
 # Global variables #########
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_USERNAME = os.getenv("BOT_USERNAME")
 ORIGIN_URL = 'https://api.telegram.org'
 updater = Updater(BOT_TOKEN, persistence=persistence)
 dispatcher = updater.dispatcher
@@ -198,7 +199,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
         # f"*🖼 Album Art:* {music['artist']}\n"
         f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"🆔 @MusicToolBot\n",
+        f"🆔 {BOT_USERNAME}\n",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=tag_editor_keyboard
@@ -217,7 +218,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     context.bot.send_voice(
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
-        caption='@MusicToolBot'
+        caption=f"{BOT_USERNAME}"
     )
 
 
@@ -413,7 +414,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 chat_id=update.message.chat_id,
                 caption=f"*From*: {beginning_sec} sec\n"
                         f"*To*: {ending_sec} sec\n\n"
-                        '@MusicToolBot',
+                        f"{BOT_USERNAME}",
                 parse_mode='Markdown'
             )
     else:
@@ -436,7 +437,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
         f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"{CLICK_DONE_MESSAGE}\n\n"
-        f"🆔 @MusicToolBot\n",
+        f"🆔 {BOT_USERNAME}\n",
         parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
     )
@@ -476,18 +477,18 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     context.bot.send_document(
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
-        caption='@MusicToolBot'
+        caption=f"{BOT_USERNAME}"
     )
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f"This bot is created by Amir Hosein Salimi (@amirhoseinsalimi) in Python language.\n"
                               f"The source code of this project is available on"
-                              f"[GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).\n\n"
-                              f" If you have any question or feedback feel free to message me on Telegram."
+                              f" [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).\n\n"
+                              f"If you have any question or feedback feel free to message me on Telegram."
                               f" Or if you are a developer and have an idea to make this bot better, I appreciate your"
                               f" PRs.\n\n"
-                              f"@MusicToolBot",
+                              f"{BOT_USERNAME}",
                               parse_mode='Markdown'
                               )
 
