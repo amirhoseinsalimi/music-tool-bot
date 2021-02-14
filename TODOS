@@ -12,6 +12,10 @@ TODO: Correct "Too broad exception clause"
 TODO: Create README
 TODO: Add shebangs
 TODO: Announce the bot in Twitter, ThereIsABotForThat, Discord, Telegram Groups
+TODO: Make use of defaults
+TODO: Use async/await if possible
+TODO: Persist user ids somewhere
+TODO: Change "music" to "audio" + Use same language everywhere
 
 TODO: https://github.com/odysseusmax/utube
 TODO: https://github.com/viperadnan-git/google-drive-telegram-bot
