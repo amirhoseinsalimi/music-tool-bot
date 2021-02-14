@@ -81,6 +81,13 @@ def command_help(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(HELP_MESSAGE)
 
 
+def delete_file(file_path: str) -> None:
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        print("The file does not exist")
+
+
 def create_user_directory(user_id: int) -> str:
     user_download_dir = f"downloads/{user_id}"
 
@@ -221,6 +228,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}"
     )
+
+    delete_file(output_music_path)
 
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
@@ -428,6 +437,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                         f"{BOT_USERNAME}",
                 parse_mode='Markdown'
             )
+
+            delete_file(music_path_cut)
     else:
         # Not implemented
         reply_message = ERR_NOT_IMPLEMENTED
@@ -490,6 +501,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}"
     )
+
+    delete_file(music_path)
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
