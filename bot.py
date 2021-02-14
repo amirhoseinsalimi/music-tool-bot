@@ -43,6 +43,7 @@ ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_B
 ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_NOT_IMPLEMENTED = f"This feature has not been implemented yet. Sorry!"
 ERR_OUT_OF_RANGE = "The range you entered is out of the actual file duration. The file length is: {} seconds"
+ERR_MALFORMED_RANGE = "You have entered a malformed pattern. Please try again. {}"
 ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. Sorry!"
 
 ############################
@@ -430,7 +431,22 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
         update.message.reply_text(reply_message)
     elif current_active_module == 'music_cutter':
-        beginning_sec, ending_sec = parse_cutting_range(message_text)
+        beginning_sec = ending_sec = 0
+
+        try:
+            beginning_sec, ending_sec = parse_cutting_range(message_text)
+        except:
+            reply_message = ERR_MALFORMED_RANGE.format(
+                "\n\nNow send me which part of the music you want to cut out?\n\n"
+                "Valid patterns are:\n"
+                "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
+                "*ss-ss*: i.e. 75-120\n\n"
+                "- m = minute, s = second\n"
+                "- Leading zeroes are optional\n"
+                "- Extra spaces are ignored"
+            )
+            update.message.reply_text(reply_message)
+            return
         music_path_cut = f"{music_path}_cut.mp3"
         music_duration = user_data['music_duration']
 
