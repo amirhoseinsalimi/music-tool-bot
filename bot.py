@@ -6,18 +6,17 @@ import os
 import re
 from pathlib import Path
 
-import music_tag
-import requests
 ############################
 # Third-party modules ######
 ############################
+import music_tag
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
 
-from downloader import download_file
 ############################
 # My modules ###############
 ############################
+from downloader import download_file
 from redisconfig import persistence
 
 ############################
