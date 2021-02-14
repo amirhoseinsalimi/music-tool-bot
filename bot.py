@@ -232,7 +232,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     context.bot.send_voice(
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
-        caption=f"{BOT_USERNAME}"
+        caption=f"{BOT_USERNAME}",
+        timeout=120
     )
 
     delete_file(output_music_path)
@@ -441,7 +442,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                timeout=120
             )
 
             delete_file(music_path_cut)
@@ -505,7 +507,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     context.bot.send_document(
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
-        caption=f"{BOT_USERNAME}"
+        caption=f"{BOT_USERNAME}",
+        timeout=120
     )
 
     delete_file(music_path)
