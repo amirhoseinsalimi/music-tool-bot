@@ -6,18 +6,17 @@ import os
 import re
 from pathlib import Path
 
-import music_tag
-import requests
 ############################
 # Third-party modules ######
 ############################
-from telegram import Update, ReplyKeyboardMarkup
+import music_tag
+from telegram import Update, ReplyKeyboardMarkup, ChatAction
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
 
-from downloader import download_file
 ############################
 # My modules ###############
 ############################
+from downloader import download_file
 from redisconfig import persistence
 
 ############################
@@ -44,6 +43,8 @@ ERR_TOO_LARGE_FILE = f"This file is too big that I can process, sorry!"
 ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_NOT_IMPLEMENTED = f"This feature has not been implemented yet. Sorry!"
+ERR_OUT_OF_RANGE = "The range you entered is out of the actual file duration. The file length is: {} seconds"
+ERR_MALFORMED_RANGE = "You have entered a malformed pattern. Please try again. {}"
 ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. Sorry!"
 
 ############################
@@ -139,6 +140,11 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(ERR_TOO_LARGE_FILE)
         return
 
+    context.bot.send_chat_action(
+        chat_id=message.chat_id,
+        action=ChatAction.TYPING
+    )
+
     try:
         create_user_directory(user_id)
     except:
@@ -227,6 +233,11 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
+    context.bot.send_chat_action(
+        chat_id=update.message.chat_id,
+        action=ChatAction.RECORD_AUDIO
+    )
+
     user_data = context.user_data
     input_music_path = user_data['music_path']
     output_music_path = f"{user_data['music_path']}.ogg"
@@ -234,6 +245,11 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
+
+    context.bot.send_chat_action(
+        chat_id=update.message.chat_id,
+        action=ChatAction.UPLOAD_AUDIO
+    )
 
     context.bot.send_voice(
         voice=open(output_music_path, 'rb'),
@@ -243,6 +259,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     )
 
     delete_file(output_music_path)
+    delete_file(input_music_path)
 
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
@@ -271,10 +288,7 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_module'] = 'bitrate_changer'
-
-    update.message.reply_text(ERR_NOT_IMPLEMENTED)
-
+    throw_not_implemented(update)
     context.user_data['current_active_module'] = ''
 
 
@@ -323,16 +337,21 @@ def prepare_for_title(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(message_text)
 
 
+def throw_not_implemented(update: Update) -> None:
+    back_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🔙 Back'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+    update.message.reply_text(ERR_NOT_IMPLEMENTED, reply_markup=back_button_keyboard)
+
+
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
-    if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
-    else:
-        context.user_data['tag_editor']['current_tag'] = 'album'
-        message_text = "Enter the name of the album:"
-
-    update.message.reply_text(message_text)
+    throw_not_implemented(update)
+    context.user_data['current_active_module'] = ''
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
@@ -387,26 +406,29 @@ def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -
     context.user_data['tag_editor'][current_tag] = value
 
 
-def parse_cutting_scope(text: str) -> (int, int):
+def parse_cutting_range(text: str) -> (int, int):
     text = re.sub(' ', '', text)
     beginning, _, ending = text.partition('-')
 
     beginning_sec = 0
     ending_sec = 0
 
-    if ':' in text:
-        beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
-                            beginning.partition(':')[0].lstrip('0') else 0) * 60 \
-                        + int(beginning.partition(':')[2].lstrip('0') if
-                              beginning.partition(':')[2].lstrip('0') else 0)
-
-        ending_sec = int(ending.partition(':')[0].lstrip('0') if
-                         ending.partition(':')[0].lstrip('0') else 0) * 60 \
-                     + int(ending.partition(':')[2].lstrip('0') if
-                           ending.partition(':')[2].lstrip('0') else 0)
+    if '-' not in text:
+        raise Exception('Malformed music range')
     else:
-        beginning_sec = int(beginning)
-        ending_sec = int(ending)
+        if ':' in text:
+            beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
+                                beginning.partition(':')[0].lstrip('0') else 0) * 60 \
+                            + int(beginning.partition(':')[2].lstrip('0') if
+                                  beginning.partition(':')[2].lstrip('0') else 0)
+
+            ending_sec = int(ending.partition(':')[0].lstrip('0') if
+                             ending.partition(':')[0].lstrip('0') else 0) * 60 \
+                         + int(ending.partition(':')[2].lstrip('0') if
+                               ending.partition(':')[2].lstrip('0') else 0)
+        else:
+            beginning_sec = int(beginning)
+            ending_sec = int(ending)
 
     return beginning_sec, ending_sec
 
@@ -426,9 +448,28 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
         update.message.reply_text(reply_message)
     elif current_active_module == 'music_cutter':
-        beginning_sec, ending_sec = parse_cutting_scope(message_text)
-        music_path_cut = f"{music_path}_cut.mp3"
+        beginning_sec = ending_sec = 0
 
+        try:
+            beginning_sec, ending_sec = parse_cutting_range(message_text)
+        except:
+            reply_message = ERR_MALFORMED_RANGE.format(
+                "\n\nNow send me which part of the music you want to cut out?\n\n"
+                "Valid patterns are:\n"
+                "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
+                "*ss-ss*: i.e. 75-120\n\n"
+                "- m = minute, s = second\n"
+                "- Leading zeroes are optional\n"
+                "- Extra spaces are ignored"
+            )
+            update.message.reply_text(reply_message)
+            return
+        music_path_cut = f"{music_path}_cut.mp3"
+        music_duration = user_data['music_duration']
+
+        if beginning_sec > music_duration or ending_sec > music_duration:
+            reply_message = ERR_OUT_OF_RANGE.format(music_duration)
+            update.message.reply_text(reply_message)
         if beginning_sec >= ending_sec:
             reply_message = ERR_BEGINNING_POINT_IS_GREATER
             update.message.reply_text(reply_message)
@@ -453,6 +494,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             )
 
             delete_file(music_path_cut)
+            delete_file(music_path)
     else:
         # Not implemented
         reply_message = ERR_NOT_IMPLEMENTED
@@ -499,6 +541,11 @@ def save_tags_to_file(file: str, tags: dict) -> str:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+    context.bot.send_chat_action(
+        chat_id=update.message.chat_id,
+        action=ChatAction.UPLOAD_AUDIO
+    )
+
     music_path = context.user_data['music_path']
     music_tags = context.user_data['tag_editor']
 
