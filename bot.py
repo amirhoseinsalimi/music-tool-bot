@@ -130,6 +130,15 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     )
 
 
+def reset_context_user_data(context: CallbackContext) -> None:
+    user_data = context.user_data
+
+    user_data['tag_editor'] = {}
+    user_data['music_path'] = ''
+    user_data['music_duration'] = ''
+    user_data['current_active_module'] = ''
+
+
 def handle_music_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
@@ -170,9 +179,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(ERR_ON_READING_TAGS)
         return
 
-    user_data['tag_editor'] = {}
+    reset_context_user_data(context)
 
-    # Store value
     user_data['music_path'] = file_download_path
     user_data['music_duration'] = message.audio.duration
 
