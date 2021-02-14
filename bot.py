@@ -10,7 +10,7 @@ from pathlib import Path
 # Third-party modules ######
 ############################
 import music_tag
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, ChatAction
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
 
 ############################
@@ -123,6 +123,11 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     music = None
     user_data = context.user_data
 
+    context.bot.send_chat_action(
+        chat_id=message.chat_id,
+        action=ChatAction.TYPING
+    )
+
     try:
         create_user_directory(user_id)
     except:
@@ -211,6 +216,11 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
+    context.bot.send_chat_action(
+        chat_id=update.message.chat_id,
+        action=ChatAction.RECORD_AUDIO
+    )
+
     user_data = context.user_data
     input_music_path = user_data['music_path']
     output_music_path = f"{user_data['music_path']}.ogg"
@@ -218,6 +228,11 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
+
+    context.bot.send_chat_action(
+        chat_id=update.message.chat_id,
+        action=ChatAction.UPLOAD_AUDIO
+    )
 
     context.bot.send_voice(
         voice=open(output_music_path, 'rb'),
@@ -492,6 +507,11 @@ def save_tags_to_file(file: str, tags: dict) -> str:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+    context.bot.send_chat_action(
+        chat_id=update.message.chat_id,
+        action=ChatAction.UPLOAD_AUDIO
+    )
+
     music_path = context.user_data['music_path']
     music_tags = context.user_data['tag_editor']
 
