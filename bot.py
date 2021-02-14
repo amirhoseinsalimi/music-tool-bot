@@ -12,8 +12,8 @@ from pathlib import Path
 # Third-party modules ######
 ############################
 import music_tag
-from telegram import Update, ReplyKeyboardMarkup, ChatAction
-from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
+from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
+from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults
 
 ############################
 # My modules ###############
@@ -54,7 +54,8 @@ ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. So
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
-updater = Updater(BOT_TOKEN, persistence=persistence)
+DEFAULTS = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
+updater = Updater(BOT_TOKEN, persistence=persistence, defaults=DEFAULTS)
 dispatcher = updater.dispatcher
 
 ############################
@@ -124,7 +125,6 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text(
         "What do you want to do with this file?",
-        parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
@@ -236,7 +236,6 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
         f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"🆔 {BOT_USERNAME}\n",
-        parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=tag_editor_keyboard
     )
@@ -265,7 +264,6 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        timeout=120
     )
 
     delete_file(output_music_path)
@@ -292,7 +290,6 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
                               "- m = minute, s = second\n"
                               "- Leading zeroes are optional\n"
                               "- Extra spaces are ignored",
-                              parse_mode='Markdown',
                               reply_markup=back_button_keyboard
                               )
 
@@ -499,8 +496,6 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
-                parse_mode='Markdown',
-                timeout=120
             )
 
             delete_file(music_path_cut)
@@ -526,7 +521,6 @@ def display_preview(update: Update, context: CallbackContext) -> None:
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"{CLICK_DONE_MESSAGE}\n\n"
         f"🆔 {BOT_USERNAME}\n",
-        parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
     )
 
@@ -571,7 +565,6 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        timeout=120
     )
 
     delete_file(music_path)
@@ -585,7 +578,6 @@ def command_about(update: Update, context: CallbackContext) -> None:
                               f" Or if you are a developer and have an idea to make this bot better, I appreciate your"
                               f" PRs.\n\n"
                               f"{BOT_USERNAME}",
-                              parse_mode='Markdown'
                               )
 
 
