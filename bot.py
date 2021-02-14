@@ -398,6 +398,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     message_text = update.message.text
     user_data = context.user_data
     music_path = user_data['music_path']
+    music_path = context.user_data['music_path']
+    music_tags = context.user_data['tag_editor']
 
     current_active_module = user_data['current_active_module']
 
@@ -408,6 +410,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(reply_message)
     elif current_active_module == 'music_cutter':
         beginning_sec, ending_sec = parse_cutting_scope(message_text)
+        music_path_cut = f"{music_path}_cut.mp3"
 
         if beginning_sec >= ending_sec:
             reply_message = ERR_BEGINNING_POINT_IS_GREATER
@@ -415,10 +418,15 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         else:
             diff_sec = ending_sec - beginning_sec
 
-            os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path}_cut.mp3")
+            os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path_cut}")
+
+            save_tags_to_file(
+                file=music_path_cut,
+                tags=music_tags,
+            )
 
             context.bot.send_document(
-                document=open(music_path, 'rb'),
+                document=open(music_path_cut, 'rb'),
                 chat_id=update.message.chat_id,
                 caption=f"*From*: {beginning_sec} sec\n"
                         f"*To*: {ending_sec} sec\n\n"
