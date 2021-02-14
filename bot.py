@@ -1,22 +1,20 @@
 ############################
 # Built-in modules #########
 ############################
-import os
-import json
 import logging
+import os
 import re
-import env
 from pathlib import Path
 
+import music_tag
+import requests
 ############################
 # Third-party modules ######
 ############################
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
-import requests
-from downloader import download_file
-import music_tag
 
+from downloader import download_file
 ############################
 # My modules ###############
 ############################
@@ -52,17 +50,15 @@ ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. So
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
-ORIGIN_URL = 'https://api.telegram.org'
 updater = Updater(BOT_TOKEN, persistence=persistence)
 dispatcher = updater.dispatcher
-post = requests.post
 
 ############################
 # Logger ###################
 ############################
 logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
-    )
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
 
@@ -79,6 +75,13 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
 def command_help(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(HELP_MESSAGE)
+
+
+def delete_file(file_path: str) -> None:
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        print("The file does not exist")
 
 
 def create_user_directory(user_id: int) -> str:
@@ -137,30 +140,17 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
         return
 
-    user_data['tag_editor'] = {}
-
-    # Store value
-    user_data['tag_editor']['music_path'] = file_download_path
-    user_data['music_path'] = file_download_path
-    user_data['music_duration'] = message.audio.duration
-
-    # Send the key to the user
-
-    show_module_selector(update, context)
-
-
-def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
-    message = update.message
-    user_id = update.effective_user.id
-    file_download_path = ''
-    music = None
-    user_data = context.user_data
-
     try:
-        music = music_tag.load_file(user_data['music_path'])
+        music = music_tag.load_file(file_download_path)
     except:
         message.reply_text(ERR_ON_READING_TAGS)
         return
+
+    user_data['tag_editor'] = {}
+
+    # Store value
+    user_data['music_path'] = file_download_path
+    user_data['music_duration'] = message.audio.duration
 
     tag_editor_context = context.user_data['tag_editor']
 
@@ -179,6 +169,20 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     tag_editor_context['year'] = str(year)
     tag_editor_context['disknumber'] = str(disknumber)
     tag_editor_context['tracknumber'] = str(tracknumber)
+
+    show_module_selector(update, context)
+
+
+def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
+    message = update.message
+    user_id = update.effective_user.id
+    file_download_path = ''
+    music = None
+    user_data = context.user_data
+
+    user_data['current_active_module'] = 'tag_editor'
+
+    tag_editor_context = context.user_data['tag_editor']
 
     tag_editor_keyboard = ReplyKeyboardMarkup(
         [
@@ -220,6 +224,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}"
     )
+
+    delete_file(output_music_path)
 
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
@@ -373,14 +379,14 @@ def parse_cutting_scope(text: str) -> (int, int):
 
     if ':' in text:
         beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
-                            beginning.partition(':')[0].lstrip('0') else 0)*60\
+                            beginning.partition(':')[0].lstrip('0') else 0) * 60 \
                         + int(beginning.partition(':')[2].lstrip('0') if
                               beginning.partition(':')[2].lstrip('0') else 0)
 
         ending_sec = int(ending.partition(':')[0].lstrip('0') if
-                         ending.partition(':')[0].lstrip('0') else 0)*60\
-            + int(ending.partition(':')[2].lstrip('0') if
-                  ending.partition(':')[2].lstrip('0') else 0)
+                         ending.partition(':')[0].lstrip('0') else 0) * 60 \
+                     + int(ending.partition(':')[2].lstrip('0') if
+                           ending.partition(':')[2].lstrip('0') else 0)
     else:
         beginning_sec = int(beginning)
         ending_sec = int(ending)
@@ -392,14 +398,19 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     message_text = update.message.text
     user_data = context.user_data
     music_path = user_data['music_path']
+    music_path = context.user_data['music_path']
+    music_tags = context.user_data['tag_editor']
 
-    if user_data['current_active_module'] == 'tag_editor':
+    current_active_module = user_data['current_active_module']
+
+    if current_active_module == 'tag_editor':
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
         reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
         update.message.reply_text(reply_message)
-    elif user_data['current_active_module'] == 'music_cutter':
+    elif current_active_module == 'music_cutter':
         beginning_sec, ending_sec = parse_cutting_scope(message_text)
+        music_path_cut = f"{music_path}_cut.mp3"
 
         if beginning_sec >= ending_sec:
             reply_message = ERR_BEGINNING_POINT_IS_GREATER
@@ -407,16 +418,23 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         else:
             diff_sec = ending_sec - beginning_sec
 
-            os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path}_cut.mp3")
+            os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path_cut}")
+
+            save_tags_to_file(
+                file=music_path_cut,
+                tags=music_tags,
+            )
 
             context.bot.send_document(
-                document=open(music_path, 'rb'),
+                document=open(music_path_cut, 'rb'),
                 chat_id=update.message.chat_id,
                 caption=f"*From*: {beginning_sec} sec\n"
                         f"*To*: {ending_sec} sec\n\n"
                         f"{BOT_USERNAME}",
                 parse_mode='Markdown'
             )
+
+            delete_file(music_path_cut)
     else:
         # Not implemented
         reply_message = ERR_NOT_IMPLEMENTED
@@ -463,7 +481,7 @@ def save_tags_to_file(file: str, tags: dict) -> str:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
-    music_path = context.user_data['tag_editor']['music_path']
+    music_path = context.user_data['music_path']
     music_tags = context.user_data['tag_editor']
 
     try:
@@ -479,6 +497,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}"
     )
+
+    delete_file(music_path)
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
@@ -516,7 +536,8 @@ dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filter
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
+dispatcher.add_handler(
+    MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
 
 dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
 dispatcher.add_handler(CommandHandler('preview', display_preview))
