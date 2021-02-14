@@ -137,30 +137,18 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
         return
 
+    try:
+        music = music_tag.load_file(file_download_path)
+    except:
+        message.reply_text(ERR_ON_READING_TAGS)
+        return
+
     user_data['tag_editor'] = {}
 
     # Store value
     user_data['tag_editor']['music_path'] = file_download_path
     user_data['music_path'] = file_download_path
     user_data['music_duration'] = message.audio.duration
-
-    # Send the key to the user
-
-    show_module_selector(update, context)
-
-
-def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
-    message = update.message
-    user_id = update.effective_user.id
-    file_download_path = ''
-    music = None
-    user_data = context.user_data
-
-    try:
-        music = music_tag.load_file(user_data['music_path'])
-    except:
-        message.reply_text(ERR_ON_READING_TAGS)
-        return
 
     tag_editor_context = context.user_data['tag_editor']
 
@@ -179,6 +167,24 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     tag_editor_context['year'] = str(year)
     tag_editor_context['disknumber'] = str(disknumber)
     tag_editor_context['tracknumber'] = str(tracknumber)
+
+    show_module_selector(update, context)
+
+
+def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
+    message = update.message
+    user_id = update.effective_user.id
+    file_download_path = ''
+    music = None
+    user_data = context.user_data
+
+    try:
+        music = music_tag.load_file(user_data['music_path'])
+    except:
+        message.reply_text(ERR_ON_READING_TAGS)
+        return
+
+    tag_editor_context = context.user_data['tag_editor']
 
     tag_editor_keyboard = ReplyKeyboardMarkup(
         [
