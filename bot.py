@@ -399,12 +399,14 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     music_path = user_data['music_path']
 
-    if user_data['current_active_module'] == 'tag_editor':
+    current_active_module = user_data['current_active_module']
+
+    if current_active_module == 'tag_editor':
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
         reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
         update.message.reply_text(reply_message)
-    elif user_data['current_active_module'] == 'music_cutter':
+    elif current_active_module == 'music_cutter':
         beginning_sec, ending_sec = parse_cutting_scope(message_text)
 
         if beginning_sec >= ending_sec:
