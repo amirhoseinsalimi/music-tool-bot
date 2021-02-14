@@ -226,6 +226,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     )
 
     delete_file(output_music_path)
+    delete_file(input_music_path)
 
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
@@ -435,6 +436,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             )
 
             delete_file(music_path_cut)
+            delete_file(music_path)
     else:
         # Not implemented
         reply_message = ERR_NOT_IMPLEMENTED
