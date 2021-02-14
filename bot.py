@@ -177,11 +177,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     music = None
     user_data = context.user_data
 
-    try:
-        music = music_tag.load_file(user_data['music_path'])
-    except:
-        message.reply_text(ERR_ON_READING_TAGS)
-        return
+    user_data['current_active_module'] = 'tag_editor'
 
     tag_editor_context = context.user_data['tag_editor']
 
