@@ -255,10 +255,7 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_module'] = 'bitrate_changer'
-
-    update.message.reply_text(ERR_NOT_IMPLEMENTED)
-
+    throw_not_implemented(update)
     context.user_data['current_active_module'] = ''
 
 
@@ -307,16 +304,21 @@ def prepare_for_title(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(message_text)
 
 
+def throw_not_implemented(update: Update) -> None:
+    back_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🔙 Back'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+    update.message.reply_text(ERR_NOT_IMPLEMENTED, reply_markup=back_button_keyboard)
+
+
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
-    if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
-    else:
-        context.user_data['tag_editor']['current_tag'] = 'album'
-        message_text = "Enter the name of the album:"
-
-    update.message.reply_text(message_text)
+    throw_not_implemented(update)
+    context.user_data['current_active_module'] = ''
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
