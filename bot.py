@@ -378,19 +378,22 @@ def parse_cutting_scope(text: str) -> (int, int):
     beginning_sec = 0
     ending_sec = 0
 
-    if ':' in text:
-        beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
-                            beginning.partition(':')[0].lstrip('0') else 0) * 60 \
-                        + int(beginning.partition(':')[2].lstrip('0') if
-                              beginning.partition(':')[2].lstrip('0') else 0)
-
-        ending_sec = int(ending.partition(':')[0].lstrip('0') if
-                         ending.partition(':')[0].lstrip('0') else 0) * 60 \
-                     + int(ending.partition(':')[2].lstrip('0') if
-                           ending.partition(':')[2].lstrip('0') else 0)
+    if '-' not in text:
+        raise Exception('Malformed music scope')
     else:
-        beginning_sec = int(beginning)
-        ending_sec = int(ending)
+        if ':' in text:
+            beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
+                                beginning.partition(':')[0].lstrip('0') else 0) * 60 \
+                            + int(beginning.partition(':')[2].lstrip('0') if
+                                  beginning.partition(':')[2].lstrip('0') else 0)
+
+            ending_sec = int(ending.partition(':')[0].lstrip('0') if
+                             ending.partition(':')[0].lstrip('0') else 0) * 60 \
+                         + int(ending.partition(':')[2].lstrip('0') if
+                               ending.partition(':')[2].lstrip('0') else 0)
+        else:
+            beginning_sec = int(beginning)
+            ending_sec = int(ending)
 
     return beginning_sec, ending_sec
 
