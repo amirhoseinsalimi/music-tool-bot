@@ -372,7 +372,7 @@ def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -
     context.user_data['tag_editor'][current_tag] = value
 
 
-def parse_cutting_scope(text: str) -> (int, int):
+def parse_cutting_range(text: str) -> (int, int):
     text = re.sub(' ', '', text)
     beginning, _, ending = text.partition('-')
 
@@ -380,7 +380,7 @@ def parse_cutting_scope(text: str) -> (int, int):
     ending_sec = 0
 
     if '-' not in text:
-        raise Exception('Malformed music scope')
+        raise Exception('Malformed music range')
     else:
         if ':' in text:
             beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
@@ -414,7 +414,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
         update.message.reply_text(reply_message)
     elif current_active_module == 'music_cutter':
-        beginning_sec, ending_sec = parse_cutting_scope(message_text)
+        beginning_sec, ending_sec = parse_cutting_range(message_text)
         music_path_cut = f"{music_path}_cut.mp3"
         music_duration = user_data['music_duration']
 
