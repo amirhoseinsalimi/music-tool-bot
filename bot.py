@@ -65,6 +65,16 @@ logger = logging.getLogger(__name__)
 ############################
 # Handlers #################
 ############################
+def convert_seconds_to_human_readable_form(seconds: int) -> str:
+    minutes = int(seconds / 60)
+    remainder = seconds % 60
+
+    minutes_formatted = str(minutes) if minutes >= 10 else "0" + str(minutes)
+    seconds_formatted = str(seconds) if seconds >= 10 else "0" + str(seconds)
+
+    return f"{minutes_formatted}:{seconds_formatted}"
+
+
 def command_start(update: Update, context: CallbackContext) -> None:
     # Clear the user data here
 
@@ -428,8 +438,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             context.bot.send_document(
                 document=open(music_path_cut, 'rb'),
                 chat_id=update.message.chat_id,
-                caption=f"*From*: {beginning_sec} sec\n"
-                        f"*To*: {ending_sec} sec\n\n"
+                caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
+                        f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
                 parse_mode='Markdown'
             )
