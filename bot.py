@@ -1,22 +1,20 @@
 ############################
 # Built-in modules #########
 ############################
-import os
-import json
 import logging
+import os
 import re
-import env
 from pathlib import Path
 
+import music_tag
+import requests
 ############################
 # Third-party modules ######
 ############################
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
-import requests
-from downloader import download_file
-import music_tag
 
+from downloader import download_file
 ############################
 # My modules ###############
 ############################
@@ -52,17 +50,15 @@ ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. So
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
-ORIGIN_URL = 'https://api.telegram.org'
 updater = Updater(BOT_TOKEN, persistence=persistence)
 dispatcher = updater.dispatcher
-post = requests.post
 
 ############################
 # Logger ###################
 ############################
 logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
-    )
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
 
@@ -383,14 +379,14 @@ def parse_cutting_scope(text: str) -> (int, int):
 
     if ':' in text:
         beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
-                            beginning.partition(':')[0].lstrip('0') else 0)*60\
+                            beginning.partition(':')[0].lstrip('0') else 0) * 60 \
                         + int(beginning.partition(':')[2].lstrip('0') if
                               beginning.partition(':')[2].lstrip('0') else 0)
 
         ending_sec = int(ending.partition(':')[0].lstrip('0') if
-                         ending.partition(':')[0].lstrip('0') else 0)*60\
-            + int(ending.partition(':')[2].lstrip('0') if
-                  ending.partition(':')[2].lstrip('0') else 0)
+                         ending.partition(':')[0].lstrip('0') else 0) * 60 \
+                     + int(ending.partition(':')[2].lstrip('0') if
+                           ending.partition(':')[2].lstrip('0') else 0)
     else:
         beginning_sec = int(beginning)
         ending_sec = int(ending)
@@ -540,7 +536,8 @@ dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filter
 dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
 dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
+dispatcher.add_handler(
+    MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
 
 dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
 dispatcher.add_handler(CommandHandler('preview', display_preview))
