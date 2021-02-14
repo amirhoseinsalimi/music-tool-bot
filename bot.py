@@ -146,7 +146,6 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     user_data['tag_editor'] = {}
 
     # Store value
-    user_data['tag_editor']['music_path'] = file_download_path
     user_data['music_path'] = file_download_path
     user_data['music_duration'] = message.audio.duration
 
@@ -479,7 +478,7 @@ def save_tags_to_file(file: str, tags: dict) -> str:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
-    music_path = context.user_data['tag_editor']['music_path']
+    music_path = context.user_data['music_path']
     music_tags = context.user_data['tag_editor']
 
     try:
