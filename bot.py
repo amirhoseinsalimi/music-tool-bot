@@ -43,6 +43,7 @@ ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPOR
 ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_NOT_IMPLEMENTED = f"This feature has not been implemented yet. Sorry!"
+ERR_OUT_OF_RANGE = "The range you entered is out of the actual file duration. The file length is: {} seconds"
 ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. Sorry!"
 
 ############################
@@ -415,7 +416,11 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     elif current_active_module == 'music_cutter':
         beginning_sec, ending_sec = parse_cutting_scope(message_text)
         music_path_cut = f"{music_path}_cut.mp3"
+        music_duration = user_data['music_duration']
 
+        if beginning_sec > music_duration or ending_sec > music_duration:
+            reply_message = ERR_OUT_OF_RANGE.format(music_duration)
+            update.message.reply_text(reply_message)
         if beginning_sec >= ending_sec:
             reply_message = ERR_BEGINNING_POINT_IS_GREATER
             update.message.reply_text(reply_message)
