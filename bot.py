@@ -40,6 +40,7 @@ REPORT_BUG_MESSAGE = "That's my fault!. This bug will be reported and fixed very
 ERR_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_AUDIO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
+ERR_TOO_LARGE_FILE = f"This file is too big that I can process, sorry!"
 ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE}"
 ERR_NOT_IMPLEMENTED = f"This feature has not been implemented yet. Sorry!"
@@ -132,6 +133,11 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     file_download_path = ''
     music = None
     user_data = context.user_data
+    music_duration = message.audio.duration
+
+    if music_duration >= 3600:
+        message.reply_text(ERR_TOO_LARGE_FILE)
+        return
 
     try:
         create_user_directory(user_id)
