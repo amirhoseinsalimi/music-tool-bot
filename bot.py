@@ -212,6 +212,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     user_data['current_active_module'] = 'tag_editor'
 
     tag_editor_context = context.user_data['tag_editor']
+    tag_editor_context['current_tag'] = ''
 
     tag_editor_keyboard = ReplyKeyboardMarkup(
         [
@@ -447,6 +448,10 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     current_active_module = user_data['current_active_module']
 
     if current_active_module == 'tag_editor':
+        if not user_data['tag_editor']['current_tag']:
+            reply_message = ASK_WHICH_TAG
+            update.message.reply_text(reply_message)
+            return
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
         reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
