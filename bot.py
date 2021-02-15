@@ -114,10 +114,8 @@ def convert_seconds_to_human_readable_form(seconds: int) -> str:
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
-    # Clear the user data here
+    reset_context_user_data(context)
 
-    # Reset the bot for the user. No feature is activated yet
-    context.user_data['current_active_module'] = ''
     update.message.reply_text(START_MESSAGE)
 
 
@@ -153,20 +151,6 @@ def create_user_directory(user_id: int) -> str:
     return user_download_dir
 
 
-def show_module_selector(update: Update, context: CallbackContext) -> None:
-    user_data = context.user_data
-
-    user_data['current_active_module'] = ''
-    user_data['tag_editor']['current_tag'] = ''
-
-
-    update.message.reply_text(
-        "What do you want to do with this file?",
-        reply_to_message_id=update.effective_message.message_id,
-        reply_markup=module_selector_keyboard
-    )
-
-
 def reset_context_user_data(context: CallbackContext) -> None:
     user_data = context.user_data
 
@@ -174,6 +158,16 @@ def reset_context_user_data(context: CallbackContext) -> None:
     user_data['music_path'] = ''
     user_data['music_duration'] = ''
     user_data['current_active_module'] = ''
+
+
+def show_module_selector(update: Update, context: CallbackContext) -> None:
+    reset_context_user_data(context)
+
+    update.message.reply_text(
+        "What do you want to do with this file?",
+        reply_to_message_id=update.effective_message.message_id,
+        reply_markup=module_selector_keyboard
+    )
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
@@ -292,7 +286,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=back_button_keyboard
+        reply_markup=start_over_button_keyboard
     )
 
     delete_file(output_music_path)
@@ -513,7 +507,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
-                reply_markup=back_button_keyboard
+                reply_markup=start_over_button_keyboard
             )
 
             delete_file(music_path_cut)
@@ -583,7 +577,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=back_button_keyboard
+        reply_markup=start_over_button_keyboard
     )
 
     delete_file(music_path)
