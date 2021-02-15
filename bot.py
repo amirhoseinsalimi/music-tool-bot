@@ -26,6 +26,7 @@ from redisconfig import persistence
 ############################
 START_MESSAGE = "Hello there! 👋" \
                 " Let's get started. Just send me a music and see how awesome I am!"
+START_OVER_MESSAGE = "Send me a music and see how awesome I am!"
 HELP_MESSAGE = "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
 DEFAULT_MESSAGE = "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
 ASK_WHICH_TAG = "Which tag do you want to edit?"
@@ -82,6 +83,14 @@ back_button_keyboard = ReplyKeyboardMarkup(
         one_time_keyboard=True,
     )
 
+start_over_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🆕 New File'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
 ############################
 # Logger ###################
 ############################
@@ -105,11 +114,18 @@ def convert_seconds_to_human_readable_form(seconds: int) -> str:
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
-    # Clear the user data here
+    reset_context_user_data(context)
 
-    # Reset the bot for the user. No feature is activated yet
-    context.user_data['current_active_module'] = ''
     update.message.reply_text(START_MESSAGE)
+
+
+def start_over(update: Update, context: CallbackContext) -> None:
+    reset_context_user_data(context)
+
+    update.message.reply_text(
+        START_OVER_MESSAGE,
+        reply_to_message_id=update.effective_message.message_id,
+    )
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
@@ -135,20 +151,6 @@ def create_user_directory(user_id: int) -> str:
     return user_download_dir
 
 
-def show_module_selector(update: Update, context: CallbackContext) -> None:
-    user_data = context.user_data
-
-    user_data['current_active_module'] = ''
-    user_data['tag_editor']['current_tag'] = ''
-
-
-    update.message.reply_text(
-        "What do you want to do with this file?",
-        reply_to_message_id=update.effective_message.message_id,
-        reply_markup=module_selector_keyboard
-    )
-
-
 def reset_context_user_data(context: CallbackContext) -> None:
     user_data = context.user_data
 
@@ -156,6 +158,16 @@ def reset_context_user_data(context: CallbackContext) -> None:
     user_data['music_path'] = ''
     user_data['music_duration'] = ''
     user_data['current_active_module'] = ''
+
+
+def show_module_selector(update: Update, context: CallbackContext) -> None:
+    reset_context_user_data(context)
+
+    update.message.reply_text(
+        "What do you want to do with this file?",
+        reply_to_message_id=update.effective_message.message_id,
+        reply_markup=module_selector_keyboard
+    )
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
@@ -274,7 +286,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=back_button_keyboard
+        reply_markup=start_over_button_keyboard
     )
 
     delete_file(output_music_path)
@@ -495,7 +507,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
-                reply_markup=back_button_keyboard
+                reply_markup=start_over_button_keyboard
             )
 
             delete_file(music_path_cut)
@@ -565,7 +577,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=back_button_keyboard
+        reply_markup=start_over_button_keyboard
     )
 
     delete_file(music_path)
@@ -591,11 +603,14 @@ def main():
     dispatcher.add_handler(CommandHandler('start', command_start))
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
+    dispatcher.add_handler(CommandHandler('new', start_over))
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     # dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
                                           show_module_selector))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 New File)$') & (~Filters.command),
+                                          start_over))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
                                           handle_music_tag_editor))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
