@@ -274,6 +274,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
+        reply_markup=back_button_keyboard
     )
 
     delete_file(output_music_path)
@@ -446,12 +447,12 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     if current_active_module == 'tag_editor':
         if not user_data['tag_editor']['current_tag']:
             reply_message = ASK_WHICH_TAG
-            update.message.reply_text(reply_message)
+            update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
         reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
-        update.message.reply_text(reply_message)
+        update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
     elif current_active_module == 'music_cutter':
         beginning_sec = ending_sec = 0
 
@@ -467,17 +468,17 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 "- Leading zeroes are optional\n"
                 "- Extra spaces are ignored"
             )
-            update.message.reply_text(reply_message)
+            update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
             return
         music_path_cut = f"{music_path}_cut.mp3"
         music_duration = user_data['music_duration']
 
         if beginning_sec > music_duration or ending_sec > music_duration:
             reply_message = ERR_OUT_OF_RANGE.format(music_duration)
-            update.message.reply_text(reply_message)
+            update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
         if beginning_sec >= ending_sec:
             reply_message = ERR_BEGINNING_POINT_IS_GREATER
-            update.message.reply_text(reply_message)
+            update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
         else:
             diff_sec = ending_sec - beginning_sec
 
@@ -494,6 +495,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
+                reply_markup=back_button_keyboard
             )
 
             delete_file(music_path_cut)
@@ -563,6 +565,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
+        reply_markup=back_button_keyboard
     )
 
     delete_file(music_path)
