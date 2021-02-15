@@ -1,4 +1,6 @@
-############################
+#!/usr/bin/env python
+
+#############################
 # Built-in modules #########
 ############################
 import logging
@@ -10,8 +12,8 @@ from pathlib import Path
 # Third-party modules ######
 ############################
 import music_tag
-from telegram import Update, ReplyKeyboardMarkup, ChatAction
-from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler
+from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
+from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults
 
 ############################
 # My modules ###############
@@ -52,8 +54,6 @@ ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. So
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
-updater = Updater(BOT_TOKEN, persistence=persistence)
-dispatcher = updater.dispatcher
 
 ############################
 # Logger ###################
@@ -122,10 +122,18 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text(
         "What do you want to do with this file?",
-        parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
+
+
+def reset_context_user_data(context: CallbackContext) -> None:
+    user_data = context.user_data
+
+    user_data['tag_editor'] = {}
+    user_data['music_path'] = ''
+    user_data['music_duration'] = ''
+    user_data['current_active_module'] = ''
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
@@ -168,9 +176,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(ERR_ON_READING_TAGS)
         return
 
-    user_data['tag_editor'] = {}
+    reset_context_user_data(context)
 
-    # Store value
     user_data['music_path'] = file_download_path
     user_data['music_duration'] = message.audio.duration
 
@@ -226,7 +233,6 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
         f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"🆔 {BOT_USERNAME}\n",
-        parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=tag_editor_keyboard
     )
@@ -255,7 +261,6 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        timeout=120
     )
 
     delete_file(output_music_path)
@@ -282,7 +287,6 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
                               "- m = minute, s = second\n"
                               "- Leading zeroes are optional\n"
                               "- Extra spaces are ignored",
-                              parse_mode='Markdown',
                               reply_markup=back_button_keyboard
                               )
 
@@ -489,8 +493,6 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
-                parse_mode='Markdown',
-                timeout=120
             )
 
             delete_file(music_path_cut)
@@ -516,7 +518,6 @@ def display_preview(update: Update, context: CallbackContext) -> None:
         f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
         f"{CLICK_DONE_MESSAGE}\n\n"
         f"🆔 {BOT_USERNAME}\n",
-        parse_mode='Markdown',
         reply_to_message_id=update.effective_message.message_id,
     )
 
@@ -561,7 +562,6 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        timeout=120
     )
 
     delete_file(music_path)
@@ -575,39 +575,49 @@ def command_about(update: Update, context: CallbackContext) -> None:
                               f" Or if you are a developer and have an idea to make this bot better, I appreciate your"
                               f" PRs.\n\n"
                               f"{BOT_USERNAME}",
-                              parse_mode='Markdown'
                               )
 
 
-dispatcher.add_handler(CommandHandler('start', command_start))
-dispatcher.add_handler(CommandHandler('help', command_help))
-dispatcher.add_handler(CommandHandler('about', command_about))
-dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
-dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
+def main():
+    defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
 
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
-                                      show_module_selector))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
-                                      handle_music_tag_editor))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
-                                      handle_music_to_voice_converter))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
-                                      handle_music_cutter))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
-                                      handle_music_bitrate_changer))
+    updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
+    dispatcher = updater.dispatcher
 
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
-dispatcher.add_handler(
-    MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
+    dispatcher.add_handler(CommandHandler('start', command_start))
+    dispatcher.add_handler(CommandHandler('help', command_help))
+    dispatcher.add_handler(CommandHandler('about', command_about))
+    dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
+    dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
-dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
-dispatcher.add_handler(CommandHandler('preview', display_preview))
-dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
+                                          show_module_selector))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
+                                          handle_music_tag_editor))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
+                                          handle_music_to_voice_converter))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
+                                          handle_music_cutter))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
+                                          handle_music_bitrate_changer))
 
-updater.start_polling()
-updater.idle()
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
+
+    dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
+    dispatcher.add_handler(CommandHandler('preview', display_preview))
+    dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
+
+    updater.start_polling()
+    updater.idle()
+
+
+if __name__ == '__main__':
+    main()
