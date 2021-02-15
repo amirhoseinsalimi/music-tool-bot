@@ -136,16 +136,11 @@ def create_user_directory(user_id: int) -> str:
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
-    context.user_data['current_active_module'] = ''
+    user_data = context.user_data
 
-    module_selector_keyboard = ReplyKeyboardMarkup(
-        [
-            ['🎵 Tag Editor', '🗣 MP3 to Voice Converter'],
-            ['✂️ Music Cutter', '🎙 Bitrate Changer']
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
+    user_data['current_active_module'] = ''
+    user_data['tag_editor']['current_tag'] = ''
+
 
     update.message.reply_text(
         "What do you want to do with this file?",
