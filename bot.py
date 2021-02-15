@@ -55,6 +55,33 @@ ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. So
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
+module_selector_keyboard = ReplyKeyboardMarkup(
+    [
+        ['🎵 Tag Editor', '🗣 MP3 to Voice Converter'],
+        ['✂️ Music Cutter', '🎙 Bitrate Changer']
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True,
+)
+
+tag_editor_keyboard = ReplyKeyboardMarkup(
+    [
+        ['🗣 Artist', '🎵 Title', '🎼 Album'],
+        ['🎹 Genre', '📅 Year', '🖼 Album Art'],
+        ['💿 Disk Number', '▶️ Track Number'],
+        ['🔙 Back']
+    ],
+    resize_keyboard=True,
+)
+
+back_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🔙 Back'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
 ############################
 # Logger ###################
 ############################
@@ -214,16 +241,6 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     tag_editor_context = context.user_data['tag_editor']
     tag_editor_context['current_tag'] = ''
 
-    tag_editor_keyboard = ReplyKeyboardMarkup(
-        [
-            ['🗣 Artist', '🎵 Title', '🎼 Album'],
-            ['🎹 Genre', '📅 Year', '🖼 Album Art'],
-            ['💿 Disk Number', '▶️ Track Number'],
-            ['🔙 Back']
-        ],
-        resize_keyboard=True,
-    )
-
     message.reply_text(
         f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
         f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
@@ -271,14 +288,6 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     user_data['current_active_module'] = 'music_cutter'
-
-    back_button_keyboard = ReplyKeyboardMarkup(
-        [
-            ['🔙 Back'],
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
 
     # TODO: What about music file that are longer than 1 hour?
     update.message.reply_text("Now send me which part of the music you want to cut out?\n\n"
@@ -343,14 +352,6 @@ def prepare_for_title(update: Update, context: CallbackContext) -> None:
 
 
 def throw_not_implemented(update: Update) -> None:
-    back_button_keyboard = ReplyKeyboardMarkup(
-        [
-            ['🔙 Back'],
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
-
     update.message.reply_text(ERR_NOT_IMPLEMENTED, reply_markup=back_button_keyboard)
 
 
