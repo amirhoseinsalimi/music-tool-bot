@@ -54,9 +54,6 @@ ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. So
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
-DEFAULTS = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
-updater = Updater(BOT_TOKEN, persistence=persistence, defaults=DEFAULTS)
-dispatcher = updater.dispatcher
 
 ############################
 # Logger ###################
@@ -581,35 +578,46 @@ def command_about(update: Update, context: CallbackContext) -> None:
                               )
 
 
-dispatcher.add_handler(CommandHandler('start', command_start))
-dispatcher.add_handler(CommandHandler('help', command_help))
-dispatcher.add_handler(CommandHandler('about', command_about))
-dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
-dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
+def main():
+    defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
 
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
-                                      show_module_selector))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
-                                      handle_music_tag_editor))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
-                                      handle_music_to_voice_converter))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
-                                      handle_music_cutter))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
-                                      handle_music_bitrate_changer))
+    updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
+    dispatcher = updater.dispatcher
 
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
-dispatcher.add_handler(MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
-dispatcher.add_handler(
-    MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
+    dispatcher.add_handler(CommandHandler('start', command_start))
+    dispatcher.add_handler(CommandHandler('help', command_help))
+    dispatcher.add_handler(CommandHandler('about', command_about))
+    dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
+    dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
-dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
-dispatcher.add_handler(CommandHandler('preview', display_preview))
-dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
+                                          show_module_selector))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
+                                          handle_music_tag_editor))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
+                                          handle_music_to_voice_converter))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
+                                          handle_music_cutter))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
+                                          handle_music_bitrate_changer))
 
-updater.start_polling()
-updater.idle()
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
+
+    dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
+    dispatcher.add_handler(CommandHandler('preview', display_preview))
+    dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
+
+    updater.start_polling()
+    updater.idle()
+
+
+if __name__ == '__main__':
+    main()
