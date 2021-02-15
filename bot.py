@@ -592,7 +592,7 @@ def main():
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
-    dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
+    # dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
                                           show_module_selector))
