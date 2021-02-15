@@ -26,6 +26,7 @@ from redisconfig import persistence
 ############################
 START_MESSAGE = "Hello there! 👋" \
                 " Let's get started. Just send me a music and see how awesome I am!"
+START_OVER_MESSAGE = "Send me a music and see how awesome I am!"
 HELP_MESSAGE = "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
 DEFAULT_MESSAGE = "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
 ASK_WHICH_TAG = "Which tag do you want to edit?"
@@ -82,6 +83,14 @@ back_button_keyboard = ReplyKeyboardMarkup(
         one_time_keyboard=True,
     )
 
+start_over_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🆕 New File'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
 ############################
 # Logger ###################
 ############################
@@ -110,6 +119,15 @@ def command_start(update: Update, context: CallbackContext) -> None:
     # Reset the bot for the user. No feature is activated yet
     context.user_data['current_active_module'] = ''
     update.message.reply_text(START_MESSAGE)
+
+
+def start_over(update: Update, context: CallbackContext) -> None:
+    reset_context_user_data(context)
+
+    update.message.reply_text(
+        START_OVER_MESSAGE,
+        reply_to_message_id=update.effective_message.message_id,
+    )
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
@@ -591,11 +609,14 @@ def main():
     dispatcher.add_handler(CommandHandler('start', command_start))
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
+    dispatcher.add_handler(CommandHandler('new', start_over))
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     # dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
                                           show_module_selector))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 New File)$') & (~Filters.command),
+                                          start_over))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
                                           handle_music_tag_editor))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
