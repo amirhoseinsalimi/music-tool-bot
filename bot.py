@@ -572,7 +572,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(f"This bot is created by Amir Hosein Salimi (@amirhoseinsalimi) in Python language.\n"
+    update.message.reply_text(f"This bot is created by Amir Hosein Salimi (@amirhoseinsalimii) in Python language.\n"
                               f"The source code of this project is available on"
                               f" [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).\n\n"
                               f"If you have any question or feedback feel free to message me on Telegram."
