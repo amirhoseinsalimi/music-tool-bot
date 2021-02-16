@@ -13,6 +13,7 @@ from pathlib import Path
 # Third-party modules ######
 ############################
 import music_tag
+from database import cursor, connection
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
@@ -114,7 +115,19 @@ def convert_seconds_to_human_readable_form(seconds: int) -> str:
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
+    user_id = update.effective_user.id
+
     reset_context_user_data(context)
+
+    cursor.execute(f"SELECT * FROM `users` WHERE user_id={user_id}")
+
+    users = cursor.fetchall()
+
+    if not users:
+        query = f"INSERT INTO users (user_id) VALUES ({user_id})"
+        cursor.execute(query)
+
+        connection.commit()
 
     update.message.reply_text(START_MESSAGE)
 
