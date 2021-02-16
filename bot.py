@@ -13,7 +13,7 @@ from pathlib import Path
 ############################
 import music_tag
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
-from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults
+from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
 ############################
 # My modules ###############
@@ -595,6 +595,7 @@ def command_about(update: Update, context: CallbackContext) -> None:
 
 def main():
     defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
+    persistence = PicklePersistence('persistence_storage')
 
     updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
     dispatcher = updater.dispatcher
