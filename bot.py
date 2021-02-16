@@ -19,7 +19,6 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 # My modules ###############
 ############################
 from downloader import download_file
-from redisconfig import persistence
 
 ############################
 # Bot Common Messages ######
