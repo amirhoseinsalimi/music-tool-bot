@@ -532,9 +532,18 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
             reset_context_user_data(context)
     else:
-        # Not implemented
-        reply_message = ERR_NOT_IMPLEMENTED
-        update.message.reply_text(reply_message)
+        if music_path:
+            if user_data['current_active_module']:
+                update.message.reply_text(
+                    "What do you want to do with this file?",
+                    reply_markup=module_selector_keyboard
+                )
+        elif not music_path:
+            update.message.reply_text(START_OVER_MESSAGE)
+        else:
+            # Not implemented
+            reply_message = ERR_NOT_IMPLEMENTED
+            update.message.reply_text(reply_message)
 
 
 def display_preview(update: Update, context: CallbackContext) -> None:
