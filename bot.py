@@ -160,7 +160,7 @@ def reset_context_user_data(context: CallbackContext) -> None:
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
-    reset_context_user_data(context)
+    context.user_data['current_active_module'] = ''
 
     update.message.reply_text(
         "What do you want to do with this file?",
