@@ -291,6 +291,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     delete_file(output_music_path)
     delete_file(input_music_path)
 
+    reset_context_user_data(context)
+
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
@@ -511,6 +513,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
             delete_file(music_path_cut)
             delete_file(music_path)
+
+            reset_context_user_data(context)
     else:
         # Not implemented
         reply_message = ERR_NOT_IMPLEMENTED
@@ -579,6 +583,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         reply_markup=start_over_button_keyboard
     )
 
+    reset_context_user_data(context)
     delete_file(music_path)
 
 
