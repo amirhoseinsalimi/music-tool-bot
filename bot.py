@@ -244,7 +244,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
 
     user_data['current_active_module'] = 'tag_editor'
 
-    tag_editor_context = context.user_data['tag_editor']
+    tag_editor_context = user_data['tag_editor']
     tag_editor_context['current_tag'] = ''
 
     message.reply_text(
