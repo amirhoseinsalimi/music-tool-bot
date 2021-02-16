@@ -113,6 +113,7 @@ ENV/
 env.bak/
 venv.bak/
 downloads
+persistence_storage
 
 # Spyder project settings
 .spyderproject
