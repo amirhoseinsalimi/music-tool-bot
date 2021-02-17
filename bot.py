@@ -170,6 +170,7 @@ def reset_context_user_data(context: CallbackContext) -> None:
     user_data['tag_editor'] = {}
     user_data['music_path'] = ''
     user_data['music_duration'] = ''
+    user_data['art_path'] = ''
     user_data['current_active_module'] = ''
 
 
@@ -226,6 +227,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     reset_context_user_data(context)
 
     user_data['music_path'] = file_download_path
+    user_data['art_path'] = ''
     user_data['music_duration'] = message.audio.duration
 
     tag_editor_context = context.user_data['tag_editor']
@@ -234,9 +236,16 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     title = music['title']
     album = music['album']
     genre = music['genre']
+    art = music['artwork']
     year = music['year']
     disknumber = music['disknumber']
     tracknumber = music['tracknumber']
+
+    if art:
+        art_path = user_data['art_path'] = f"{file_download_path}.jpg"
+        art_file = open(art_path, 'wb')
+        art_file.write(art.first.data)
+        art_file.close()
 
     tag_editor_context['artist'] = str(artist)
     tag_editor_context['title'] = str(title)
@@ -255,25 +264,41 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     file_download_path = ''
     music = None
     user_data = context.user_data
+    art_path = user_data['art_path']
 
     user_data['current_active_module'] = 'tag_editor'
 
     tag_editor_context = user_data['tag_editor']
     tag_editor_context['current_tag'] = ''
 
-    message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"🆔 {BOT_USERNAME}\n",
-        reply_to_message_id=update.effective_message.message_id,
-        reply_markup=tag_editor_keyboard
-    )
+    if art_path:
+        message.reply_photo(
+            photo=open(art_path, 'rb'),
+            caption=
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+            reply_markup=tag_editor_keyboard
+        )
+    else:
+        message.reply_text(
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+            reply_markup=tag_editor_keyboard
+        )
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
@@ -285,6 +310,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     user_data = context.user_data
     input_music_path = user_data['music_path']
     output_music_path = f"{user_data['music_path']}.ogg"
+    art_path = user_data['art_path']
     user_data['current_active_module'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
@@ -304,6 +330,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
     delete_file(output_music_path)
     delete_file(input_music_path)
+    if art_path:
+        delete_file(art_path)
 
     reset_context_user_data(context)
 
@@ -468,8 +496,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     message_text = update.message.text
     user_data = context.user_data
     music_path = user_data['music_path']
-    music_path = context.user_data['music_path']
-    music_tags = context.user_data['tag_editor']
+    art_path = user_data['art_path']
+    music_tags = user_data['tag_editor']
 
     current_active_module = user_data['current_active_module']
 
@@ -529,6 +557,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
             delete_file(music_path_cut)
             delete_file(music_path)
+            if art_path:
+                delete_file(art_path)
 
             reset_context_user_data(context)
     else:
@@ -548,21 +578,38 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
 def display_preview(update: Update, context: CallbackContext) -> None:
     message = update.message
-    tag_editor_context = context.user_data['tag_editor']
+    user_data = context.user_data
+    tag_editor_context = user_data['tag_editor']
+    art_path = user_data['art_path']
 
-    message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"{CLICK_DONE_MESSAGE}\n\n"
-        f"🆔 {BOT_USERNAME}\n",
-        reply_to_message_id=update.effective_message.message_id,
-    )
+    if art_path:
+        message.reply_photo(
+            photo=open(art_path, "rb"),
+            caption=
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"{CLICK_DONE_MESSAGE}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+        )
+    else:
+        message.reply_text(
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"{CLICK_DONE_MESSAGE}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+        )
 
 
 def save_tags_to_file(file: str, tags: dict) -> str:
@@ -585,13 +632,16 @@ def save_tags_to_file(file: str, tags: dict) -> str:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+    user_data = context.user_data
+
     context.bot.send_chat_action(
         chat_id=update.message.chat_id,
         action=ChatAction.UPLOAD_AUDIO
     )
 
-    music_path = context.user_data['music_path']
-    music_tags = context.user_data['tag_editor']
+    music_path = user_data['music_path']
+    art_path = user_data['art_path']
+    music_tags = user_data['tag_editor']
 
     try:
         save_tags_to_file(
@@ -610,6 +660,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
     reset_context_user_data(context)
     delete_file(music_path)
+    if art_path:
+        delete_file(art_path)
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
