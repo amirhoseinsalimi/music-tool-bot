@@ -1,7 +1,6 @@
 TODO: Better folder structure
 TODO: Add hot reload
 TODO: Heroku support
-TODO: Accept documents
 TODO: Write tests
 TODO: Delete files older than 7 days
 TODO: Only accept audio files and documents which are audio files
@@ -16,6 +15,7 @@ TODO: Implement album art changer
 TODO: Implement bitrate changer
 TODO: Implement commands:
     - /sendtoall
+TODO: Add the ability to check if that if a user is member of a specific channel or not
 
 TODO: https://github.com/odysseusmax/utube
 TODO: https://github.com/viperadnan-git/google-drive-telegram-bot

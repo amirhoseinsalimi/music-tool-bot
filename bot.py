@@ -172,6 +172,7 @@ def reset_context_user_data(context: CallbackContext) -> None:
     user_data['music_duration'] = ''
     user_data['art_path'] = ''
     user_data['current_active_module'] = ''
+    user_data['music_message_id'] = ''
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
@@ -182,6 +183,21 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
+
+
+def increment_usage_counter_for_user(user_id: int) -> int:
+    try:
+        cursor.execute(f"SELECT * FROM `users` WHERE user_id={user_id}")
+        user = cursor.fetchone()
+
+        new_usage_number = user[2] + 1
+
+        cursor.execute(f"UPDATE `users` SET number_of_files_sent={new_usage_number} WHERE user_id={user_id}")
+        connection.commit()
+
+        return new_usage_number
+    except:
+        return 0
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
@@ -228,9 +244,10 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     user_data['music_path'] = file_download_path
     user_data['art_path'] = ''
+    user_data['music_message_id'] = message.message_id
     user_data['music_duration'] = message.audio.duration
 
-    tag_editor_context = context.user_data['tag_editor']
+    tag_editor_context = user_data['tag_editor']
 
     artist = music['artist']
     title = music['title']
@@ -257,6 +274,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     show_module_selector(update, context)
 
+    increment_usage_counter_for_user(user_id=user_id)
+
 
 def is_user_owner(user_id: int) -> bool:
     cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id} AND is_owner=true")
@@ -281,6 +300,7 @@ def add_admin(update: Update, context: CallbackContext) -> None:
     if is_user_owner(update.effective_user.id):
         try:
             cursor.execute(f"INSERT IGNORE INTO `admins` (`user_id`) VALUES ({user_id})")
+            connection.commit()
 
             update.message.reply_text(f"User {user_id} has been added as admins")
         except:
@@ -295,6 +315,7 @@ def del_admin(update: Update, context: CallbackContext) -> None:
         try:
             if is_user_admin(user_id):
                 cursor.execute(f"DELETE FROM `admins` WHERE user_id={user_id}")
+                connection.commit()
 
                 update.message.reply_text(f"User {user_id} has been removed from admins")
             else:
@@ -345,7 +366,8 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
             f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
             f"🆔 {BOT_USERNAME}\n",
             reply_to_message_id=update.effective_message.message_id,
-            reply_markup=tag_editor_keyboard
+            reply_markup=tag_editor_keyboard,
+            parse_mode='Markdown'
         )
     else:
         message.reply_text(
@@ -386,7 +408,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=start_over_button_keyboard
+        reply_markup=start_over_button_keyboard,
+        reply_to_message_id=user_data['music_message_id']
     )
 
     delete_file(output_music_path)
@@ -607,13 +630,15 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 tags=music_tags,
             )
 
+            # FIXME: After sending the file, the album art can't be read back
             context.bot.send_document(
                 document=open(music_path_cut, 'rb'),
                 chat_id=update.message.chat_id,
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard
+                reply_markup=start_over_button_keyboard,
+                reply_to_message_id=user_data['music_message_id']
             )
 
             delete_file(music_path_cut)
@@ -657,6 +682,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
             f"{CLICK_DONE_MESSAGE}\n\n"
             f"🆔 {BOT_USERNAME}\n",
             reply_to_message_id=update.effective_message.message_id,
+            parse_mode='Markdown'
         )
     else:
         message.reply_text(
@@ -716,7 +742,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=start_over_button_keyboard
+        reply_markup=start_over_button_keyboard,
+        reply_to_message_id=user_data['music_message_id']
     )
 
     reset_context_user_data(context)
