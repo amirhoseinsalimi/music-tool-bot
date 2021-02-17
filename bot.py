@@ -610,6 +610,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 tags=music_tags,
             )
 
+            # FIXME: After sending the file, the album art can't be read back
             context.bot.send_document(
                 document=open(music_path_cut, 'rb'),
                 chat_id=update.message.chat_id,
