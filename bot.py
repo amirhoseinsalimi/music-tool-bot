@@ -172,6 +172,7 @@ def reset_context_user_data(context: CallbackContext) -> None:
     user_data['music_duration'] = ''
     user_data['art_path'] = ''
     user_data['current_active_module'] = ''
+    user_data['music_message_id'] = ''
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
@@ -228,9 +229,10 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     user_data['music_path'] = file_download_path
     user_data['art_path'] = ''
+    user_data['music_message_id'] = message.message_id
     user_data['music_duration'] = message.audio.duration
 
-    tag_editor_context = context.user_data['tag_editor']
+    tag_editor_context = user_data['tag_editor']
 
     artist = music['artist']
     title = music['title']
@@ -386,7 +388,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice=open(output_music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=start_over_button_keyboard
+        reply_markup=start_over_button_keyboard,
+        reply_to_message_id=user_data['music_message_id']
     )
 
     delete_file(output_music_path)
@@ -613,7 +616,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard
+                reply_markup=start_over_button_keyboard,
+                reply_to_message_id=user_data['music_message_id']
             )
 
             delete_file(music_path_cut)
@@ -716,7 +720,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         document=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
-        reply_markup=start_over_button_keyboard
+        reply_markup=start_over_button_keyboard,
+        reply_to_message_id=user_data['music_message_id']
     )
 
     reset_context_user_data(context)
