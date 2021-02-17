@@ -10,7 +10,6 @@ TODO: Correct "Too broad exception clause"
 TODO: Create README
 TODO: Announce the bot in Twitter, ThereIsABotForThat, Discord, Telegram Groups
 TODO: Use async/await if possible
-TODO: Change "music" to "audio" + Use same language everywhere
 TODO: Support for English and Farsi
 TODO: Optimize the bot (https://github.com/python-telegram-bot/python-telegram-bot/wiki/Performance-Optimizations)
 TODO: Implement album art changer

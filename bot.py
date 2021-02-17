@@ -39,7 +39,7 @@ CLICK_DONE_MESSAGE = "Click /done to save your changes."
 ############################
 # Bot Common Errors ########
 ############################
-REPORT_BUG_MESSAGE = "That's my fault!. This bug will be reported and fixed very soon!"
+REPORT_BUG_MESSAGE = "That's my fault! Please send a bug report here: @amirhoseinsalimi"
 ERR_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_AUDIO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
@@ -59,7 +59,7 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 
 module_selector_keyboard = ReplyKeyboardMarkup(
     [
-        ['🎵 Tag Editor', '🗣 MP3 to Voice Converter'],
+        ['🎵 Tag Editor', '🗣 Music to Voice Converter'],
         ['✂️ Music Cutter', '🎙 Bitrate Changer']
     ],
     resize_keyboard=True,
@@ -762,7 +762,7 @@ def main():
                                           start_over))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
                                           handle_music_tag_editor))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Music to Voice Converter)$') & (~Filters.command),
                                           handle_music_to_voice_converter))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
                                           handle_music_cutter))
