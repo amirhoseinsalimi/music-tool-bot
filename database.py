@@ -20,9 +20,10 @@ connection = mysql.connector.connect(
 
 cursor = connection.cursor(buffered=True)
 
-cursor.execute("CREATE TABLE IF NOT EXISTS `users` (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT UNIQUE)")
+cursor.execute("CREATE TABLE IF NOT EXISTS `users` "
+               "(id INT AUTO_INCREMENT PRIMARY KEY, user_id INT UNIQUE, number_of_files_sent INT DEFAULT 0)")
 cursor.execute("CREATE TABLE IF NOT EXISTS `admins` "
-               "(id INT AUTO_INCREMENT PRIMARY KEY, user_id INT UNIQUE, is_owner boolean DEFAULT false)")
+               "(id INT AUTO_INCREMENT PRIMARY KEY, user_id INT UNIQUE, is_owner BOOLEAN DEFAULT false)")
 
 if OWNER_USER_ID:
     cursor.execute(f"INSERT IGNORE INTO `admins` (`user_id`, `is_owner`) VALUES ({OWNER_USER_ID}, true)")

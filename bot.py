@@ -185,6 +185,21 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     )
 
 
+def increment_usage_counter_for_user(user_id: int) -> int:
+    try:
+        cursor.execute(f"SELECT * FROM `users` WHERE user_id={user_id}")
+        user = cursor.fetchone()
+
+        new_usage_number = user[2] + 1
+
+        cursor.execute(f"UPDATE `users` SET number_of_files_sent={new_usage_number} WHERE user_id={user_id}")
+        connection.commit()
+
+        return new_usage_number
+    except:
+        return 0
+
+
 def handle_music_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
@@ -259,6 +274,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     show_module_selector(update, context)
 
+    increment_usage_counter_for_user(user_id=user_id)
+
 
 def is_user_owner(user_id: int) -> bool:
     cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id} AND is_owner=true")
@@ -283,6 +300,7 @@ def add_admin(update: Update, context: CallbackContext) -> None:
     if is_user_owner(update.effective_user.id):
         try:
             cursor.execute(f"INSERT IGNORE INTO `admins` (`user_id`) VALUES ({user_id})")
+            connection.commit()
 
             update.message.reply_text(f"User {user_id} has been added as admins")
         except:
@@ -297,6 +315,7 @@ def del_admin(update: Update, context: CallbackContext) -> None:
         try:
             if is_user_admin(user_id):
                 cursor.execute(f"DELETE FROM `admins` WHERE user_id={user_id}")
+                connection.commit()
 
                 update.message.reply_text(f"User {user_id} has been removed from admins")
             else:
@@ -347,7 +366,8 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
             f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
             f"🆔 {BOT_USERNAME}\n",
             reply_to_message_id=update.effective_message.message_id,
-            reply_markup=tag_editor_keyboard
+            reply_markup=tag_editor_keyboard,
+            parse_mode='Markdown'
         )
     else:
         message.reply_text(
@@ -662,6 +682,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
             f"{CLICK_DONE_MESSAGE}\n\n"
             f"🆔 {BOT_USERNAME}\n",
             reply_to_message_id=update.effective_message.message_id,
+            parse_mode='Markdown'
         )
     else:
         message.reply_text(
