@@ -170,6 +170,7 @@ def reset_context_user_data(context: CallbackContext) -> None:
     user_data['tag_editor'] = {}
     user_data['music_path'] = ''
     user_data['music_duration'] = ''
+    user_data['art_path'] = ''
     user_data['current_active_module'] = ''
 
 
