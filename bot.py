@@ -39,7 +39,7 @@ CLICK_DONE_MESSAGE = "Click /done to save your changes."
 ############################
 # Bot Common Errors ########
 ############################
-REPORT_BUG_MESSAGE = "That's my fault!. This bug will be reported and fixed very soon!"
+REPORT_BUG_MESSAGE = "That's my fault! Please send a bug report here: @amirhoseinsalimi"
 ERR_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_AUDIO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
@@ -59,7 +59,7 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 
 module_selector_keyboard = ReplyKeyboardMarkup(
     [
-        ['🎵 Tag Editor', '🗣 MP3 to Voice Converter'],
+        ['🎵 Tag Editor', '🗣 Music to Voice Converter'],
         ['✂️ Music Cutter', '🎙 Bitrate Changer']
     ],
     resize_keyboard=True,
@@ -256,6 +256,67 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     tag_editor_context['tracknumber'] = str(tracknumber)
 
     show_module_selector(update, context)
+
+
+def is_user_owner(user_id: int) -> bool:
+    cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id} AND is_owner=true")
+
+    admin = cursor.fetchone()
+
+    return bool(admin)
+
+
+def is_user_admin(user_id: int) -> bool:
+    cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id}")
+
+    admin = cursor.fetchone()
+
+    return bool(admin)
+
+
+def add_admin(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.text.partition(' ')[2]
+    user_id = int(user_id)
+
+    if is_user_owner(update.effective_user.id):
+        try:
+            cursor.execute(f"INSERT IGNORE INTO `admins` (`user_id`) VALUES ({user_id})")
+
+            update.message.reply_text(f"User {user_id} has been added as admins")
+        except:
+            update.message.reply_text("An error has been occurred")
+
+
+def del_admin(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.text.partition(' ')[2]
+    user_id = int(user_id)
+
+    if is_user_owner(update.effective_user.id):
+        try:
+            if is_user_admin(user_id):
+                cursor.execute(f"DELETE FROM `admins` WHERE user_id={user_id}")
+
+                update.message.reply_text(f"User {user_id} has been removed from admins")
+            else:
+                update.message.reply_text(f"User {user_id} is not admin")
+        except:
+            update.message.reply_text("An error has been occurred")
+
+
+def send_to_all():
+    pass
+
+
+def count_users(update: Update, context: CallbackContext) -> None:
+    if is_user_admin(update.effective_user.id):
+        try:
+            cursor.execute(f"SELECT * FROM `users`")
+
+            users = cursor.fetchall()
+
+            update.message.reply_text(f"{len(users)} users are using this bot!")
+        except:
+            update.message.reply_text("An error has been occurred")
 
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
@@ -686,6 +747,12 @@ def main():
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
     dispatcher.add_handler(CommandHandler('new', start_over))
+
+    dispatcher.add_handler(CommandHandler('addadmin', add_admin))
+    dispatcher.add_handler(CommandHandler('deladmin', del_admin))
+    dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
+    dispatcher.add_handler(CommandHandler('countusers', count_users))
+
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     # dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
@@ -695,7 +762,7 @@ def main():
                                           start_over))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
                                           handle_music_tag_editor))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 MP3 to Voice Converter)$') & (~Filters.command),
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Music to Voice Converter)$') & (~Filters.command),
                                           handle_music_to_voice_converter))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
                                           handle_music_cutter))

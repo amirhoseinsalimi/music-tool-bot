@@ -4,19 +4,18 @@ TODO: Heroku support
 TODO: Accept documents
 TODO: Write tests
 TODO: Delete files older than 7 days
-TODO: Properly save data in Redis
 TODO: Only accept audio files and documents which are audio files
 TODO: Proper error handling
 TODO: Correct "Too broad exception clause"
 TODO: Create README
 TODO: Announce the bot in Twitter, ThereIsABotForThat, Discord, Telegram Groups
 TODO: Use async/await if possible
-TODO: Change "music" to "audio" + Use same language everywhere
 TODO: Support for English and Farsi
-TODO: Send back the album art if it's included in the music
 TODO: Optimize the bot (https://github.com/python-telegram-bot/python-telegram-bot/wiki/Performance-Optimizations)
 TODO: Implement album art changer
 TODO: Implement bitrate changer
+TODO: Implement commands:
+    - /sendtoall
 
 TODO: https://github.com/odysseusmax/utube
 TODO: https://github.com/viperadnan-git/google-drive-telegram-bot
