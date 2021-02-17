@@ -226,6 +226,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     reset_context_user_data(context)
 
     user_data['music_path'] = file_download_path
+    user_data['art_path'] = ''
     user_data['music_duration'] = message.audio.duration
 
     tag_editor_context = context.user_data['tag_editor']
@@ -234,9 +235,16 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     title = music['title']
     album = music['album']
     genre = music['genre']
+    art = music['artwork'].first.data
     year = music['year']
     disknumber = music['disknumber']
     tracknumber = music['tracknumber']
+
+    if art:
+        art_path = user_data['art_path'] = f"{file_download_path}.jpg"
+        art_file = open(art_path, 'wb')
+        art_file.write(art)
+        art_file.close()
 
     tag_editor_context['artist'] = str(artist)
     tag_editor_context['title'] = str(title)
