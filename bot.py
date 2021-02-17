@@ -258,6 +258,67 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     show_module_selector(update, context)
 
 
+def is_user_owner(user_id: int) -> bool:
+    cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id} AND is_owner=true")
+
+    admin = cursor.fetchone()
+
+    return bool(admin)
+
+
+def is_user_admin(user_id: int) -> bool:
+    cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id}")
+
+    admin = cursor.fetchone()
+
+    return bool(admin)
+
+
+def add_admin(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.text.partition(' ')[2]
+    user_id = int(user_id)
+
+    if is_user_owner(update.effective_user.id):
+        try:
+            cursor.execute(f"INSERT IGNORE INTO `admins` (`user_id`) VALUES ({user_id})")
+
+            update.message.reply_text(f"User {user_id} has been added as admins")
+        except:
+            update.message.reply_text("An error has been occurred")
+
+
+def del_admin(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.text.partition(' ')[2]
+    user_id = int(user_id)
+
+    if is_user_owner(update.effective_user.id):
+        try:
+            if is_user_admin(user_id):
+                cursor.execute(f"DELETE FROM `admins` WHERE user_id={user_id}")
+
+                update.message.reply_text(f"User {user_id} has been removed from admins")
+            else:
+                update.message.reply_text(f"User {user_id} is not admin")
+        except:
+            update.message.reply_text("An error has been occurred")
+
+
+def send_to_all():
+    pass
+
+
+def count_users(update: Update, context: CallbackContext) -> None:
+    if is_user_admin(update.effective_user.id):
+        try:
+            cursor.execute(f"SELECT * FROM `users`")
+
+            users = cursor.fetchall()
+
+            update.message.reply_text(f"{len(users)} users are using this bot!")
+        except:
+            update.message.reply_text("An error has been occurred")
+
+
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
@@ -686,6 +747,12 @@ def main():
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
     dispatcher.add_handler(CommandHandler('new', start_over))
+
+    dispatcher.add_handler(CommandHandler('addadmin', add_admin))
+    dispatcher.add_handler(CommandHandler('deladmin', del_admin))
+    dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
+    dispatcher.add_handler(CommandHandler('countusers', count_users))
+
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     # dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
