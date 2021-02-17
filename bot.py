@@ -312,6 +312,7 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     user_data['current_active_module'] = 'music_cutter'
 
+    # TODO: Send back the length of the music
     # TODO: What about music file that are longer than 1 hour?
     update.message.reply_text("Now send me which part of the music you want to cut out?\n\n"
                               "Valid patterns are:\n"
@@ -432,6 +433,7 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
 
 
 def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -> None:
+    # TODO: Check if the value is of the correct type
     context.user_data['tag_editor'][current_tag] = value
 
 
@@ -530,9 +532,18 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
             reset_context_user_data(context)
     else:
-        # Not implemented
-        reply_message = ERR_NOT_IMPLEMENTED
-        update.message.reply_text(reply_message)
+        if music_path:
+            if user_data['current_active_module']:
+                update.message.reply_text(
+                    "What do you want to do with this file?",
+                    reply_markup=module_selector_keyboard
+                )
+        elif not music_path:
+            update.message.reply_text(START_OVER_MESSAGE)
+        else:
+            # Not implemented
+            reply_message = ERR_NOT_IMPLEMENTED
+            update.message.reply_text(reply_message)
 
 
 def display_preview(update: Update, context: CallbackContext) -> None:
