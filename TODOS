@@ -16,10 +16,7 @@ TODO: Optimize the bot (https://github.com/python-telegram-bot/python-telegram-b
 TODO: Implement album art changer
 TODO: Implement bitrate changer
 TODO: Implement commands:
-    - /addadmin
-    - /deladmin
     - /sendtoall
-    - /countusers
 
 TODO: https://github.com/odysseusmax/utube
 TODO: https://github.com/viperadnan-git/google-drive-telegram-bot
