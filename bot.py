@@ -293,6 +293,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     user_data = context.user_data
     input_music_path = user_data['music_path']
     output_music_path = f"{user_data['music_path']}.ogg"
+    art_path = user_data['art_path']
     user_data['current_active_module'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
@@ -312,6 +313,8 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
     delete_file(output_music_path)
     delete_file(input_music_path)
+    if art_path:
+        delete_file(art_path)
 
     reset_context_user_data(context)
 
@@ -476,8 +479,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     message_text = update.message.text
     user_data = context.user_data
     music_path = user_data['music_path']
-    music_path = context.user_data['music_path']
-    music_tags = context.user_data['tag_editor']
+    art_path = user_data['art_path']
+    music_tags = user_data['tag_editor']
 
     current_active_module = user_data['current_active_module']
 
@@ -537,6 +540,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
             delete_file(music_path_cut)
             delete_file(music_path)
+            if art_path:
+                delete_file(art_path)
 
             reset_context_user_data(context)
     else:
@@ -593,13 +598,16 @@ def save_tags_to_file(file: str, tags: dict) -> str:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+    user_data = context.user_data
+
     context.bot.send_chat_action(
         chat_id=update.message.chat_id,
         action=ChatAction.UPLOAD_AUDIO
     )
 
-    music_path = context.user_data['music_path']
-    music_tags = context.user_data['tag_editor']
+    music_path = user_data['music_path']
+    art_path = user_data['art_path']
+    music_tags = user_data['tag_editor']
 
     try:
         save_tags_to_file(
@@ -618,6 +626,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
     reset_context_user_data(context)
     delete_file(music_path)
+    if art_path:
+        delete_file(art_path)
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
