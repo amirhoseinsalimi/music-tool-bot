@@ -264,25 +264,41 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     file_download_path = ''
     music = None
     user_data = context.user_data
+    art_path = user_data['art_path']
 
     user_data['current_active_module'] = 'tag_editor'
 
     tag_editor_context = user_data['tag_editor']
     tag_editor_context['current_tag'] = ''
 
-    message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"🆔 {BOT_USERNAME}\n",
-        reply_to_message_id=update.effective_message.message_id,
-        reply_markup=tag_editor_keyboard
-    )
+    if art_path:
+        message.reply_photo(
+            photo=open(art_path, 'rb'),
+            caption=
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+            reply_markup=tag_editor_keyboard
+        )
+    else:
+        message.reply_text(
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+            reply_markup=tag_editor_keyboard
+        )
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
@@ -562,21 +578,38 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
 def display_preview(update: Update, context: CallbackContext) -> None:
     message = update.message
-    tag_editor_context = context.user_data['tag_editor']
+    user_data = context.user_data
+    tag_editor_context = user_data['tag_editor']
+    art_path = user_data['art_path']
 
-    message.reply_text(
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        # f"*🖼 Album Art:* {music['artist']}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        f"{CLICK_DONE_MESSAGE}\n\n"
-        f"🆔 {BOT_USERNAME}\n",
-        reply_to_message_id=update.effective_message.message_id,
-    )
+    if art_path:
+        message.reply_photo(
+            photo=open(art_path, "rb"),
+            caption=
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"{CLICK_DONE_MESSAGE}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+        )
+    else:
+        message.reply_text(
+            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
+            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
+            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
+            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
+            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
+            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
+            f"{CLICK_DONE_MESSAGE}\n\n"
+            f"🆔 {BOT_USERNAME}\n",
+            reply_to_message_id=update.effective_message.message_id,
+        )
 
 
 def save_tags_to_file(file: str, tags: dict) -> str:
