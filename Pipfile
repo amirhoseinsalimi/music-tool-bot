@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+start = "pm2 start --name music-tool-bot bot.py --interpreter python"
+restart = "pm2 restart start music-tool-bot"
+stop = "pm2 stop music-tool-bot"
+test = "echo 'Not Implemented Yet'"
+t = "pipenv run test"
+
+[packages]
+python-telegram-bot = "~=13.1"
+python-dotenv = "~=0.15.0"
+music-tag = "*"
+mysql-connector-python = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
