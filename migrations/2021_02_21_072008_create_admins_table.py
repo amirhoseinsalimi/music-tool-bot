@@ -7,7 +7,7 @@ class CreateAdminsTable(Migration):
         with self.schema.create('admins') as table:
             table.increments('id')
             table.integer('admin_user_id').unique()
-            table.boolean('is_admin').default(False)
+            table.boolean('is_owner').default(False)
 
             table.timestamps()
 
