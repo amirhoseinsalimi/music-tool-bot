@@ -441,24 +441,38 @@ def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> No
 
 
 def handle_photo_message(update: Update, context: CallbackContext) -> None:
+    user_data = context.user_data
     message = update.message
     user_id = update.effective_user.id
+    music_path = user_data['music_path']
+    art_path = user_data['art_path']
+    current_tag = user_data['tag_editor']['current_tag']
 
-    try:
-        create_user_directory(user_id)
-    except:
-        message.reply_text(ERR_CREATING_USER_FOLDER)
-        return
+    current_active_module = user_data['current_active_module']
 
-    try:
-        download_file(
-            user_id=user_id,
-            file_to_download=message.photo[0],
-            file_type='photo',
-            context=context
-        )
-    except:
-        message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
+    if music_path:
+        if current_active_module == 'tag_editor':
+            if not current_tag or current_tag != 'album_art':
+                reply_message = ASK_WHICH_TAG
+                update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+                return
+            else:
+                try:
+                    file_download_path = download_file(
+                        user_id=user_id,
+                        file_to_download=message.photo[0],
+                        file_type='photo',
+                        context=context
+                    )
+                    reply_message = "Album art changed. " \
+                                    f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
+                    user_data['new_art_path'] = file_download_path
+                    message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+                except:
+                    message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
+    else:
+        reply_message = DEFAULT_MESSAGE
+        message.reply_text(reply_message)
 
 
 def prepare_for_artist_name(update: Update, context: CallbackContext) -> None:
@@ -521,6 +535,18 @@ def prepare_for_year(update: Update, context: CallbackContext) -> None:
     else:
         context.user_data['tag_editor']['current_tag'] = 'year'
         message_text = "Enter the publish year:"
+
+    update.message.reply_text(message_text)
+
+
+def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'album_art'
+        message_text = "Send me a photo:"
 
     update.message.reply_text(message_text)
 
@@ -786,7 +812,7 @@ def main():
     dispatcher.add_handler(CommandHandler('countusers', count_users))
 
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
-    # dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
+    dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
                                           show_module_selector))
@@ -805,6 +831,7 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🖼 Album Art)$') & (~Filters.command), prepare_for_album_art))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
     dispatcher.add_handler(
         MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
