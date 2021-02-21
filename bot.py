@@ -625,7 +625,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
         reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
                         f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
-        update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
+        update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_active_module == 'music_cutter':
         beginning_sec = ending_sec = 0
 
