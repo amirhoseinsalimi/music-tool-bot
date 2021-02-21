@@ -490,8 +490,15 @@ def throw_not_implemented(update: Update) -> None:
 
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
-    throw_not_implemented(update)
-    context.user_data['current_active_module'] = ''
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'album'
+        message_text = "Enter the album name:"
+
+    update.message.reply_text(message_text)
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
