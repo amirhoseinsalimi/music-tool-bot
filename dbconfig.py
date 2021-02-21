@@ -1,4 +1,6 @@
 import os
+from orator import DatabaseManager
+
 from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
@@ -10,6 +12,7 @@ DB_PASSWORD = os.getenv("DB_PASSWORD") if os.getenv("DB_PASSWORD") else ''
 DB_NAME = os.getenv("DB_NAME") if os.getenv("DB_NAME") else ''
 
 DATABASES = {
+    'default': 'mysql',
     'mysql': {
         'driver': 'mysql',
         'host': DB_HOST,
@@ -20,3 +23,5 @@ DATABASES = {
         'prefix': ''
     }
 }
+
+db = DatabaseManager(DATABASES)
