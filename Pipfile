@@ -16,6 +16,8 @@ python-dotenv = "~=0.15.0"
 music-tag = "*"
 mysql-connector-python = "*"
 sqlalchemy = "*"
+orator = "*"
+mysqlclient = "*"
 
 [dev-packages]
 
