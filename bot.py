@@ -13,7 +13,11 @@ from pathlib import Path
 # Third-party modules ######
 ############################
 import music_tag
-from database import cursor, connection
+
+from models.admin import Admin
+from models.user import User
+from dbconfig import db
+from orator import Model
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
@@ -25,6 +29,8 @@ from downloader import download_file
 ############################
 # Bot Common Messages ######
 ############################
+Model.set_connection_resolver(db)
+
 START_MESSAGE = "Hello there! 👋" \
                 " Let's get started. Just send me a music and see how awesome I am!"
 START_OVER_MESSAGE = "Send me a music and see how awesome I am!"
@@ -119,15 +125,14 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
     reset_context_user_data(context)
 
-    cursor.execute(f"SELECT * FROM `users` WHERE user_id={user_id}")
+    user = User.where('user_id', '=', user_id).first()
 
-    users = cursor.fetchall()
+    if not user:
+        new_user = User()
+        new_user.user_id = user_id
+        new_user.number_of_files_sent = 0
 
-    if not users:
-        query = f"INSERT INTO users (user_id) VALUES ({user_id})"
-        cursor.execute(query)
-
-        connection.commit()
+        new_user.save()
 
     update.message.reply_text(START_MESSAGE)
 
@@ -187,15 +192,13 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 
 def increment_usage_counter_for_user(user_id: int) -> int:
     try:
-        cursor.execute(f"SELECT * FROM `users` WHERE user_id={user_id}")
-        user = cursor.fetchone()
+        user = User.where('user_id', '=', user_id).first()
 
-        new_usage_number = user[2] + 1
+        user.number_of_files_sent = user.number_of_files_sent + 1
 
-        cursor.execute(f"UPDATE `users` SET number_of_files_sent={new_usage_number} WHERE user_id={user_id}")
-        connection.commit()
+        user.push()
 
-        return new_usage_number
+        return user.number_of_files_sent
     except:
         return 0
 
@@ -254,9 +257,9 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     album = music['album']
     genre = music['genre']
     art = music['artwork']
-    year = music['year']
-    disknumber = music['disknumber']
-    tracknumber = music['tracknumber']
+    year = music.raw['year']
+    disknumber = music.raw['disknumber']
+    tracknumber = music.raw['tracknumber']
 
     if art:
         art_path = user_data['art_path'] = f"{file_download_path}.jpg"
@@ -278,17 +281,13 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
 
 def is_user_owner(user_id: int) -> bool:
-    cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id} AND is_owner=true")
+    owner = Admin.where('admin_user_id', '=', user_id).where('is_owner', '=', True).first()
 
-    admin = cursor.fetchone()
-
-    return bool(admin)
+    return owner.is_owner if owner else False
 
 
 def is_user_admin(user_id: int) -> bool:
-    cursor.execute(f"SELECT * FROM `admins` WHERE user_id={user_id}")
-
-    admin = cursor.fetchone()
+    admin = Admin.where('admin_user_id', '=', user_id).first()
 
     return bool(admin)
 
@@ -299,8 +298,10 @@ def add_admin(update: Update, context: CallbackContext) -> None:
 
     if is_user_owner(update.effective_user.id):
         try:
-            cursor.execute(f"INSERT IGNORE INTO `admins` (`user_id`) VALUES ({user_id})")
-            connection.commit()
+            admin = Admin()
+            admin.admin_user_id = user_id
+
+            admin.save()
 
             update.message.reply_text(f"User {user_id} has been added as admins")
         except:
@@ -314,10 +315,9 @@ def del_admin(update: Update, context: CallbackContext) -> None:
     if is_user_owner(update.effective_user.id):
         try:
             if is_user_admin(user_id):
-                cursor.execute(f"DELETE FROM `admins` WHERE user_id={user_id}")
-                connection.commit()
+                Admin.where('admin_user_id', '=', user_id).delete()
 
-                update.message.reply_text(f"User {user_id} has been removed from admins")
+                update.message.reply_text(f"User {user_id} is no longer an admin")
             else:
                 update.message.reply_text(f"User {user_id} is not admin")
         except:
@@ -331,9 +331,7 @@ def send_to_all():
 def count_users(update: Update, context: CallbackContext) -> None:
     if is_user_admin(update.effective_user.id):
         try:
-            cursor.execute(f"SELECT * FROM `users`")
-
-            users = cursor.fetchall()
+            users = User.all()
 
             update.message.reply_text(f"{len(users)} users are using this bot!")
         except:
@@ -492,8 +490,15 @@ def throw_not_implemented(update: Update) -> None:
 
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
-    throw_not_implemented(update)
-    context.user_data['current_active_module'] = ''
+    message_text = ''
+
+    if len(context.user_data) == 0:
+        message_text = DEFAULT_MESSAGE
+    else:
+        context.user_data['tag_editor']['current_tag'] = 'album'
+        message_text = "Enter the album name:"
+
+    update.message.reply_text(message_text)
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
