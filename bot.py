@@ -126,7 +126,6 @@ def command_start(update: Update, context: CallbackContext) -> None:
     reset_context_user_data(context)
 
     user = User.where('user_id', '=', user_id).first()
-    print(user)
 
     if not user:
         new_user = User()
@@ -311,7 +310,6 @@ def add_admin(update: Update, context: CallbackContext) -> None:
 
 def del_admin(update: Update, context: CallbackContext) -> None:
     user_id = update.message.text.partition(' ')[2]
-    print(user_id)
     user_id = int(user_id)
 
     if is_user_owner(update.effective_user.id):
