@@ -257,9 +257,9 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     album = music['album']
     genre = music['genre']
     art = music['artwork']
-    year = music['year']
-    disknumber = music['disknumber']
-    tracknumber = music['tracknumber']
+    year = music.raw['year']
+    disknumber = music.raw['disknumber']
+    tracknumber = music.raw['tracknumber']
 
     if art:
         art_path = user_data['art_path'] = f"{file_download_path}.jpg"
