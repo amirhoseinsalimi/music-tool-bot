@@ -698,10 +698,11 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     tag_editor_context = user_data['tag_editor']
     art_path = user_data['art_path']
+    new_art_path = user_data['new_art_path']
 
-    if art_path:
+    if art_path or new_art_path:
         message.reply_photo(
-            photo=open(art_path, "rb"),
+            photo=open(new_art_path if new_art_path else art_path, "rb"),
             caption=
             f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
             f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
