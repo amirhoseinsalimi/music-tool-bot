@@ -625,10 +625,14 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             reply_message = ASK_WHICH_TAG
             update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
-        save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
-        reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
-                        f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
-        update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+        if user_data['tag_editor']['current_tag'] == 'album_art':
+            reply_message = "Send me a photo:"
+            update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+        else:
+            save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
+            reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
+                            f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
+            update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_active_module == 'music_cutter':
         beginning_sec = ending_sec = 0
 
@@ -737,8 +741,15 @@ def display_preview(update: Update, context: CallbackContext) -> None:
         )
 
 
-def save_tags_to_file(file: str, tags: dict) -> str:
+def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> str:
     music = music_tag.load_file(file)
+
+    try:
+        if new_art_path:
+            with open(new_art_path, 'rb') as art:
+                music['artwork'] = art.read()
+    except:
+        raise Exception("Couldn't set hashtags")
 
     try:
         music['artist'] = tags['artist'] if tags['artist'] else ''
@@ -773,6 +784,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         save_tags_to_file(
             file=music_path,
             tags=music_tags,
+            new_art_path=new_art_path
         )
     except:
         update.message.reply_text(ERR_ON_UPDATING_TAGS)
