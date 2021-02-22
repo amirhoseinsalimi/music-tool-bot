@@ -53,6 +53,7 @@ The one and only Telegram bot you want to manage your music and MP3 files.
 6. **Run the bot**<br />
    a. Start the bot `pipenv run start`<br />
    b. restart `pipenv run restart`<br /><br />
+   
 See below all possible commands:
 | Command `pipenv run <command>` | Description                                                                                |
 | ------------------------------ | ------------------------------------------------------------------------------------------ |
@@ -60,7 +61,7 @@ See below all possible commands:
 | `restart`                        | Restarts the bot process with the name `music-tool-bot`                                    |
 | `stop`                           | Stops the bot process with the name `music-tool-bot`                                       |
 | `db:migrate`                     | Run migrations                                                                             |
-| `db:refresh`                     | Rollback all migration and re-run them (Use with cautions)                                 |
+| `db:refresh`                     | Rollback all migration and re-run them (Use with caution)                                 |
 | `db:status`                      | Print the status of migrations                                                             |
 | `db:seed`                        | Run seeds to create a user with owner privileges                                           |
 | `test`                           | Run tests (Not implemented yet)                                                            |
