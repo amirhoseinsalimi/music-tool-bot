@@ -45,7 +45,7 @@ CLICK_DONE_MESSAGE = "Click /done to save your changes."
 ############################
 # Bot Common Errors ########
 ############################
-REPORT_BUG_MESSAGE = "That's my fault! Please send a bug report here: @amirhoseinsalimi"
+REPORT_BUG_MESSAGE = "That's my fault! Please send a bug report here: @amirhoseinsalimii"
 ERR_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_AUDIO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
 ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
