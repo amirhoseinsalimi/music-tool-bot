@@ -667,6 +667,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             save_tags_to_file(
                 file=music_path_cut,
                 tags=music_tags,
+                new_art_path=art_path if art_path else ''
             )
 
             # FIXME: After sending the file, the album art can't be read back
