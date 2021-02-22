@@ -18,8 +18,6 @@ t = "pipenv run test"
 python-telegram-bot = "~=13.1"
 python-dotenv = "~=0.15.0"
 music-tag = "*"
-mysql-connector-python = "*"
-sqlalchemy = "*"
 orator = "*"
 mysqlclient = "*"
 
