@@ -53,6 +53,7 @@ The one and only Telegram bot you want to manage your music and MP3 files.
 6. **Run the bot**<br />
    a. Start the bot `pipenv run start`<br />
    b. restart `pipenv run restart`<br /><br />
+   
 See below all possible commands:
 | Command `pipenv run <command>` | Description                                                                                |
 | ------------------------------ | ------------------------------------------------------------------------------------------ |
