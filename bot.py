@@ -4,7 +4,6 @@
 # Built-in modules #########
 ############################
 import logging
-import env
 import os
 import re
 from pathlib import Path
@@ -13,90 +12,29 @@ from pathlib import Path
 # Third-party modules ######
 ############################
 import music_tag
-
-from models.admin import Admin
-from models.user import User
-from dbconfig import db
 from orator import Model
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
+from dbconfig import db
 ############################
 # My modules ###############
 ############################
 from downloader import download_file
+from language_service import translate_key_to
+from models.admin import Admin
+from models.user import User
 
 ############################
 # Bot Common Messages ######
 ############################
 Model.set_connection_resolver(db)
 
-START_MESSAGE = "Hello there! 👋" \
-                " Let's get started. Just send me a music and see how awesome I am!"
-START_OVER_MESSAGE = "Send me a music and see how awesome I am!"
-HELP_MESSAGE = "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
-DEFAULT_MESSAGE = "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
-ASK_WHICH_TAG = "Which tag do you want to edit?"
-EXPECTED_NUMBER_MESSAGE = "You entered a string instead of a number. Although this is not a problem," \
-                          "I guess you entered this input by mistake."
-CLICK_PREVIEW_MESSAGE = "If you want to preview your changes click /preview."
-CLICK_DONE_MESSAGE = "Click /done to save your changes."
-
-############################
-# Bot Common Errors ########
-############################
-REPORT_BUG_MESSAGE = "That's my fault! Please send a bug report here: @amirhoseinsalimi"
-ERR_CREATING_USER_FOLDER = f"Error initializing myself for you... {REPORT_BUG_MESSAGE}"
-ERR_ON_DOWNLOAD_AUDIO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
-ERR_ON_DOWNLOAD_PHOTO_MESSAGE = f"Sorry, I couldn't download your file... {REPORT_BUG_MESSAGE}"
-ERR_TOO_LARGE_FILE = f"This file is too big that I can process, sorry!"
-ERR_ON_READING_TAGS = f"Sorry, I couldn't read the tags of the file... {REPORT_BUG_MESSAGE}"
-ERR_ON_UPDATING_TAGS = f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE}"
-ERR_NOT_IMPLEMENTED = f"This feature has not been implemented yet. Sorry!"
-ERR_OUT_OF_RANGE = "The range you entered is out of the actual file duration. The file length is: {} seconds"
-ERR_MALFORMED_RANGE = "You have entered a malformed pattern. Please try again. {}"
-ERR_BEGINNING_POINT_IS_GREATER = f"This feature has not been implemented yet. Sorry!"
-
 ############################
 # Global variables #########
 ############################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
-
-module_selector_keyboard = ReplyKeyboardMarkup(
-    [
-        ['🎵 Tag Editor', '🗣 Music to Voice Converter'],
-        ['✂️ Music Cutter', '🎙 Bitrate Changer']
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=True,
-)
-
-tag_editor_keyboard = ReplyKeyboardMarkup(
-    [
-        ['🗣 Artist', '🎵 Title', '🎼 Album'],
-        ['🎹 Genre', '📅 Year', '🖼 Album Art'],
-        ['💿 Disk Number', '▶️ Track Number'],
-        ['🔙 Back']
-    ],
-    resize_keyboard=True,
-)
-
-back_button_keyboard = ReplyKeyboardMarkup(
-        [
-            ['🔙 Back'],
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
-
-start_over_button_keyboard = ReplyKeyboardMarkup(
-        [
-            ['🆕 New File'],
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
 
 ############################
 # Logger ###################
@@ -134,20 +72,22 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
         new_user.save()
 
-    update.message.reply_text(START_MESSAGE)
+    update.message.reply_text(translate_key_to('START_MESSAGE', context.user_data['language']))
+
+    show_language_keyboard(update, context)
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
     reset_context_user_data(context)
 
     update.message.reply_text(
-        START_OVER_MESSAGE,
+        translate_key_to('START_OVER_MESSAGE', context.user_data['language']),
         reply_to_message_id=update.effective_message.message_id,
     )
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(HELP_MESSAGE)
+    update.message.reply_text(translate_key_to('HELP_MESSAGE', context.user_data['language']))
 
 
 def delete_file(file_path: str) -> None:
@@ -179,13 +119,25 @@ def reset_context_user_data(context: CallbackContext) -> None:
     user_data['new_art_path'] = ''
     user_data['current_active_module'] = ''
     user_data['music_message_id'] = ''
+    user_data['language'] = user_data['language'] if ('language' in user_data) else 'en'
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
+    user_data = context.user_data
     context.user_data['current_active_module'] = ''
+    lang = user_data['language']
+
+    module_selector_keyboard = ReplyKeyboardMarkup(
+        [
+            [translate_key_to('BTN_TAG_EDITOR', lang), translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', lang)],
+            [translate_key_to('BTN_MUSIC_CUTTER', lang), translate_key_to('BTN_BITRATE_CHANGER', lang)]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
 
     update.message.reply_text(
-        "What do you want to do with this file?",
+        translate_key_to('ASK_WHICH_MODULE', lang),
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
@@ -211,9 +163,10 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     music = None
     user_data = context.user_data
     music_duration = message.audio.duration
+    old_music_path = user_data['music_path']
 
     if music_duration >= 3600:
-        message.reply_text(ERR_TOO_LARGE_FILE)
+        message.reply_text(translate_key_to('ERR_TOO_LARGE_FILE', user_data['language']))
         return
 
     context.bot.send_chat_action(
@@ -224,7 +177,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     try:
         create_user_directory(user_id)
     except:
-        message.reply_text(ERR_CREATING_USER_FOLDER)
+        message.reply_text(translate_key_to('ERR_CREATING_USER_FOLDER', user_data['language']))
         return
 
     try:
@@ -235,13 +188,13 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             context=context
         )
     except:
-        message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
+        message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', user_data['language']))
         return
 
     try:
         music = music_tag.load_file(file_download_path)
     except:
-        message.reply_text(ERR_ON_READING_TAGS)
+        message.reply_text(translate_key_to('ERR_ON_READING_TAGS', user_data['language']))
         return
 
     reset_context_user_data(context)
@@ -279,6 +232,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     show_module_selector(update, context)
 
     increment_usage_counter_for_user(user_id=user_id)
+    delete_file(old_music_path)
 
 
 def is_user_owner(user_id: int) -> bool:
@@ -346,11 +300,24 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     music = None
     user_data = context.user_data
     art_path = user_data['art_path']
+    lang = user_data['language']
 
     user_data['current_active_module'] = 'tag_editor'
 
     tag_editor_context = user_data['tag_editor']
     tag_editor_context['current_tag'] = ''
+
+    tag_editor_keyboard = ReplyKeyboardMarkup(
+        [
+            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
+             translate_key_to('BTN_ALBUM', lang)],
+            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
+             translate_key_to('BTN_ALBUM_ART', lang)],
+            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
+            [translate_key_to('BTN_BACK', lang)]
+        ],
+        resize_keyboard=True,
+    )
 
     if art_path:
         message.reply_photo(
@@ -394,10 +361,19 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     output_music_path = f"{user_data['music_path']}.ogg"
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
+    lang = user_data['language']
     user_data['current_active_module'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
+
+    start_over_button_keyboard = ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_NEW_FILE', lang)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
 
     context.bot.send_chat_action(
         chat_id=update.message.chat_id,
@@ -425,6 +401,15 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     user_data['current_active_module'] = 'music_cutter'
+    lang = user_data['language']
+
+    back_button_keyboard = ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_BACK', lang)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
 
     # TODO: Send back the length of the music
     # TODO: What about music file that are longer than 1 hour?
@@ -440,7 +425,7 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
-    throw_not_implemented(update)
+    throw_not_implemented(update, context)
     context.user_data['current_active_module'] = ''
 
 
@@ -449,14 +434,26 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
     music_path = user_data['music_path']
-    current_tag = user_data['tag_editor']['current_tag']
-
     current_active_module = user_data['current_active_module']
+    current_tag = user_data['tag_editor']['current_tag']
+    lang = user_data['language']
+
+    tag_editor_keyboard = ReplyKeyboardMarkup(
+        [
+            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
+             translate_key_to('BTN_ALBUM', lang)],
+            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
+             translate_key_to('BTN_ALBUM_ART', lang)],
+            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
+            [translate_key_to('BTN_BACK', lang)]
+        ],
+        resize_keyboard=True,
+    )
 
     if music_path:
         if current_active_module == 'tag_editor':
             if not current_tag or current_tag != 'album_art':
-                reply_message = ASK_WHICH_TAG
+                reply_message = translate_key_to('ASK_WHICH_TAG', lang)
                 update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 return
             else:
@@ -468,24 +465,26 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                         context=context
                     )
                     reply_message = "Album art changed. " \
-                                    f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
+                                    f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
+                                    f"{translate_key_to('OR', lang).upper()} " \
+                                    f"{translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
                     user_data['new_art_path'] = file_download_path
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 except:
-                    message.reply_text(ERR_ON_DOWNLOAD_AUDIO_MESSAGE)
+                    message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', lang))
     else:
-        reply_message = DEFAULT_MESSAGE
+        reply_message = translate_key_to('DEFAULT_MESSAGE', lang)
         message.reply_text(reply_message)
 
 
-def prepare_for_artist_name(update: Update, context: CallbackContext) -> None:
+def prepare_for_artist(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'artist'
-        message_text = "Enter the name of the artist:"
+        message_text = translate_key_to('ASK_FOR_ARTIST', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -494,26 +493,36 @@ def prepare_for_title(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'title'
-        message_text = "Enter the title of the music:"
+        message_text = translate_key_to('ASK_FOR_TITLE', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
-def throw_not_implemented(update: Update) -> None:
-    update.message.reply_text(ERR_NOT_IMPLEMENTED, reply_markup=back_button_keyboard)
+def throw_not_implemented(update: Update, context: CallbackContext) -> None:
+    lang = context.user_data['language']
+
+    back_button_keyboard = ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_BACK', lang)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+
+    update.message.reply_text(translate_key_to('ERR_NOT_IMPLEMENTED', lang), reply_markup=back_button_keyboard)
 
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'album'
-        message_text = "Enter the album name:"
+        message_text = translate_key_to('ASK_FOR_ALBUM', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -522,10 +531,10 @@ def prepare_for_genre(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'genre'
-        message_text = "Enter the Genre:"
+        message_text = translate_key_to('ASK_FOR_GENRE', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -534,10 +543,10 @@ def prepare_for_year(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'year'
-        message_text = "Enter the publish year:"
+        message_text = translate_key_to('ASK_FOR_YEAR', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -546,10 +555,10 @@ def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'album_art'
-        message_text = "Send me a photo:"
+        message_text = translate_key_to('ASK_FOR_ALBUM_ART', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -558,10 +567,10 @@ def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'disknumber'
-        message_text = "Now send me a number as the disk number:"
+        message_text = translate_key_to('ASK_FOR_DISK_NUMBER', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -570,10 +579,10 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
     message_text = ''
 
     if len(context.user_data) == 0:
-        message_text = DEFAULT_MESSAGE
+        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'tracknumber'
-        message_text = "Now send me a number as the track number:"
+        message_text = translate_key_to('ASK_FOR_TRACK_NUMBER', context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -617,21 +626,53 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
     music_tags = user_data['tag_editor']
+    lang = user_data['language']
 
     current_active_module = user_data['current_active_module']
 
+    tag_editor_keyboard = ReplyKeyboardMarkup(
+        [
+            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
+             translate_key_to('BTN_ALBUM', lang)],
+            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
+             translate_key_to('BTN_ALBUM_ART', lang)],
+            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
+            [translate_key_to('BTN_BACK', lang)]
+        ],
+        resize_keyboard=True,
+    )
+
+    module_selector_keyboard = ReplyKeyboardMarkup(
+        [
+            [translate_key_to('BTN_TAG_EDITOR', lang), translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', lang)],
+            [translate_key_to('BTN_MUSIC_CUTTER', lang), translate_key_to('BTN_BITRATE_CHANGER', lang)]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+    back_button_keyboard = ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_BACK', lang)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+
     if current_active_module == 'tag_editor':
         if not user_data['tag_editor']['current_tag']:
-            reply_message = ASK_WHICH_TAG
+            reply_message = translate_key_to('ASK_WHICH_TAG', lang)
             update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
         if user_data['tag_editor']['current_tag'] == 'album_art':
-            reply_message = "Send me a photo:"
+            reply_message = translate_key_to('ASK_FOR_ALBUM_ART', lang)
             update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
         else:
             save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
-            reply_message = f"{user_data['tag_editor']['current_tag'].capitalize()} changed. " \
-                            f"{CLICK_PREVIEW_MESSAGE} Or {CLICK_DONE_MESSAGE.lower()}"
+            reply_message = f"{translate_key_to('DONE', lang)} " \
+                            f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
+                            f"{translate_key_to('OR', lang).upper()}" \
+                            f" {translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
             update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_active_module == 'music_cutter':
         beginning_sec = ending_sec = 0
@@ -639,7 +680,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         try:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
         except:
-            reply_message = ERR_MALFORMED_RANGE.format(
+            reply_message = translate_key_to('ERR_MALFORMED_RANGE', lang).format(
                 "\n\nNow send me which part of the music you want to cut out?\n\n"
                 "Valid patterns are:\n"
                 "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
@@ -654,10 +695,10 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         music_duration = user_data['music_duration']
 
         if beginning_sec > music_duration or ending_sec > music_duration:
-            reply_message = ERR_OUT_OF_RANGE.format(music_duration)
+            reply_message = translate_key_to('ERR_OUT_OF_RANGE', lang).format(music_duration)
             update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
         if beginning_sec >= ending_sec:
-            reply_message = ERR_BEGINNING_POINT_IS_GREATER
+            reply_message = translate_key_to('ERR_BEGINNING_POINT_IS_GREATER', lang)
             update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
         else:
             diff_sec = ending_sec - beginning_sec
@@ -667,11 +708,20 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             save_tags_to_file(
                 file=music_path_cut,
                 tags=music_tags,
+                new_art_path=art_path if art_path else ''
             )
 
+            start_over_button_keyboard = ReplyKeyboardMarkup(
+                    [
+                        [translate_key_to('BTN_NEW_FILE', lang)],
+                    ],
+                    resize_keyboard=True,
+                    one_time_keyboard=True,
+                )
+
             # FIXME: After sending the file, the album art can't be read back
-            context.bot.send_document(
-                document=open(music_path_cut, 'rb'),
+            context.bot.send_audio(
+                audio=open(music_path_cut, 'rb'),
                 chat_id=update.message.chat_id,
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
@@ -692,20 +742,21 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         if music_path:
             if user_data['current_active_module']:
                 update.message.reply_text(
-                    "What do you want to do with this file?",
+                    translate_key_to('ASK_WHICH_MODULE', lang),
                     reply_markup=module_selector_keyboard
                 )
         elif not music_path:
-            update.message.reply_text(START_OVER_MESSAGE)
+            update.message.reply_text(translate_key_to('START_OVER_MESSAGE', lang))
         else:
             # Not implemented
-            reply_message = ERR_NOT_IMPLEMENTED
+            reply_message = translate_key_to('ERR_NOT_IMPLEMENTED', lang)
             update.message.reply_text(reply_message)
 
 
 def display_preview(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_data = context.user_data
+    lang = user_data['language']
     tag_editor_context = user_data['tag_editor']
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
@@ -721,7 +772,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
             f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
             f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
             f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"{CLICK_DONE_MESSAGE}\n\n"
+            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
             f"🆔 {BOT_USERNAME}\n",
             reply_to_message_id=update.effective_message.message_id,
             parse_mode='Markdown'
@@ -735,7 +786,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
             f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
             f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
             f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"{CLICK_DONE_MESSAGE}\n\n"
+            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
             f"🆔 {BOT_USERNAME}\n",
             reply_to_message_id=update.effective_message.message_id,
         )
@@ -779,6 +830,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
     music_tags = user_data['tag_editor']
+    lang = user_data['language']
 
     try:
         save_tags_to_file(
@@ -787,10 +839,18 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             new_art_path=new_art_path
         )
     except:
-        update.message.reply_text(ERR_ON_UPDATING_TAGS)
+        update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
 
-    context.bot.send_document(
-        document=open(music_path, 'rb'),
+    start_over_button_keyboard = ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_NEW_FILE', lang)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+
+    context.bot.send_audio(
+        audio=open(music_path, 'rb'),
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
         reply_markup=start_over_button_keyboard,
@@ -806,14 +866,38 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(f"This bot is created by Amir Hosein Salimi (@amirhoseinsalimii) in Python language.\n"
-                              f"The source code of this project is available on"
-                              f" [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).\n\n"
-                              f"If you have any question or feedback feel free to message me on Telegram."
-                              f" Or if you are a developer and have an idea to make this bot better, I appreciate your"
-                              f" PRs.\n\n"
-                              f"{BOT_USERNAME}",
-                              )
+    update.message.reply_text(translate_key_to('ABOUT_MESSAGE', context.user_data['language']))
+
+
+def show_language_keyboard(update: Update, context: CallbackContext) -> None:
+    language_button_keyboard = ReplyKeyboardMarkup(
+        [
+            ['🇬🇧 English', '🇮🇷 فارسی'],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+    update.message.reply_text(
+        "Please choose a language:\n\n"
+        "لطفا زبان را انتخاب کنید:",
+        reply_markup=language_button_keyboard,
+    )
+
+
+def set_language(update: Update, context: CallbackContext) -> None:
+    lang = update.message.text.lower()
+    user_data = context.user_data
+
+    if "english" in lang:
+        user_data['language'] = 'en'
+    elif "فارسی" in lang:
+        user_data['language'] = 'fa'
+    else:
+        user_data['language'] = 'en'
+
+    update.message.reply_text(translate_key_to('LANGUAGE_CHANGED', user_data['language']))
+    update.message.reply_text(translate_key_to('START_OVER_MESSAGE', user_data['language']))
 
 
 def main():
@@ -824,9 +908,10 @@ def main():
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler('start', command_start))
+    dispatcher.add_handler(CommandHandler('new', start_over))
+    dispatcher.add_handler(CommandHandler('language', show_language_keyboard))
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
-    dispatcher.add_handler(CommandHandler('new', start_over))
 
     dispatcher.add_handler(CommandHandler('addadmin', add_admin))
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
@@ -836,29 +921,56 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$') & (~Filters.command),
+                                          set_language))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$') & (~Filters.command),
+                                          set_language))
+
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
+                                          show_module_selector))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 بازگشت)$') & (~Filters.command),
                                           show_module_selector))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 New File)$') & (~Filters.command),
                                           start_over))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 فایل جدید)$') & (~Filters.command),
+                                          start_over))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
+                                          handle_music_tag_editor))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 تغییر تگ ها)$') & (~Filters.command),
                                           handle_music_tag_editor))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Music to Voice Converter)$') & (~Filters.command),
                                           handle_music_to_voice_converter))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 تبدیل به پیام ویس)$') & (~Filters.command),
+                                          handle_music_to_voice_converter))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
+                                          handle_music_cutter))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ بریدن آهنگ)$') & (~Filters.command),
                                           handle_music_cutter))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
                                           handle_music_bitrate_changer))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 تفییر بیت ریت)$') & (~Filters.command),
+                                          handle_music_bitrate_changer))
 
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist_name))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 خواننده)$') & (~Filters.command), prepare_for_artist))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 عنوان)$') & (~Filters.command), prepare_for_title))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 آلبوم)$') & (~Filters.command), prepare_for_album))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 ژانر)$') & (~Filters.command), prepare_for_genre))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🖼 Album Art)$') & (~Filters.command), prepare_for_album_art))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🖼 عکس آلبوم)$') & (~Filters.command), prepare_for_album_art))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 سال)$') & (~Filters.command), prepare_for_year))
     dispatcher.add_handler(
         MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
     dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(💿  شماره دیسک)$') & (~Filters.command), prepare_for_disknumber))
+    dispatcher.add_handler(
         MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(▶️ شماره ترک)$') & (~Filters.command), prepare_for_tracknumber))
 
     dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
     dispatcher.add_handler(CommandHandler('preview', display_preview))
