@@ -163,6 +163,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     music = None
     user_data = context.user_data
     music_duration = message.audio.duration
+    old_music_path = user_data['music_path']
 
     if music_duration >= 3600:
         message.reply_text(translate_key_to('ERR_TOO_LARGE_FILE', user_data['language']))
@@ -231,6 +232,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     show_module_selector(update, context)
 
     increment_usage_counter_for_user(user_id=user_id)
+    delete_file(old_music_path)
 
 
 def is_user_owner(user_id: int) -> bool:
