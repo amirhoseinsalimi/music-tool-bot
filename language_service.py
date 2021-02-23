@@ -141,7 +141,7 @@ keys = {
     },
     "BTN_MUSIC_TO_VOICE_CONVERTER": {
         "en": "🗣 Music to Voice Converter",
-        "fa": "🗣 تبدیل به پیام ویس",
+        "fa": "🗣 تبدیل به پیام صوتی",
     },
     "BTN_MUSIC_CUTTER": {
         "en": "✂️ Music Cutter",
@@ -149,7 +149,7 @@ keys = {
     },
     "BTN_BITRATE_CHANGER": {
         "en": "🎙 Bitrate Changer",
-        "fa": "🎙 تفییر بیت ریت",
+        "fa": "🎙 تغییر بیت ریت",
     },
     "BTN_ARTIST": {
         "en": "🗣 Artist",

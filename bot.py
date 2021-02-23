@@ -948,7 +948,7 @@ def main():
                                           handle_music_cutter))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
                                           handle_music_bitrate_changer))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 تفییر بیت ریت)$') & (~Filters.command),
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 تغییر بیت ریت)$') & (~Filters.command),
                                           handle_music_bitrate_changer))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist))
