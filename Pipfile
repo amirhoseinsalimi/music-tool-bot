@@ -5,7 +5,7 @@ name = "pypi"
 
 [scripts]
 start = "pm2 start --name music-tool-bot bot.py --interpreter python"
-restart = "pm2 restart start music-tool-bot"
+restart = "pm2 restart music-tool-bot"
 stop = "pm2 stop music-tool-bot"
 "db:migrate" = "orator migrate -c dbconfig.py"
 "db:refresh" = "orator migrate:refresh -c dbconfig.py"

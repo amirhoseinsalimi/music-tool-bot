@@ -164,6 +164,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     music_duration = message.audio.duration
     old_music_path = user_data['music_path']
+    old_art_path = user_data['art_path']
+    old_new_art_path = user_data['new_art_path']
 
     if music_duration >= 3600:
         message.reply_text(translate_key_to('ERR_TOO_LARGE_FILE', user_data['language']))
@@ -233,6 +235,8 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     increment_usage_counter_for_user(user_id=user_id)
     delete_file(old_music_path)
+    delete_file(old_art_path)
+    delete_file(old_new_art_path)
 
 
 def is_user_owner(user_id: int) -> bool:
@@ -948,7 +952,7 @@ def main():
                                           handle_music_cutter))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
                                           handle_music_bitrate_changer))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 تفییر بیت ریت)$') & (~Filters.command),
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 تغییر بیت ریت)$') & (~Filters.command),
                                           handle_music_bitrate_changer))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist))
