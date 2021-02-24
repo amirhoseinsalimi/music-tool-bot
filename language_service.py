@@ -74,6 +74,10 @@ keys = {
         "en": "Enter the track number:",
         "fa": "شماره ترک را وارد کنید:",
     },
+    "ALBUM_ART_CHANGED": {
+        "en": "Album art changed",
+        "fa": "عکس آلبوم تغییر یافت.",
+    },
     "EXPECTED_NUMBER_MESSAGE": {
         "en": "You entered a string instead of a number. Although this is not a problem, "
               "I guess you entered this input by mistake.",

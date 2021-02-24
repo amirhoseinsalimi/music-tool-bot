@@ -469,7 +469,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                         file_type='photo',
                         context=context
                     )
-                    reply_message = "Album art changed. " \
+                    reply_message = f"{translate_key_to('')} " \
                                     f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
                                     f"{translate_key_to('OR', lang).upper()} " \
                                     f"{translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
