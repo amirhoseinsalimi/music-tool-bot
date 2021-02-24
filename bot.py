@@ -386,6 +386,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
     context.bot.send_voice(
         voice=open(output_music_path, 'rb'),
+        duration=user_data['music_duration'],
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
         reply_markup=start_over_button_keyboard,
@@ -727,6 +728,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             context.bot.send_audio(
                 audio=open(music_path_cut, 'rb'),
                 chat_id=update.message.chat_id,
+                duration=diff_sec,
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"{BOT_USERNAME}",
@@ -855,6 +857,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
     context.bot.send_audio(
         audio=open(music_path, 'rb'),
+        duration=user_data['music_duration'],
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
         reply_markup=start_over_button_keyboard,
