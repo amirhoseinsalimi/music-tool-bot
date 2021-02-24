@@ -907,6 +907,10 @@ def set_language(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(translate_key_to('START_OVER_MESSAGE', user_data['language']))
 
 
+def ignore_file(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(translate_key_to('START_OVER_MESSAGE', context.user_data['language']))
+
+
 def main():
     defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
     persistence = PicklePersistence('persistence_storage')
@@ -927,6 +931,8 @@ def main():
 
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
+    dispatcher.add_handler(
+        MessageHandler(Filters.video | Filters.document | Filters.contact | (~Filters.command), ignore_file))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$') & (~Filters.command),
                                           set_language))
