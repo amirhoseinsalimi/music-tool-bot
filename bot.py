@@ -947,7 +947,7 @@ def main():
                                           handle_music_tag_editor))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Music to Voice Converter)$') & (~Filters.command),
                                           handle_music_to_voice_converter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 تبدیل به پیام ویس)$') & (~Filters.command),
+    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 تبدیل به پیام صوتی)$') & (~Filters.command),
                                           handle_music_to_voice_converter))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
                                           handle_music_cutter))
