@@ -16,7 +16,6 @@ from orator import Model
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
-from dbconfig import db
 ############################
 # My modules ###############
 ############################
@@ -24,6 +23,16 @@ from downloader import download_file
 from language_service import translate_key_to
 from models.admin import Admin
 from models.user import User
+from dbconfig import db
+
+from utils.convert_seconds_to_human_readable_form import convert_seconds_to_human_readable_form
+from utils.create_user_directory import create_user_directory
+from utils.delete_file import delete_file
+from utils.increment_usage_counter_for_user import increment_usage_counter_for_user
+from utils.is_user_admin import is_user_admin
+from utils.is_user_owner import is_user_owner
+from utils.reset_user_data_context import reset_user_data_context
+from utils.save_text_into_tag import save_text_into_tag
 
 ############################
 # Bot Common Messages ######
@@ -48,20 +57,10 @@ logger = logging.getLogger(__name__)
 ############################
 # Handlers #################
 ############################
-def convert_seconds_to_human_readable_form(seconds: int) -> str:
-    minutes = int(seconds / 60)
-    remainder = seconds % 60
-
-    minutes_formatted = str(minutes) if minutes >= 10 else "0" + str(minutes)
-    seconds_formatted = str(remainder) if remainder >= 10 else "0" + str(remainder)
-
-    return f"{minutes_formatted}:{seconds_formatted}"
-
-
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
 
-    reset_context_user_data(context)
+    reset_user_data_context(context)
 
     user = User.where('user_id', '=', user_id).first()
 
@@ -78,7 +77,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
-    reset_context_user_data(context)
+    reset_user_data_context(context)
 
     update.message.reply_text(
         translate_key_to('START_OVER_MESSAGE', context.user_data['language']),
@@ -88,38 +87,6 @@ def start_over(update: Update, context: CallbackContext) -> None:
 
 def command_help(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(translate_key_to('HELP_MESSAGE', context.user_data['language']))
-
-
-def delete_file(file_path: str) -> None:
-    if os.path.exists(file_path):
-        os.remove(file_path)
-    else:
-        print("The file does not exist")
-
-
-def create_user_directory(user_id: int) -> str:
-    user_download_dir = f"downloads/{user_id}"
-
-    try:
-        Path(user_download_dir).mkdir(parents=True, exist_ok=True)
-    except:
-        user_download_dir = None
-        raise Exception(f"Can't create directory for user_id: {user_id}")
-
-    return user_download_dir
-
-
-def reset_context_user_data(context: CallbackContext) -> None:
-    user_data = context.user_data
-
-    user_data['tag_editor'] = {}
-    user_data['music_path'] = ''
-    user_data['music_duration'] = ''
-    user_data['art_path'] = ''
-    user_data['new_art_path'] = ''
-    user_data['current_active_module'] = ''
-    user_data['music_message_id'] = ''
-    user_data['language'] = user_data['language'] if ('language' in user_data) else 'en'
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
@@ -141,19 +108,6 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
-
-
-def increment_usage_counter_for_user(user_id: int) -> int:
-    try:
-        user = User.where('user_id', '=', user_id).first()
-
-        user.number_of_files_sent = user.number_of_files_sent + 1
-
-        user.push()
-
-        return user.number_of_files_sent
-    except:
-        return 0
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
@@ -199,7 +153,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         message.reply_text(translate_key_to('ERR_ON_READING_TAGS', user_data['language']))
         return
 
-    reset_context_user_data(context)
+    reset_user_data_context(context)
 
     user_data['music_path'] = file_download_path
     user_data['art_path'] = ''
@@ -237,18 +191,6 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     delete_file(old_music_path)
     delete_file(old_art_path)
     delete_file(old_new_art_path)
-
-
-def is_user_owner(user_id: int) -> bool:
-    owner = Admin.where('admin_user_id', '=', user_id).where('is_owner', '=', True).first()
-
-    return owner.is_owner if owner else False
-
-
-def is_user_admin(user_id: int) -> bool:
-    admin = Admin.where('admin_user_id', '=', user_id).first()
-
-    return bool(admin)
 
 
 def add_admin(update: Update, context: CallbackContext) -> None:
@@ -400,7 +342,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     if new_art_path:
         delete_file(new_art_path)
 
-    reset_context_user_data(context)
+    reset_user_data_context(context)
 
 
 def handle_music_cutter(update: Update, context: CallbackContext) -> None:
@@ -592,11 +534,6 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(message_text)
 
 
-def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -> None:
-    # TODO: Check if the value is of the correct type
-    context.user_data['tag_editor'][current_tag] = value
-
-
 def parse_cutting_range(text: str) -> (int, int):
     text = re.sub(' ', '', text)
     beginning, _, ending = text.partition('-')
@@ -743,7 +680,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             if new_art_path:
                 delete_file(new_art_path)
 
-            reset_context_user_data(context)
+            reset_user_data_context(context)
     else:
         if music_path:
             if user_data['current_active_module']:
@@ -864,7 +801,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         reply_to_message_id=user_data['music_message_id']
     )
 
-    reset_context_user_data(context)
+    reset_user_data_context(context)
     delete_file(music_path)
     if art_path:
         delete_file(art_path)
