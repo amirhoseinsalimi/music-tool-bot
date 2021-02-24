@@ -3,13 +3,10 @@ TODO: Add hot reload
 TODO: Heroku support
 TODO: Write tests
 TODO: Delete files older than 7 days
-TODO: Only accept audio files and documents which are audio files
 TODO: Proper error handling
 TODO: Correct "Too broad exception clause"
-TODO: Create README
 TODO: Announce the bot in Twitter, ThereIsABotForThat, Discord, Telegram Groups
 TODO: Use async/await if possible
-TODO: Support for English and Farsi
 TODO: Optimize the bot (https://github.com/python-telegram-bot/python-telegram-bot/wiki/Performance-Optimizations)
 TODO: Set album art thumbnail
 TODO: Implement bitrate changer
