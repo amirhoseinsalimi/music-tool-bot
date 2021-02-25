@@ -16,7 +16,7 @@ keys = {
     },
     "HELP_MESSAGE": {
         "en": "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁",
-        "fa": "ساده س! یه فایل صوتی، یه MP3 یا یه موزیک برام بفرست... منتظرم... 😁",
+        "fa": "ساده س! یه فایل صوتی، یه MP3 یا یه موزیک برام بفرست. منتظرم... 😁",
     },
     "ABOUT_MESSAGE": {
         "en": "This bot is created by @amirhoseinsalimii in Python language.\n"
@@ -24,13 +24,12 @@ keys = {
               " [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).\n\n"
               "If you have any question or feedback feel free to message me on Telegram."
               " Or if you are a developer and have an idea to make this bot better, I appreciate your"
-              " PRs.\n\n"
-              "{}",
+              " PRs.\n\n",
         "fa": "این ربات توسط @amirhoseinsalimii به زبان پایتون نوشته شده است."
               " سورس این برنامه از طریق [گیت هاب](https://github.com/amirhoseinsalimi/music-tool-bot)"
               " در دسترس است.\n\n"
               "اگر سوال یا بازخوردی دارید میتونید در تلگرام بهم پیام بدید. یا اگر برنامه نویس هستید و ایده "
-              "ای برای بهتر کردن این ربات دارید، از PR هاتون استقبال میکنم"
+              "ای برای بهتر کردن این ربات دارید، از PR هاتون استقبال میکنم."
     },
     "DEFAULT_MESSAGE": {
         "en": "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁",
