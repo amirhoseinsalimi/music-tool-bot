@@ -868,8 +868,6 @@ def main():
 
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
-    dispatcher.add_handler(
-        MessageHandler(Filters.video | Filters.document | Filters.contact | (~Filters.command), ignore_file))
 
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$') & (~Filters.command),
                                           set_language))
@@ -925,6 +923,9 @@ def main():
     dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
     dispatcher.add_handler(CommandHandler('preview', display_preview))
     dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
+
+    dispatcher.add_handler(
+        MessageHandler(Filters.video | Filters.document | Filters.contact | (~Filters.command), ignore_file))
 
     updater.start_polling()
     updater.idle()
