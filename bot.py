@@ -22,7 +22,7 @@ My modules
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
     is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
     translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
-    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file
+    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file, parse_cutting_range
 
 from models.admin import Admin
 from models.user import User
@@ -60,6 +60,10 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
     user = User.where('user_id', '=', user_id).first()
 
+    update.message.reply_text(translate_key_to('START_MESSAGE', context.user_data['language']))
+
+    show_language_keyboard(update, context)
+
     if not user:
         new_user = User()
         new_user.user_id = user_id
@@ -67,9 +71,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
         new_user.save()
 
-    update.message.reply_text(translate_key_to('START_MESSAGE', context.user_data['language']))
-
-    show_language_keyboard(update, context)
+        logger.info(f"A user with id {user_id} has been started to use the bot.")
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
@@ -121,6 +123,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         create_user_directory(user_id)
     except OSError:
         message.reply_text(translate_key_to('ERR_CREATING_USER_FOLDER', user_data['language']))
+        logger.error(f"Couldn't create directory for user {user_id}")
         return
 
     try:
@@ -132,12 +135,14 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         )
     except ValueError:
         message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', user_data['language']))
+        logger.error(f"Error on downloading {user_id}'s file. File type: Audio")
         return
 
     try:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
         message.reply_text(translate_key_to('ERR_ON_READING_TAGS', user_data['language']))
+        logger.error(f"Error on reading the tags {user_id}'s file. File path: {file_download_path}")
         return
 
     reset_user_data_context(context)
@@ -255,14 +260,12 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
 
     user_data = context.user_data
     input_music_path = user_data['music_path']
-    output_music_path = f"{user_data['music_path']}.ogg"
-    art_path = user_data['art_path']
-    new_art_path = user_data['new_art_path']
+    voice_path = f"{user_data['music_path']}.ogg"
     lang = user_data['language']
     user_data['current_active_module'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
-    os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
+    os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {voice_path}")
 
     start_over_button_keyboard = generate_start_over_keyboard(lang)
 
@@ -272,7 +275,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     )
 
     context.bot.send_voice(
-        voice=open(output_music_path, 'rb'),
+        voice=open(voice_path, 'rb'),
         duration=user_data['music_duration'],
         chat_id=update.message.chat_id,
         caption=f"{BOT_USERNAME}",
@@ -280,12 +283,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         reply_to_message_id=user_data['music_message_id']
     )
 
-    delete_file(output_music_path)
-    delete_file(input_music_path)
-    if art_path:
-        delete_file(art_path)
-    if new_art_path:
-        delete_file(new_art_path)
+    delete_file(voice_path)
 
     reset_user_data_context(context)
 
@@ -298,8 +296,6 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     back_button_keyboard = generate_back_button_keyboard(lang)
 
     # TODO: Send back the length of the music
-    # TODO: What about music file that are longer than 1 hour?
-
     update.message.reply_text(
         translate_key_to('MUSIC_CUTTER_HELP', lang),
         reply_markup=back_button_keyboard
@@ -344,6 +340,8 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 except (ValueError, BaseException):
                     message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', lang))
+                    logger.error(f"Error on downloading {user_id}'s file. File type: Photo")
+                    return
     else:
         reply_message = translate_key_to('DEFAULT_MESSAGE', lang)
         message.reply_text(reply_message)
@@ -474,17 +472,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
     current_active_module = user_data['current_active_module']
 
-    tag_editor_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
-             translate_key_to('BTN_ALBUM', lang)],
-            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
-             translate_key_to('BTN_ALBUM_ART', lang)],
-            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
-            [translate_key_to('BTN_BACK', lang)]
-        ],
-        resize_keyboard=True,
-    )
+    tag_editor_keyboard = generate_tag_editor_keyboard(lang)
 
     module_selector_keyboard = generate_module_selector_keyboard(lang)
 
@@ -499,6 +487,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         if user_data['tag_editor']['current_tag'] == 'album_art':
             reply_message = translate_key_to('ASK_FOR_ALBUM_ART', lang)
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+            return
         else:
             save_text_into_tag(message_text, user_data['tag_editor']['current_tag'], context)
             reply_message = f"{translate_key_to('DONE', lang)} " \
@@ -560,6 +549,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 )
             except (OSError, BaseException):
                 update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
+                logger.error(f"Error on updating tags for file {music_path_cut}'s file.")
 
             delete_file(music_path_cut)
 
@@ -609,7 +599,6 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     )
 
     music_path = user_data['music_path']
-    art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
     music_tags = user_data['tag_editor']
     lang = user_data['language']
@@ -622,6 +611,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         )
     except (OSError, BaseException):
         update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
+        logger.error(f"Error on updating tags for file {music_path}'s file.")
 
     start_over_button_keyboard = generate_start_over_keyboard(lang)
 
@@ -635,11 +625,6 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     )
 
     reset_user_data_context(context)
-    delete_file(music_path)
-    if art_path:
-        delete_file(art_path)
-    if new_art_path:
-        delete_file(new_art_path)
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
