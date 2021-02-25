@@ -5,7 +5,6 @@ Built-in modules
 """
 import logging
 import os
-import re
 from datetime import datetime
 
 """
@@ -433,30 +432,6 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
         message_text = translate_key_to('ASK_FOR_TRACK_NUMBER', context.user_data['language'])
 
     update.message.reply_text(message_text)
-
-
-def parse_cutting_range(text: str) -> (int, int):
-    text = re.sub(' ', '', text)
-    beginning, _, ending = text.partition('-')
-
-    if '-' not in text:
-        raise ValueError('Malformed music range')
-    else:
-        if ':' in text:
-            beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
-                                beginning.partition(':')[0].lstrip('0') else 0) * 60 \
-                            + int(beginning.partition(':')[2].lstrip('0') if
-                                  beginning.partition(':')[2].lstrip('0') else 0)
-
-            ending_sec = int(ending.partition(':')[0].lstrip('0') if
-                             ending.partition(':')[0].lstrip('0') else 0) * 60 \
-                + int(ending.partition(':')[2].lstrip('0') if
-                      ending.partition(':')[2].lstrip('0') else 0)
-        else:
-            beginning_sec = int(beginning)
-            ending_sec = int(ending)
-
-    return beginning_sec, ending_sec
 
 
 def handle_responses(update: Update, context: CallbackContext) -> None:
