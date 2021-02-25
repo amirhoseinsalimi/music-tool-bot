@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 
-#############################
-# Built-in modules #########
-############################
+"""
+Built-in modules
+"""
 import logging
 import os
 import re
 from pathlib import Path
 from datetime import datetime
 
-############################
-# Third-party modules ######
-############################
+"""
+Third-party modules
+"""
 import music_tag
 from orator import Model
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
-############################
-# My modules ###############
-############################
+"""
+My modules
+"""
 from utils.downloader import download_file
 from utils.language_service import translate_key_to
 from models.admin import Admin
@@ -35,20 +35,18 @@ from utils.is_user_owner import is_user_owner
 from utils.reset_user_data_context import reset_user_data_context
 from utils.save_text_into_tag import save_text_into_tag
 
-############################
-# Bot Common Messages ######
-############################
+
 Model.set_connection_resolver(db)
 
-############################
-# Global variables #########
-############################
+"""
+Global variables
+"""
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
-############################
-# Logger ###################
-############################
+"""
+Logger
+"""
 now = datetime.now()
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
@@ -57,9 +55,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-############################
-# Handlers #################
-############################
+"""
+Handlers
+"""
+
+
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
 
