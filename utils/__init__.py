@@ -103,9 +103,12 @@ def is_user_owner(user_id: int) -> bool:
 def reset_user_data_context(context: CallbackContext) -> None:
     user_data = context.user_data
 
-    delete_file(user_data['music_path'])
-    delete_file(user_data['art_path'])
-    delete_file(user_data['new_art_path'])
+    if 'music_path' in user_data:
+        delete_file(user_data['music_path'])
+    if 'art_path' in user_data:
+        delete_file(user_data['art_path'])
+    if 'new_art_path' in user_data:
+        delete_file(user_data['new_art_path'])
 
     user_data['tag_editor'] = {}
     user_data['music_path'] = ''
