@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
 from models.admin import Admin
@@ -172,7 +173,6 @@ def convert_seconds_to_human_readable_form(seconds: int) -> str:
 def download_file(user_id: int, file_to_download, file_type: str, context: CallbackContext) -> str:
     """Download a file using convenience methods of "python-telegram-bot"
 
-
     **Keyword arguments:**
      - user_id (int) -- The user's id
      - file_to_download (*) -- The file object to download
@@ -202,3 +202,93 @@ def download_file(user_id: int, file_to_download, file_type: str, context: Callb
         raise Exception(f"Couldn't download the file with file_id: {file_id}")
 
     return file_download_path
+
+
+def generate_back_button_keyboard(language: str) -> ReplyKeyboardMarkup:
+    """Create an return an instance of `back_button_keyboard`
+
+
+    **Keyword arguments:**
+     - language (str) -- The desired language to generate labels
+
+    **Returns:**
+     ReplyKeyboardMarkup instance
+    """
+    return (
+        ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_BACK', language)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    )
+
+
+def generate_start_over_keyboard(language: str) -> ReplyKeyboardMarkup:
+    """Create an return an instance of `start_over_keyboard`
+
+
+    **Keyword arguments:**
+     - language (str) -- The desired language to generate labels
+
+    **Returns:**
+     ReplyKeyboardMarkup instance
+    """
+    return (
+        ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_NEW_FILE', language)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    )
+
+
+def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
+    """Create an return an instance of `module_selector_keyboard`
+
+
+    **Keyword arguments:**
+     - language (str) -- The desired language to generate labels
+
+    **Returns:**
+     ReplyKeyboardMarkup instance
+    """
+    return (
+        ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_TAG_EDITOR', language),
+                 translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', language)],
+                [translate_key_to('BTN_MUSIC_CUTTER', language), translate_key_to('BTN_BITRATE_CHANGER', language)]
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    )
+
+
+def generate_tag_editor_keyboard(language: str) -> ReplyKeyboardMarkup:
+    """Create an return an instance of `tag_editor_keyboard`
+
+
+    **Keyword arguments:**
+     - language (str) -- The desired language to generate labels
+
+    **Returns:**
+     ReplyKeyboardMarkup instance
+    """
+    return (
+        ReplyKeyboardMarkup(
+            [
+                [translate_key_to('BTN_ARTIST', language), translate_key_to('BTN_TITLE', language),
+                 translate_key_to('BTN_ALBUM', language)],
+                [translate_key_to('BTN_GENRE', language), translate_key_to('BTN_YEAR', language),
+                 translate_key_to('BTN_ALBUM_ART', language)],
+                [translate_key_to('BTN_DISK_NUMBER', language), translate_key_to('BTN_TRACK_NUMBER', language)],
+                [translate_key_to('BTN_BACK', language)]
+            ],
+            resize_keyboard=True,
+        )
+    )

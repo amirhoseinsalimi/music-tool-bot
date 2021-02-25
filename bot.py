@@ -20,8 +20,9 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 My modules
 """
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
-    is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user,\
-    translate_key_to, delete_file
+    is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
+    translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
+    generate_module_selector_keyboard, generate_tag_editor_keyboard
 
 from models.admin import Admin
 from models.user import User
@@ -89,14 +90,7 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     context.user_data['current_active_module'] = ''
     lang = user_data['language']
 
-    module_selector_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_TAG_EDITOR', lang), translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', lang)],
-            [translate_key_to('BTN_MUSIC_CUTTER', lang), translate_key_to('BTN_BITRATE_CHANGER', lang)]
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
+    module_selector_keyboard = generate_module_selector_keyboard(lang)
 
     update.message.reply_text(
         translate_key_to('ASK_WHICH_MODULE', lang),
@@ -234,17 +228,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     tag_editor_context = user_data['tag_editor']
     tag_editor_context['current_tag'] = ''
 
-    tag_editor_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
-             translate_key_to('BTN_ALBUM', lang)],
-            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
-             translate_key_to('BTN_ALBUM_ART', lang)],
-            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
-            [translate_key_to('BTN_BACK', lang)]
-        ],
-        resize_keyboard=True,
-    )
+    tag_editor_keyboard = generate_tag_editor_keyboard(lang)
 
     if art_path:
         message.reply_photo(
@@ -279,13 +263,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
 
-    start_over_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_NEW_FILE', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    start_over_button_keyboard = generate_start_over_keyboard(lang)
 
     context.bot.send_chat_action(
         chat_id=update.message.chat_id,
@@ -316,13 +294,7 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data['current_active_module'] = 'music_cutter'
     lang = user_data['language']
 
-    back_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_BACK', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    back_button_keyboard = generate_back_button_keyboard(lang)
 
     # TODO: Send back the length of the music
     # TODO: What about music file that are longer than 1 hour?
@@ -347,17 +319,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
     current_tag = user_data['tag_editor']['current_tag']
     lang = user_data['language']
 
-    tag_editor_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
-             translate_key_to('BTN_ALBUM', lang)],
-            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
-             translate_key_to('BTN_ALBUM_ART', lang)],
-            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
-            [translate_key_to('BTN_BACK', lang)]
-        ],
-        resize_keyboard=True,
-    )
+    tag_editor_keyboard = generate_tag_editor_keyboard(lang)
 
     if music_path:
         if current_active_module == 'tag_editor':
@@ -409,13 +371,7 @@ def prepare_for_title(update: Update, context: CallbackContext) -> None:
 def throw_not_implemented(update: Update, context: CallbackContext) -> None:
     lang = context.user_data['language']
 
-    back_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_BACK', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    back_button_keyboard = generate_back_button_keyboard(lang)
 
     update.message.reply_text(translate_key_to('ERR_NOT_IMPLEMENTED', lang), reply_markup=back_button_keyboard)
 
@@ -529,22 +485,9 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         resize_keyboard=True,
     )
 
-    module_selector_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_TAG_EDITOR', lang), translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', lang)],
-            [translate_key_to('BTN_MUSIC_CUTTER', lang), translate_key_to('BTN_BITRATE_CHANGER', lang)]
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
+    module_selector_keyboard = generate_module_selector_keyboard(lang)
 
-    back_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_BACK', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    back_button_keyboard = generate_back_button_keyboard(lang)
 
     if current_active_module == 'tag_editor':
         if not user_data['tag_editor']['current_tag']:
@@ -599,13 +542,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             except (OSError, BaseException):
                 pass
 
-            start_over_button_keyboard = ReplyKeyboardMarkup(
-                    [
-                        [translate_key_to('BTN_NEW_FILE', lang)],
-                    ],
-                    resize_keyboard=True,
-                    one_time_keyboard=True,
-                )
+            start_over_button_keyboard = generate_start_over_keyboard(lang)
 
             # FIXME: After sending the file, the album art can't be read back
             context.bot.send_audio(
@@ -709,13 +646,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     except (OSError, BaseException):
         update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
 
-    start_over_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_NEW_FILE', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    start_over_button_keyboard = generate_start_over_keyboard(lang)
 
     context.bot.send_audio(
         audio=open(music_path, 'rb'),
