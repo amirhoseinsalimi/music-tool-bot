@@ -195,6 +195,7 @@ def add_admin(update: Update, context: CallbackContext) -> None:
 
 def del_admin(update: Update, context: CallbackContext) -> None:
     user_id = update.message.text.partition(' ')[2]
+    # TODO: Check if the value is of type `int`
     user_id = int(user_id)
 
     if is_user_owner(update.effective_user.id):
@@ -325,7 +326,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
         if current_active_module == 'tag_editor':
             if not current_tag or current_tag != 'album_art':
                 reply_message = translate_key_to('ASK_WHICH_TAG', lang)
-                update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+                message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 return
             else:
                 try:
@@ -461,7 +462,8 @@ def parse_cutting_range(text: str) -> (int, int):
 
 
 def handle_responses(update: Update, context: CallbackContext) -> None:
-    message_text = update.message.text
+    message = update.message
+    message_text = message.text
     user_data = context.user_data
     music_path = user_data['music_path']
     art_path = user_data['art_path']
@@ -492,18 +494,18 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     if current_active_module == 'tag_editor':
         if not user_data['tag_editor']['current_tag']:
             reply_message = translate_key_to('ASK_WHICH_TAG', lang)
-            update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+            message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
         if user_data['tag_editor']['current_tag'] == 'album_art':
             reply_message = translate_key_to('ASK_FOR_ALBUM_ART', lang)
-            update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+            message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
         else:
-            save_text_into_tag(update.message.text, user_data['tag_editor']['current_tag'], context)
+            save_text_into_tag(message_text, user_data['tag_editor']['current_tag'], context)
             reply_message = f"{translate_key_to('DONE', lang)} " \
                             f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
                             f"{translate_key_to('OR', lang).upper()}" \
                             f" {translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
-            update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+            message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_active_module == 'music_cutter':
         try:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
@@ -511,7 +513,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             reply_message = translate_key_to('ERR_MALFORMED_RANGE', lang).format(
                 translate_key_to('MUSIC_CUTTER_HELP', lang),
             )
-            update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
+            message.reply_text(reply_message, reply_markup=back_button_keyboard)
             return
         music_path_cut = f"{music_path}_cut.mp3"
         music_duration = user_data['music_duration']
@@ -519,15 +521,15 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         if beginning_sec > music_duration or ending_sec > music_duration:
             reply_message = translate_key_to('ERR_OUT_OF_RANGE', lang).format(
                 convert_seconds_to_human_readable_form(music_duration))
-            update.message.reply_text(reply_message)
-            update.message.reply_text(
+            message.reply_text(reply_message)
+            message.reply_text(
                 translate_key_to('MUSIC_CUTTER_HELP', lang),
                 reply_markup=back_button_keyboard
             )
             return
         if beginning_sec >= ending_sec:
             reply_message = translate_key_to('ERR_BEGINNING_POINT_IS_GREATER', lang)
-            update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
+            message.reply_text(reply_message, reply_markup=back_button_keyboard)
         else:
             diff_sec = ending_sec - beginning_sec
 
@@ -567,16 +569,16 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     else:
         if music_path:
             if user_data['current_active_module']:
-                update.message.reply_text(
+                message.reply_text(
                     translate_key_to('ASK_WHICH_MODULE', lang),
                     reply_markup=module_selector_keyboard
                 )
         elif not music_path:
-            update.message.reply_text(translate_key_to('START_OVER_MESSAGE', lang))
+            message.reply_text(translate_key_to('START_OVER_MESSAGE', lang))
         else:
             # Not implemented
             reply_message = translate_key_to('ERR_NOT_IMPLEMENTED', lang)
-            update.message.reply_text(reply_message)
+            message.reply_text(reply_message)
 
 
 def display_preview(update: Update, context: CallbackContext) -> None:
@@ -693,8 +695,6 @@ def set_language(update: Update, context: CallbackContext) -> None:
         user_data['language'] = 'en'
     elif "فارسی" in lang:
         user_data['language'] = 'fa'
-    else:
-        user_data['language'] = 'en'
 
     update.message.reply_text(translate_key_to('LANGUAGE_CHANGED', user_data['language']))
     update.message.reply_text(translate_key_to('START_OVER_MESSAGE', user_data['language']))
