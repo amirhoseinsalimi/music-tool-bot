@@ -123,7 +123,7 @@ keys = {
     },
     "ERR_ON_UPDATING_TAGS": {
         "en": f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE_EN}",
-        "fa": f"متاسفم، نتونستم تگ های فایل رو آپدیت... {REPORT_BUG_MESSAGE_FA}",
+        "fa": f"متاسفم، نتونستم تگ های فایل رو آپدیت کنم... {REPORT_BUG_MESSAGE_FA}",
     },
     "ERR_ON_UPLOADING": {
         "en": "Sorry, due to network issues, I couldn't upload your file. Please try again.",
