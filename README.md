@@ -7,7 +7,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 
 ### Requirements to run this bot
 
-1. Python 3.9 (Preferably)
+1. Python 3.8 (Preferably)
 2. MySQL Server
 3. `venv` and `pipenv`
 4. Optionally you can install `pm2` (globally) which is a Node.js module to manage processes. Since `pm2` can also
@@ -26,13 +26,13 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    Run `git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot && cd music-tool-bot`
 
 2. **Fire up your venv shell:**<br />
-   Run `python -m venv venv`
+   Run `python3 -m venv venv`
 
 3. **Install dependencies:**<br />
    Run `pipenv install`
 
 4. **Setup environment variables:**<br />
-   Run `cp .env.example` and `.env`. Then put your credentials there:
+   Run `cp .env.example .env`. Then put your credentials there:
    | Field           | Description                                                                                                                      |
    | --------------  | -------------------------------------------------------------------------------------------------------------------------------  |
    | OWNER_USER_ID   | The user ID of the owner of the bot (YOU). This user can add other admins and delete them. It should be something like 12345678. |
@@ -64,7 +64,7 @@ See below for all possible commands:
 | `restart`                        | Restarts the bot process with the name `music-tool-bot`                                    |
 | `stop`                           | Stops the bot process with the name `music-tool-bot`                                       |
 | `db:migrate`                     | Run migrations                                                                             |
-| `db:refresh`                     | Rollback all migration and re-run them (Use with caution)                                 |
+| `db:refresh`                     | Rollback all migration and re-run them (Use with caution)                                  |
 | `db:status`                      | Print the status of migrations                                                             |
 | `db:seed`                        | Run seeds to create a user with owner privileges                                           |
 | `test`                           | Run tests (Not implemented yet)                                                            |
@@ -82,5 +82,7 @@ This tiny bot is my first practical Python project. I tried to learn Python alon
 head around the syntax and the built-in functionality of the language. However, as a novice Python developer, I know
 this bot can be written in a more smart way with better code structure. So, if you know Python, I will really appreciate
 any help to make this kid better. My main concern is the application structure, but please feel free to create PRs, open
-discussions and make small fixes (like typos). Also, I'd be very appreciated if you can translate the bot to your
-language.
+discussions and make small fixes (like typos). In addition, I got some plans and features for this bot, you can find 
+them [in TODOS file](https://github.com/amirhoseinsalimi/music-tool-bot/blob/master/TODOS) or the 
+[issue board](https://github.com/amirhoseinsalimi/music-tool-bot/issues). Also, I'd be very appreciated if you can 
+translate the bot to your language.
