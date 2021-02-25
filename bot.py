@@ -49,7 +49,8 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 # Logger ###################
 ############################
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
+    filename='.log'
 )
 logger = logging.getLogger(__name__)
 
@@ -569,6 +570,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     new_art_path = user_data['new_art_path']
     music_tags = user_data['tag_editor']
     lang = user_data['language']
+
+    logging.info(f"{update.effective_user.id}:{update.effective_user.username}:{update.message.text}")
 
     current_active_module = user_data['current_active_module']
 
