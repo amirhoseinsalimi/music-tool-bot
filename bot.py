@@ -19,17 +19,9 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 """
 My modules
 """
-from utils.language_service import translate_key_to
-from utils.downloader import download_file
-from utils.generate_music_info import generate_music_info
-from utils.convert_seconds_to_human_readable_form import convert_seconds_to_human_readable_form
-from utils.create_user_directory import create_user_directory
-from utils.delete_file import delete_file
-from utils.increment_usage_counter_for_user import increment_usage_counter_for_user
-from utils.is_user_admin import is_user_admin
-from utils.is_user_owner import is_user_owner
-from utils.reset_user_data_context import reset_user_data_context
-from utils.save_text_into_tag import save_text_into_tag
+from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
+    is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user,\
+    translate_key_to, delete_file
 
 from models.admin import Admin
 from models.user import User
