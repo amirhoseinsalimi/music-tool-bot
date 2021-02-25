@@ -63,16 +63,13 @@ def increment_usage_counter_for_user(user_id: int) -> int:
     **Returns:**
      The new value for `user.number_of_files_sent`
     """
-    try:
-        user = User.where('user_id', '=', user_id).first()
+    user = User.where('user_id', '=', user_id).first()
 
+    if user:
         user.number_of_files_sent = user.number_of_files_sent + 1
-
         user.push()
 
         return user.number_of_files_sent
-    except:
-        return 0
 
 
 def is_user_admin(user_id: int) -> bool:
@@ -145,7 +142,7 @@ def create_user_directory(user_id: int) -> str:
 
     try:
         Path(user_download_dir).mkdir(parents=True, exist_ok=True)
-    except:
+    except (OSError, FileNotFoundError, BaseException):
         raise Exception(f"Can't create directory for user_id: {user_id}")
 
     return user_download_dir
@@ -198,7 +195,7 @@ def download_file(user_id: int, file_to_download, file_type: str, context: Callb
 
     try:
         file_id.download(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
-    except:
+    except ValueError:
         raise Exception(f"Couldn't download the file with file_id: {file_id}")
 
     return file_download_path

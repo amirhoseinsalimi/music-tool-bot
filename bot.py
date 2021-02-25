@@ -125,7 +125,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     try:
         create_user_directory(user_id)
-    except:
+    except OSError:
         message.reply_text(translate_key_to('ERR_CREATING_USER_FOLDER', user_data['language']))
         return
 
@@ -136,13 +136,13 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             file_type='audio',
             context=context
         )
-    except:
+    except ValueError:
         message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', user_data['language']))
         return
 
     try:
         music = music_tag.load_file(file_download_path)
-    except:
+    except (OSError, NotImplementedError):
         message.reply_text(translate_key_to('ERR_ON_READING_TAGS', user_data['language']))
         return
 
@@ -191,15 +191,12 @@ def add_admin(update: Update, context: CallbackContext) -> None:
     user_id = int(user_id)
 
     if is_user_owner(update.effective_user.id):
-        try:
-            admin = Admin()
-            admin.admin_user_id = user_id
+        admin = Admin()
+        admin.admin_user_id = user_id
 
-            admin.save()
+        admin.save()
 
-            update.message.reply_text(f"User {user_id} has been added as admins")
-        except:
-            update.message.reply_text("An error has been occurred")
+        update.message.reply_text(f"User {user_id} has been added as admins")
 
 
 def del_admin(update: Update, context: CallbackContext) -> None:
@@ -207,15 +204,12 @@ def del_admin(update: Update, context: CallbackContext) -> None:
     user_id = int(user_id)
 
     if is_user_owner(update.effective_user.id):
-        try:
-            if is_user_admin(user_id):
-                Admin.where('admin_user_id', '=', user_id).delete()
+        if is_user_admin(user_id):
+            Admin.where('admin_user_id', '=', user_id).delete()
 
-                update.message.reply_text(f"User {user_id} is no longer an admin")
-            else:
-                update.message.reply_text(f"User {user_id} is not admin")
-        except:
-            update.message.reply_text("An error has been occurred")
+            update.message.reply_text(f"User {user_id} is no longer an admin")
+        else:
+            update.message.reply_text(f"User {user_id} is not admin")
 
 
 def send_to_all():
@@ -224,12 +218,9 @@ def send_to_all():
 
 def count_users(update: Update, context: CallbackContext) -> None:
     if is_user_admin(update.effective_user.id):
-        try:
-            users = User.all()
+        users = User.all()
 
-            update.message.reply_text(f"{len(users)} users are using this bot!")
-        except:
-            update.message.reply_text("An error has been occurred")
+        update.message.reply_text(f"{len(users)} users are using this bot!")
 
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
@@ -392,7 +383,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                                     f"{translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
                     user_data['new_art_path'] = file_download_path
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
-                except:
+                except (ValueError, BaseException):
                     message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', lang))
     else:
         reply_message = translate_key_to('DEFAULT_MESSAGE', lang)
@@ -498,7 +489,7 @@ def parse_cutting_range(text: str) -> (int, int):
     beginning, _, ending = text.partition('-')
 
     if '-' not in text:
-        raise Exception('Malformed music range')
+        raise ValueError('Malformed music range')
     else:
         if ':' in text:
             beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
@@ -508,8 +499,8 @@ def parse_cutting_range(text: str) -> (int, int):
 
             ending_sec = int(ending.partition(':')[0].lstrip('0') if
                              ending.partition(':')[0].lstrip('0') else 0) * 60 \
-                         + int(ending.partition(':')[2].lstrip('0') if
-                               ending.partition(':')[2].lstrip('0') else 0)
+                + int(ending.partition(':')[2].lstrip('0') if
+                      ending.partition(':')[2].lstrip('0') else 0)
         else:
             beginning_sec = int(beginning)
             ending_sec = int(ending)
@@ -577,7 +568,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     elif current_active_module == 'music_cutter':
         try:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
-        except:
+        except (ValueError, BaseException):
             reply_message = translate_key_to('ERR_MALFORMED_RANGE', lang).format(
                 "\n\nNow send me which part of the music you want to cut out?\n\n"
                 "Valid patterns are:\n"
@@ -603,11 +594,14 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
             os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path_cut}")
 
-            save_tags_to_file(
-                file=music_path_cut,
-                tags=music_tags,
-                new_art_path=art_path if art_path else ''
-            )
+            try:
+                save_tags_to_file(
+                    file=music_path_cut,
+                    tags=music_tags,
+                    new_art_path=art_path if art_path else ''
+                )
+            except (OSError, BaseException):
+                pass
 
             start_over_button_keyboard = ReplyKeyboardMarkup(
                     [
@@ -680,19 +674,16 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> str:
         if new_art_path:
             with open(new_art_path, 'rb') as art:
                 music['artwork'] = art.read()
-    except:
+    except OSError:
         raise Exception("Couldn't set hashtags")
 
-    try:
-        music['artist'] = tags['artist'] if tags['artist'] else ''
-        music['title'] = tags['title'] if tags['title'] else ''
-        music['album'] = tags['album'] if tags['album'] else ''
-        music['genre'] = tags['genre'] if tags['genre'] else ''
-        music['year'] = int(tags['year']) if tags['year'] else 0
-        music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] else 0
-        music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
-    except:
-        raise Exception("Couldn't set hashtags")
+    music['artist'] = tags['artist'] if tags['artist'] else ''
+    music['title'] = tags['title'] if tags['title'] else ''
+    music['album'] = tags['album'] if tags['album'] else ''
+    music['genre'] = tags['genre'] if tags['genre'] else ''
+    music['year'] = int(tags['year']) if tags['year'] else 0
+    music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] else 0
+    music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
 
     music.save()
 
@@ -719,7 +710,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             tags=music_tags,
             new_art_path=new_art_path
         )
-    except:
+    except (OSError, BaseException):
         update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
 
     start_over_button_keyboard = ReplyKeyboardMarkup(
