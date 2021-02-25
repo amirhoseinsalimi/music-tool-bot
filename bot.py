@@ -6,7 +6,6 @@ Built-in modules
 import logging
 import os
 import re
-from pathlib import Path
 from datetime import datetime
 
 """
@@ -117,8 +116,6 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 def handle_music_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
-    file_download_path = ''
-    music = None
     user_data = context.user_data
     music_duration = message.audio.duration
     old_music_path = user_data['music_path']
@@ -245,9 +242,6 @@ def count_users(update: Update, context: CallbackContext) -> None:
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     message = update.message
-    user_id = update.effective_user.id
-    file_download_path = ''
-    music = None
     user_data = context.user_data
     art_path = user_data['art_path']
     lang = user_data['language']
@@ -414,8 +408,6 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_artist(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -426,8 +418,6 @@ def prepare_for_artist(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_title(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -452,8 +442,6 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -464,8 +452,6 @@ def prepare_for_album(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -476,8 +462,6 @@ def prepare_for_genre(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_year(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -488,8 +472,6 @@ def prepare_for_year(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -500,8 +482,6 @@ def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -512,8 +492,6 @@ def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -526,9 +504,6 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
 def parse_cutting_range(text: str) -> (int, int):
     text = re.sub(' ', '', text)
     beginning, _, ending = text.partition('-')
-
-    beginning_sec = 0
-    ending_sec = 0
 
     if '-' not in text:
         raise Exception('Malformed music range')
@@ -608,8 +583,6 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                             f" {translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
             update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_active_module == 'music_cutter':
-        beginning_sec = ending_sec = 0
-
         try:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
         except:
@@ -690,7 +663,6 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 def display_preview(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_data = context.user_data
-    lang = user_data['language']
     tag_editor_context = user_data['tag_editor']
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
