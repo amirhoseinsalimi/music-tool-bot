@@ -12,6 +12,7 @@ Third-party modules
 """
 import music_tag
 from orator import Model
+from telegram.error import TelegramError
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
@@ -252,6 +253,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
+    message = update.message
     context.bot.send_chat_action(
         chat_id=update.message.chat_id,
         action=ChatAction.RECORD_AUDIO
@@ -273,14 +275,21 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         action=ChatAction.UPLOAD_AUDIO
     )
 
-    context.bot.send_voice(
-        voice=open(voice_path, 'rb'),
-        duration=user_data['music_duration'],
-        chat_id=update.message.chat_id,
-        caption=f"{BOT_USERNAME}",
-        reply_markup=start_over_button_keyboard,
-        reply_to_message_id=user_data['music_message_id']
-    )
+    try:
+        context.bot.send_voice(
+            voice=open(voice_path, 'rb'),
+            duration=user_data['music_duration'],
+            chat_id=message.chat_id,
+            caption=f"{BOT_USERNAME}",
+            reply_markup=start_over_button_keyboard,
+            reply_to_message_id=user_data['music_message_id']
+        )
+    except TelegramError as e:
+        message.reply_text(
+            translate_key_to('ERR_ON_UPLOADING', lang),
+            reply_markup=start_over_button_keyboard
+        )
+        logger.exception(f"Telegram error: {e}")
 
     delete_file(voice_path)
 
@@ -510,7 +519,11 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                     tags=music_tags,
                     new_art_path=art_path if art_path else ''
                 )
+            except (OSError, BaseException):
+                update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
+                logger.error(f"Error on updating tags for file {music_path_cut}'s file.")
 
+            try:
                 # FIXME: After sending the file, the album art can't be read back
                 context.bot.send_audio(
                     audio=open(music_path_cut, 'rb'),
@@ -522,9 +535,12 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                     reply_markup=start_over_button_keyboard,
                     reply_to_message_id=user_data['music_message_id']
                 )
-            except (OSError, BaseException):
-                update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
-                logger.error(f"Error on updating tags for file {music_path_cut}'s file.")
+            except (TelegramError, BaseException) as e:
+                message.reply_text(
+                    translate_key_to('ERR_ON_UPLOADING', lang),
+                    reply_markup=start_over_button_keyboard
+                )
+                logger.exception(f"Telegram error: {e}")
 
             delete_file(music_path_cut)
 
@@ -566,6 +582,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+    message = update.message
     user_data = context.user_data
 
     context.bot.send_chat_action(
@@ -585,19 +602,26 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             new_art_path=new_art_path
         )
     except (OSError, BaseException):
-        update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
+        message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
         logger.error(f"Error on updating tags for file {music_path}'s file.")
 
     start_over_button_keyboard = generate_start_over_keyboard(lang)
 
-    context.bot.send_audio(
-        audio=open(music_path, 'rb'),
-        duration=user_data['music_duration'],
-        chat_id=update.message.chat_id,
-        caption=f"{BOT_USERNAME}",
-        reply_markup=start_over_button_keyboard,
-        reply_to_message_id=user_data['music_message_id']
-    )
+    try:
+        context.bot.send_audio(
+            audio=open(music_path, 'rb'),
+            duration=user_data['music_duration'],
+            chat_id=update.message.chat_id,
+            caption=f"{BOT_USERNAME}",
+            reply_markup=start_over_button_keyboard,
+            reply_to_message_id=user_data['music_message_id']
+        )
+    except (TelegramError, BaseException) as e:
+        message.reply_text(
+            translate_key_to('ERR_ON_UPLOADING', lang),
+            reply_markup=start_over_button_keyboard
+        )
+        logger.exception(f"Telegram error: {e}")
 
     reset_user_data_context(context)
 

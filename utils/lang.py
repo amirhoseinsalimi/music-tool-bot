@@ -125,6 +125,10 @@ keys = {
         "en": f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE_EN}",
         "fa": f"متاسفم، نتونستم تگ های فایل رو آپدیت... {REPORT_BUG_MESSAGE_FA}",
     },
+    "ERR_ON_UPLOADING": {
+        "en": "Sorry, due to network issues, I couldn't upload your file. Please try again.",
+        "fa": "متاسفم. به دلیل اشکالات شبکه نتونستم فایل رو آپلود کنم. لطفا دوباره امتحان کن.",
+    },
     "ERR_NOT_IMPLEMENTED": {
         "en": "This feature has not been implemented yet. Sorry!",
         "fa": "این قابلیت هنوز پیاده سازی نشده. شرمنده!",
