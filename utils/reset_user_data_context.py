@@ -1,8 +1,13 @@
 from telegram.ext import CallbackContext
+from delete_file import delete_file
 
 
 def reset_user_data_context(context: CallbackContext) -> None:
     user_data = context.user_data
+
+    delete_file(user_data['music_path'])
+    delete_file(user_data['art_path'])
+    delete_file(user_data['new_art_path'])
 
     user_data['tag_editor'] = {}
     user_data['music_path'] = ''
