@@ -326,15 +326,11 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
 
     # TODO: Send back the length of the music
     # TODO: What about music file that are longer than 1 hour?
-    update.message.reply_text("Now send me which part of the music you want to cut out?\n\n"
-                              "Valid patterns are:\n"
-                              "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
-                              "*ss-ss*: i.e. 75-120\n\n"
-                              "- m = minute, s = second\n"
-                              "- Leading zeroes are optional\n"
-                              "- Extra spaces are ignored",
-                              reply_markup=back_button_keyboard
-                              )
+
+    update.message.reply_text(
+        translate_key_to('MUSIC_CUTTER_HELP', lang),
+        reply_markup=back_button_keyboard
+    )
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
@@ -570,13 +566,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
         except (ValueError, BaseException):
             reply_message = translate_key_to('ERR_MALFORMED_RANGE', lang).format(
-                "\n\nNow send me which part of the music you want to cut out?\n\n"
-                "Valid patterns are:\n"
-                "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
-                "*ss-ss*: i.e. 75-120\n\n"
-                "- m = minute, s = second\n"
-                "- Leading zeroes are optional\n"
-                "- Extra spaces are ignored"
+                translate_key_to('MUSIC_CUTTER_HELP', lang),
             )
             update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
             return
