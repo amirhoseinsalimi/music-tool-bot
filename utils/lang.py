@@ -138,8 +138,8 @@ keys = {
         "fa": "شما یک الگوی اشتباه وارد کردید. لطفا دوباره امتحان کنید. {}",
     },
     "ERR_BEGINNING_POINT_IS_GREATER": {
-        "en": "This feature has not been implemented yet. Sorry!",
-        "fa": "این قابلیت هنوز پیاده سازی نشده. شرمنده!",
+        "en": "The ending point should be greater than starting point",
+        "fa": "زمان پایان باید از زمان شروع بزرگتر باشد.",
     },
     "BTN_TAG_EDITOR": {
         "en": "🎵 Tag Editor",
