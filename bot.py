@@ -1,30 +1,27 @@
 #!/usr/bin/env python
 
-#############################
-# Built-in modules #########
-############################
+"""
+Built-in modules
+"""
 import logging
 import os
 import re
-from pathlib import Path
+from datetime import datetime
 
-############################
-# Third-party modules ######
-############################
+"""
+Third-party modules
+"""
 import music_tag
 from orator import Model
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
-############################
-# My modules ###############
-############################
-from downloader import download_file
-from language_service import translate_key_to
-from models.admin import Admin
-from models.user import User
-from dbconfig import db
-
+"""
+My modules
+"""
+from utils.language_service import translate_key_to
+from utils.downloader import download_file
+from utils.generate_music_info import generate_music_info
 from utils.convert_seconds_to_human_readable_form import convert_seconds_to_human_readable_form
 from utils.create_user_directory import create_user_directory
 from utils.delete_file import delete_file
@@ -34,29 +31,35 @@ from utils.is_user_owner import is_user_owner
 from utils.reset_user_data_context import reset_user_data_context
 from utils.save_text_into_tag import save_text_into_tag
 
-############################
-# Bot Common Messages ######
-############################
+from models.admin import Admin
+from models.user import User
+from dbconfig import db
+
+
 Model.set_connection_resolver(db)
 
-############################
-# Global variables #########
-############################
+"""
+Global variables
+"""
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
-############################
-# Logger ###################
-############################
+"""
+Logger
+"""
+now = datetime.now()
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
+    filename=f"logs/{now.strftime('%d-%m-%Y %H:%M:%S')}.log"
 )
 logger = logging.getLogger(__name__)
 
 
-############################
-# Handlers #################
-############################
+"""
+Handlers
+"""
+
+
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
 
@@ -113,8 +116,6 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 def handle_music_message(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_id = update.effective_user.id
-    file_download_path = ''
-    music = None
     user_data = context.user_data
     music_duration = message.audio.duration
     old_music_path = user_data['music_path']
@@ -241,9 +242,6 @@ def count_users(update: Update, context: CallbackContext) -> None:
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     message = update.message
-    user_id = update.effective_user.id
-    file_download_path = ''
-    music = None
     user_data = context.user_data
     art_path = user_data['art_path']
     lang = user_data['language']
@@ -268,29 +266,14 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     if art_path:
         message.reply_photo(
             photo=open(art_path, 'rb'),
-            caption=
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard,
             parse_mode='Markdown'
         )
     else:
         message.reply_text(
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard
         )
@@ -411,7 +394,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                         file_type='photo',
                         context=context
                     )
-                    reply_message = f"{translate_key_to('')} " \
+                    reply_message = f"{translate_key_to('ALBUM_ART_CHANGED', lang)} " \
                                     f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
                                     f"{translate_key_to('OR', lang).upper()} " \
                                     f"{translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
@@ -425,8 +408,6 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_artist(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -437,8 +418,6 @@ def prepare_for_artist(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_title(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -463,8 +442,6 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -475,8 +452,6 @@ def prepare_for_album(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -487,8 +462,6 @@ def prepare_for_genre(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_year(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -499,8 +472,6 @@ def prepare_for_year(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -511,8 +482,6 @@ def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -523,8 +492,6 @@ def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
 
 
 def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
-    message_text = ''
-
     if len(context.user_data) == 0:
         message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
     else:
@@ -537,9 +504,6 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
 def parse_cutting_range(text: str) -> (int, int):
     text = re.sub(' ', '', text)
     beginning, _, ending = text.partition('-')
-
-    beginning_sec = 0
-    ending_sec = 0
 
     if '-' not in text:
         raise Exception('Malformed music range')
@@ -569,6 +533,8 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     new_art_path = user_data['new_art_path']
     music_tags = user_data['tag_editor']
     lang = user_data['language']
+
+    logging.info(f"{update.effective_user.id}:{update.effective_user.username}:{update.message.text}")
 
     current_active_module = user_data['current_active_module']
 
@@ -617,8 +583,6 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                             f" {translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
             update.message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_active_module == 'music_cutter':
-        beginning_sec = ending_sec = 0
-
         try:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
         except:
@@ -699,7 +663,6 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 def display_preview(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_data = context.user_data
-    lang = user_data['language']
     tag_editor_context = user_data['tag_editor']
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
@@ -707,30 +670,13 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     if art_path or new_art_path:
         message.reply_photo(
             photo=open(new_art_path if new_art_path else art_path, "rb"),
-            caption=
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
             parse_mode='Markdown'
         )
     else:
         message.reply_text(
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
         )
 
@@ -925,7 +871,7 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
 
     dispatcher.add_handler(
-        MessageHandler(Filters.video | Filters.document | Filters.contact | (~Filters.command), ignore_file))
+        MessageHandler((Filters.video | Filters.document | Filters.contact) & (~Filters.command), ignore_file))
 
     updater.start_polling()
     updater.idle()
