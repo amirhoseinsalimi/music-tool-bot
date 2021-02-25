@@ -871,7 +871,7 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
 
     dispatcher.add_handler(
-        MessageHandler(Filters.video | Filters.document | Filters.contact | (~Filters.command), ignore_file))
+        MessageHandler((Filters.video | Filters.document | Filters.contact) & (~Filters.command), ignore_file))
 
     updater.start_polling()
     updater.idle()
