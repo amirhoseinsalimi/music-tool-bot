@@ -1,5 +1,7 @@
 REPORT_BUG_MESSAGE_EN = "That's my fault! Please send a bug report here: @amirhoseinsalimii"
 REPORT_BUG_MESSAGE_FA = "این اشتباه منه! لطفا این باگ رو از اینجا گزارش کنید: @amirhoseinsalimii"
+EG_EN = "e.g."
+EG_FA = "مثل"
 
 keys = {
     "START_MESSAGE": {
@@ -128,8 +130,8 @@ keys = {
         "fa": "این قابلیت هنوز پیاده سازی نشده. شرمنده!",
     },
     "ERR_OUT_OF_RANGE": {
-        "en": "The range you entered is out of the actual file duration. The file length is: {} seconds",
-        "fa": "بازه ای که انتخاب کردید خارج از طول کل فایل هست. طول کل فایل {} ثانیه است.",
+        "en": "The range you entered is out of the actual file duration. The file length is {}.",
+        "fa": "بازه ای که انتخاب کردید خارج از طول کل فایل هست. طول کل فایل {} است.",
     },
     "ERR_MALFORMED_RANGE": {
         "en": "You have entered a malformed pattern. Please try again. {}",
@@ -195,6 +197,24 @@ keys = {
         "en": "🆕 New File",
         "fa": "🆕 فایل جدید",
     },
+    "MUSIC_CUTTER_HELP": {
+        "en": "\n\nNow send me which part of the music you want to cut out?\n\n"
+              "Valid patterns are:\n"
+              f"*mm:ss-mm:ss*:\n{EG_EN} 00:10-02:30\n"
+              F"*ss-ss*:\n{EG_EN} 75-120\n\n"
+              "- m = minute, s = second\n"
+              "- Leading zeroes are optional\n"
+              "- Extra spaces are ignored\n"
+              "- Only English numbers",
+        "fa": "\n\nحالا بهم بگو کجای موزیک رو میخوای ببری؟\n\n"
+              "الگو های مجاز:\n"
+              f"*mm:ss-mm:ss*:\n{EG_FA} 00:10-02:30\n"
+              f"*ss-ss*:\n{EG_FA} 75-120\n\n"
+              "- دقیقه: m، ثانیه s\n"
+              "- صفرهای ابتدایی دل بخواه هستن\n"
+              "- فاصله های اضافی در نظر گرفته نمیشن\n"
+              "- تنها اعداد انگلیسی",
+    },
     "DONE": {
         "en": "Done!",
         "fa": "انجام شد!",
@@ -206,6 +226,4 @@ keys = {
 }
 
 
-def translate_key_to(key: str, destination_lang: str) -> str:
-    if key in keys:
-        return keys[key][destination_lang]
+

@@ -19,17 +19,10 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 """
 My modules
 """
-from utils.language_service import translate_key_to
-from utils.downloader import download_file
-from utils.generate_music_info import generate_music_info
-from utils.convert_seconds_to_human_readable_form import convert_seconds_to_human_readable_form
-from utils.create_user_directory import create_user_directory
-from utils.delete_file import delete_file
-from utils.increment_usage_counter_for_user import increment_usage_counter_for_user
-from utils.is_user_admin import is_user_admin
-from utils.is_user_owner import is_user_owner
-from utils.reset_user_data_context import reset_user_data_context
-from utils.save_text_into_tag import save_text_into_tag
+from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
+    is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
+    translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
+    generate_module_selector_keyboard, generate_tag_editor_keyboard
 
 from models.admin import Admin
 from models.user import User
@@ -97,14 +90,7 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     context.user_data['current_active_module'] = ''
     lang = user_data['language']
 
-    module_selector_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_TAG_EDITOR', lang), translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', lang)],
-            [translate_key_to('BTN_MUSIC_CUTTER', lang), translate_key_to('BTN_BITRATE_CHANGER', lang)]
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
+    module_selector_keyboard = generate_module_selector_keyboard(lang)
 
     update.message.reply_text(
         translate_key_to('ASK_WHICH_MODULE', lang),
@@ -133,7 +119,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     try:
         create_user_directory(user_id)
-    except:
+    except OSError:
         message.reply_text(translate_key_to('ERR_CREATING_USER_FOLDER', user_data['language']))
         return
 
@@ -144,13 +130,13 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             file_type='audio',
             context=context
         )
-    except:
+    except ValueError:
         message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', user_data['language']))
         return
 
     try:
         music = music_tag.load_file(file_download_path)
-    except:
+    except (OSError, NotImplementedError):
         message.reply_text(translate_key_to('ERR_ON_READING_TAGS', user_data['language']))
         return
 
@@ -199,15 +185,12 @@ def add_admin(update: Update, context: CallbackContext) -> None:
     user_id = int(user_id)
 
     if is_user_owner(update.effective_user.id):
-        try:
-            admin = Admin()
-            admin.admin_user_id = user_id
+        admin = Admin()
+        admin.admin_user_id = user_id
 
-            admin.save()
+        admin.save()
 
-            update.message.reply_text(f"User {user_id} has been added as admins")
-        except:
-            update.message.reply_text("An error has been occurred")
+        update.message.reply_text(f"User {user_id} has been added as admins")
 
 
 def del_admin(update: Update, context: CallbackContext) -> None:
@@ -215,15 +198,12 @@ def del_admin(update: Update, context: CallbackContext) -> None:
     user_id = int(user_id)
 
     if is_user_owner(update.effective_user.id):
-        try:
-            if is_user_admin(user_id):
-                Admin.where('admin_user_id', '=', user_id).delete()
+        if is_user_admin(user_id):
+            Admin.where('admin_user_id', '=', user_id).delete()
 
-                update.message.reply_text(f"User {user_id} is no longer an admin")
-            else:
-                update.message.reply_text(f"User {user_id} is not admin")
-        except:
-            update.message.reply_text("An error has been occurred")
+            update.message.reply_text(f"User {user_id} is no longer an admin")
+        else:
+            update.message.reply_text(f"User {user_id} is not admin")
 
 
 def send_to_all():
@@ -232,12 +212,9 @@ def send_to_all():
 
 def count_users(update: Update, context: CallbackContext) -> None:
     if is_user_admin(update.effective_user.id):
-        try:
-            users = User.all()
+        users = User.all()
 
-            update.message.reply_text(f"{len(users)} users are using this bot!")
-        except:
-            update.message.reply_text("An error has been occurred")
+        update.message.reply_text(f"{len(users)} users are using this bot!")
 
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
@@ -251,17 +228,7 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     tag_editor_context = user_data['tag_editor']
     tag_editor_context['current_tag'] = ''
 
-    tag_editor_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
-             translate_key_to('BTN_ALBUM', lang)],
-            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
-             translate_key_to('BTN_ALBUM_ART', lang)],
-            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
-            [translate_key_to('BTN_BACK', lang)]
-        ],
-        resize_keyboard=True,
-    )
+    tag_editor_keyboard = generate_tag_editor_keyboard(lang)
 
     if art_path:
         message.reply_photo(
@@ -296,13 +263,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {output_music_path}")
 
-    start_over_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_NEW_FILE', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    start_over_button_keyboard = generate_start_over_keyboard(lang)
 
     context.bot.send_chat_action(
         chat_id=update.message.chat_id,
@@ -333,25 +294,15 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     user_data['current_active_module'] = 'music_cutter'
     lang = user_data['language']
 
-    back_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_BACK', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    back_button_keyboard = generate_back_button_keyboard(lang)
 
     # TODO: Send back the length of the music
     # TODO: What about music file that are longer than 1 hour?
-    update.message.reply_text("Now send me which part of the music you want to cut out?\n\n"
-                              "Valid patterns are:\n"
-                              "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
-                              "*ss-ss*: i.e. 75-120\n\n"
-                              "- m = minute, s = second\n"
-                              "- Leading zeroes are optional\n"
-                              "- Extra spaces are ignored",
-                              reply_markup=back_button_keyboard
-                              )
+
+    update.message.reply_text(
+        translate_key_to('MUSIC_CUTTER_HELP', lang),
+        reply_markup=back_button_keyboard
+    )
 
 
 def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> None:
@@ -368,17 +319,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
     current_tag = user_data['tag_editor']['current_tag']
     lang = user_data['language']
 
-    tag_editor_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_ARTIST', lang), translate_key_to('BTN_TITLE', lang),
-             translate_key_to('BTN_ALBUM', lang)],
-            [translate_key_to('BTN_GENRE', lang), translate_key_to('BTN_YEAR', lang),
-             translate_key_to('BTN_ALBUM_ART', lang)],
-            [translate_key_to('BTN_DISK_NUMBER', lang), translate_key_to('BTN_TRACK_NUMBER', lang)],
-            [translate_key_to('BTN_BACK', lang)]
-        ],
-        resize_keyboard=True,
-    )
+    tag_editor_keyboard = generate_tag_editor_keyboard(lang)
 
     if music_path:
         if current_active_module == 'tag_editor':
@@ -400,7 +341,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                                     f"{translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
                     user_data['new_art_path'] = file_download_path
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
-                except:
+                except (ValueError, BaseException):
                     message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', lang))
     else:
         reply_message = translate_key_to('DEFAULT_MESSAGE', lang)
@@ -430,13 +371,7 @@ def prepare_for_title(update: Update, context: CallbackContext) -> None:
 def throw_not_implemented(update: Update, context: CallbackContext) -> None:
     lang = context.user_data['language']
 
-    back_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_BACK', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    back_button_keyboard = generate_back_button_keyboard(lang)
 
     update.message.reply_text(translate_key_to('ERR_NOT_IMPLEMENTED', lang), reply_markup=back_button_keyboard)
 
@@ -506,7 +441,7 @@ def parse_cutting_range(text: str) -> (int, int):
     beginning, _, ending = text.partition('-')
 
     if '-' not in text:
-        raise Exception('Malformed music range')
+        raise ValueError('Malformed music range')
     else:
         if ':' in text:
             beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
@@ -516,8 +451,8 @@ def parse_cutting_range(text: str) -> (int, int):
 
             ending_sec = int(ending.partition(':')[0].lstrip('0') if
                              ending.partition(':')[0].lstrip('0') else 0) * 60 \
-                         + int(ending.partition(':')[2].lstrip('0') if
-                               ending.partition(':')[2].lstrip('0') else 0)
+                + int(ending.partition(':')[2].lstrip('0') if
+                      ending.partition(':')[2].lstrip('0') else 0)
         else:
             beginning_sec = int(beginning)
             ending_sec = int(ending)
@@ -550,22 +485,9 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         resize_keyboard=True,
     )
 
-    module_selector_keyboard = ReplyKeyboardMarkup(
-        [
-            [translate_key_to('BTN_TAG_EDITOR', lang), translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', lang)],
-            [translate_key_to('BTN_MUSIC_CUTTER', lang), translate_key_to('BTN_BITRATE_CHANGER', lang)]
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
+    module_selector_keyboard = generate_module_selector_keyboard(lang)
 
-    back_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_BACK', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    back_button_keyboard = generate_back_button_keyboard(lang)
 
     if current_active_module == 'tag_editor':
         if not user_data['tag_editor']['current_tag']:
@@ -585,15 +507,9 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     elif current_active_module == 'music_cutter':
         try:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
-        except:
+        except (ValueError, BaseException):
             reply_message = translate_key_to('ERR_MALFORMED_RANGE', lang).format(
-                "\n\nNow send me which part of the music you want to cut out?\n\n"
-                "Valid patterns are:\n"
-                "*mm:ss-mm:ss*: i.e. 00:10-02:30\n"
-                "*ss-ss*: i.e. 75-120\n\n"
-                "- m = minute, s = second\n"
-                "- Leading zeroes are optional\n"
-                "- Extra spaces are ignored"
+                translate_key_to('MUSIC_CUTTER_HELP', lang),
             )
             update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
             return
@@ -601,8 +517,14 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         music_duration = user_data['music_duration']
 
         if beginning_sec > music_duration or ending_sec > music_duration:
-            reply_message = translate_key_to('ERR_OUT_OF_RANGE', lang).format(music_duration)
-            update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
+            reply_message = translate_key_to('ERR_OUT_OF_RANGE', lang).format(
+                convert_seconds_to_human_readable_form(music_duration))
+            update.message.reply_text(reply_message)
+            update.message.reply_text(
+                translate_key_to('MUSIC_CUTTER_HELP', lang),
+                reply_markup=back_button_keyboard
+            )
+            return
         if beginning_sec >= ending_sec:
             reply_message = translate_key_to('ERR_BEGINNING_POINT_IS_GREATER', lang)
             update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
@@ -611,19 +533,16 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
             os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path_cut}")
 
-            save_tags_to_file(
-                file=music_path_cut,
-                tags=music_tags,
-                new_art_path=art_path if art_path else ''
-            )
-
-            start_over_button_keyboard = ReplyKeyboardMarkup(
-                    [
-                        [translate_key_to('BTN_NEW_FILE', lang)],
-                    ],
-                    resize_keyboard=True,
-                    one_time_keyboard=True,
+            try:
+                save_tags_to_file(
+                    file=music_path_cut,
+                    tags=music_tags,
+                    new_art_path=art_path if art_path else ''
                 )
+            except (OSError, BaseException):
+                pass
+
+            start_over_button_keyboard = generate_start_over_keyboard(lang)
 
             # FIXME: After sending the file, the album art can't be read back
             context.bot.send_audio(
@@ -688,19 +607,16 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> str:
         if new_art_path:
             with open(new_art_path, 'rb') as art:
                 music['artwork'] = art.read()
-    except:
+    except OSError:
         raise Exception("Couldn't set hashtags")
 
-    try:
-        music['artist'] = tags['artist'] if tags['artist'] else ''
-        music['title'] = tags['title'] if tags['title'] else ''
-        music['album'] = tags['album'] if tags['album'] else ''
-        music['genre'] = tags['genre'] if tags['genre'] else ''
-        music['year'] = int(tags['year']) if tags['year'] else 0
-        music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] else 0
-        music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
-    except:
-        raise Exception("Couldn't set hashtags")
+    music['artist'] = tags['artist'] if tags['artist'] else ''
+    music['title'] = tags['title'] if tags['title'] else ''
+    music['album'] = tags['album'] if tags['album'] else ''
+    music['genre'] = tags['genre'] if tags['genre'] else ''
+    music['year'] = int(tags['year']) if tags['year'] else 0
+    music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] else 0
+    music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
 
     music.save()
 
@@ -727,16 +643,10 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             tags=music_tags,
             new_art_path=new_art_path
         )
-    except:
+    except (OSError, BaseException):
         update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
 
-    start_over_button_keyboard = ReplyKeyboardMarkup(
-            [
-                [translate_key_to('BTN_NEW_FILE', lang)],
-            ],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
+    start_over_button_keyboard = generate_start_over_keyboard(lang)
 
     context.bot.send_audio(
         audio=open(music_path, 'rb'),

@@ -58,8 +58,8 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    b. restart `pipenv run restart`<br /><br />
    
 See below for all possible commands:
-| Command `pipenv run <command>` | Description                                                                                |
-| ------------------------------ | ------------------------------------------------------------------------------------------ |
+| Command `pipenv run <command>`   | Description                                                                                |
+| ------------------------------   | ------------------------------------------------------------------------------------------ |
 | `start`                          | Start the bot for production using `pm2` module. Creates a process called `music-tool-bot` |
 | `restart`                        | Restarts the bot process with the name `music-tool-bot`                                    |
 | `stop`                           | Stops the bot process with the name `music-tool-bot`                                       |
