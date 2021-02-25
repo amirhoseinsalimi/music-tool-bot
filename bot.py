@@ -58,7 +58,6 @@ Handlers
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
-    logger.info('SALAM')
     user_id = update.effective_user.id
 
     reset_user_data_context(context)
