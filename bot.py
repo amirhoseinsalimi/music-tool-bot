@@ -20,12 +20,9 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 """
 My modules
 """
-from utils.downloader import download_file
 from utils.language_service import translate_key_to
-from models.admin import Admin
-from models.user import User
-from dbconfig import db
-
+from utils.downloader import download_file
+from utils.generate_music_info import generate_music_info
 from utils.convert_seconds_to_human_readable_form import convert_seconds_to_human_readable_form
 from utils.create_user_directory import create_user_directory
 from utils.delete_file import delete_file
@@ -34,6 +31,10 @@ from utils.is_user_admin import is_user_admin
 from utils.is_user_owner import is_user_owner
 from utils.reset_user_data_context import reset_user_data_context
 from utils.save_text_into_tag import save_text_into_tag
+
+from models.admin import Admin
+from models.user import User
+from dbconfig import db
 
 
 Model.set_connection_resolver(db)
@@ -271,29 +272,14 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     if art_path:
         message.reply_photo(
             photo=open(art_path, 'rb'),
-            caption=
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard,
             parse_mode='Markdown'
         )
     else:
         message.reply_text(
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard
         )
@@ -712,30 +698,13 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     if art_path or new_art_path:
         message.reply_photo(
             photo=open(new_art_path if new_art_path else art_path, "rb"),
-            caption=
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
             parse_mode='Markdown'
         )
     else:
         message.reply_text(
-            f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-            f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-            f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-            f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-            f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-            f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-            f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
-            f"🆔 {BOT_USERNAME}\n",
+            generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
         )
 
