@@ -1,10 +1,5 @@
-TODO: Better folder structure
-TODO: Add hot reload
-TODO: Heroku support
 TODO: Write tests
 TODO: Delete files older than 7 days
-TODO: Proper error handling
-TODO: Correct "Too broad exception clause"
 TODO: Announce the bot in Twitter, ThereIsABotForThat, Discord, Telegram Groups
 TODO: Use async/await if possible
 TODO: Optimize the bot (https://github.com/python-telegram-bot/python-telegram-bot/wiki/Performance-Optimizations)
@@ -13,15 +8,3 @@ TODO: Implement bitrate changer
 TODO: Implement commands:
     - /sendtoall
 TODO: Add the ability to check if that if a user is member of a specific channel or not
-
-TODO: https://github.com/odysseusmax/utube
-TODO: https://github.com/viperadnan-git/google-drive-telegram-bot
-TODO: https://github.com/lzzy12/python-aria-mirror-bot
-TODO: https://github.com/aryanvikash/Youtube-Downloader-Bot
-TODO: https://github.com/AnimeKaizoku/SaitamaRobot
-TODO: https://github.com/Ambro17/AmbroBot/
-TODO: https://github.com/d-Rickyy-b/Python-BlackJackBot
-TODO: https://github.com/oddworldng/cmsysbot-telegram
-TODO: https://github.com/Gondolav/catify-my-face-bot
-TODO: https://github.com/JosXa/BotListBot
-
