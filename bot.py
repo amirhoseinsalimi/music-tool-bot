@@ -22,7 +22,7 @@ My modules
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
     is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
     translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
-    generate_module_selector_keyboard, generate_tag_editor_keyboard
+    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file
 
 from models.admin import Admin
 from models.user import User
@@ -598,29 +598,6 @@ def display_preview(update: Update, context: CallbackContext) -> None:
             generate_music_info(tag_editor_context).format(BOT_USERNAME),
             reply_to_message_id=update.effective_message.message_id,
         )
-
-
-def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> str:
-    music = music_tag.load_file(file)
-
-    try:
-        if new_art_path:
-            with open(new_art_path, 'rb') as art:
-                music['artwork'] = art.read()
-    except OSError:
-        raise Exception("Couldn't set hashtags")
-
-    music['artist'] = tags['artist'] if tags['artist'] else ''
-    music['title'] = tags['title'] if tags['title'] else ''
-    music['album'] = tags['album'] if tags['album'] else ''
-    music['genre'] = tags['genre'] if tags['genre'] else ''
-    music['year'] = int(tags['year']) if tags['year'] else 0
-    music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] else 0
-    music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
-
-    music.save()
-
-    return file
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
