@@ -7,6 +7,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from datetime import datetime
 
 ############################
 # Third-party modules ######
@@ -48,9 +49,10 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 ############################
 # Logger ###################
 ############################
+now = datetime.now()
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
-    filename='.log'
+    filename=f"logs/{now.strftime('%d-%m-%Y %H:%M:%S')}.log"
 )
 logger = logging.getLogger(__name__)
 
