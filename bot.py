@@ -20,8 +20,8 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 ############################
 # My modules ###############
 ############################
-from downloader import download_file
-from language_service import translate_key_to
+from utils.downloader import download_file
+from utils.language_service import translate_key_to
 from models.admin import Admin
 from models.user import User
 from dbconfig import db
