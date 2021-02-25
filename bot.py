@@ -218,9 +218,14 @@ def send_to_all():
 
 def count_users(update: Update, context: CallbackContext) -> None:
     if is_user_admin(update.effective_user.id):
-        users = User.all()
+        persian_users = User.all().where('language', 'fa')
+        english_users = User.all().where('language', 'en')
 
-        update.message.reply_text(f"{len(users)} users are using this bot!")
+        update.message.reply_text(
+            f"{len(persian_users) + len(english_users)} users are using this bot!\n\n"
+            f"English users: {len(english_users)}\n"
+            f"Persian users: {len(persian_users)}"
+        )
 
 
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
@@ -649,6 +654,7 @@ def show_language_keyboard(update: Update, context: CallbackContext) -> None:
 def set_language(update: Update, context: CallbackContext) -> None:
     lang = update.message.text.lower()
     user_data = context.user_data
+    user_id = update.effective_user.id
 
     if "english" in lang:
         user_data['language'] = 'en'
@@ -657,6 +663,10 @@ def set_language(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text(translate_key_to('LANGUAGE_CHANGED', user_data['language']))
     update.message.reply_text(translate_key_to('START_OVER_MESSAGE', user_data['language']))
+
+    user = User.where('user_id', '=', user_id).first()
+    user.language = user_data['language']
+    user.push()
 
 
 def ignore_file(update: Update, context: CallbackContext) -> None:
