@@ -574,8 +574,14 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         music_duration = user_data['music_duration']
 
         if beginning_sec > music_duration or ending_sec > music_duration:
-            reply_message = translate_key_to('ERR_OUT_OF_RANGE', lang).format(music_duration)
-            update.message.reply_text(reply_message, reply_markup=back_button_keyboard)
+            reply_message = translate_key_to('ERR_OUT_OF_RANGE', lang).format(
+                convert_seconds_to_human_readable_form(music_duration))
+            update.message.reply_text(reply_message)
+            update.message.reply_text(
+                translate_key_to('MUSIC_CUTTER_HELP', lang),
+                reply_markup=back_button_keyboard
+            )
+            return
         if beginning_sec >= ending_sec:
             reply_message = translate_key_to('ERR_BEGINNING_POINT_IS_GREATER', lang)
             update.message.reply_text(reply_message, reply_markup=back_button_keyboard)

@@ -130,8 +130,8 @@ keys = {
         "fa": "این قابلیت هنوز پیاده سازی نشده. شرمنده!",
     },
     "ERR_OUT_OF_RANGE": {
-        "en": "The range you entered is out of the actual file duration. The file length is: {} seconds",
-        "fa": "بازه ای که انتخاب کردید خارج از طول کل فایل هست. طول کل فایل {} ثانیه است.",
+        "en": "The range you entered is out of the actual file duration. The file length is {}.",
+        "fa": "بازه ای که انتخاب کردید خارج از طول کل فایل هست. طول کل فایل {} است.",
     },
     "ERR_MALFORMED_RANGE": {
         "en": "You have entered a malformed pattern. Please try again. {}",
