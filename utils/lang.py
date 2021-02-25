@@ -84,7 +84,7 @@ keys = {
         "en": "You entered a string instead of a number. Although this is not a problem, "
               "I guess you entered this input by mistake.",
         "fa": "شما یک متن رو به جای عدد وارد کردید. اگر چه اشکالی نداره ولی حدس میزنم"
-              " اشتباهی وارد کردی."    },
+              " اشتباهی وارد کردی."},
     "CLICK_PREVIEW_MESSAGE": {
         "en": "If you want to preview your changes click /preview.",
         "fa": "اگر میخوای تغییرات رو تا الان ببینی از دستور /preview استفاده کن.",
@@ -124,6 +124,10 @@ keys = {
     "ERR_ON_UPDATING_TAGS": {
         "en": f"Sorry, I couldn't update tags the tags of the file... {REPORT_BUG_MESSAGE_EN}",
         "fa": f"متاسفم، نتونستم تگ های فایل رو آپدیت... {REPORT_BUG_MESSAGE_FA}",
+    },
+    "ERR_ON_UPLOADING": {
+        "en": "Sorry, due to network issues, I couldn't upload your file. Please try again.",
+        "fa": "متاسفم. به دلیل اشکالات شبکه نتونستم فایل رو آپلود کنم. لطفا دوباره امتحان کن.",
     },
     "ERR_NOT_IMPLEMENTED": {
         "en": "This feature has not been implemented yet. Sorry!",
@@ -224,6 +228,3 @@ keys = {
         "fa": "یا",
     },
 }
-
-
-
