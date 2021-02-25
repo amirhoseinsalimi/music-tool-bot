@@ -7,6 +7,7 @@ class CreateUsersTable(Migration):
         with self.schema.create('users') as table:
             table.increments('id')
             table.integer('user_id').unique()
+            table.string('language').default('en')
             table.integer('number_of_files_sent').default(0)
 
             table.timestamps()
