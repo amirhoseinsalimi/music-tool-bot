@@ -5,6 +5,7 @@ Built-in modules
 """
 import logging
 import os
+import sys
 from datetime import datetime
 
 """
@@ -41,11 +42,14 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 Logger
 """
 now = datetime.now()
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
-    filename=f"logs/{now.strftime('%d-%m-%Y %H:%M:%S')}.log"
-)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+output_file_handler = logging.FileHandler(f"logs/{now}.log")
+stdout_handler = logging.StreamHandler(sys.stdout)
+
+logger.addHandler(output_file_handler)
+logger.addHandler(stdout_handler)
 
 
 """
@@ -54,6 +58,7 @@ Handlers
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
+    logger.info('SALAM')
     user_id = update.effective_user.id
 
     reset_user_data_context(context)
@@ -123,7 +128,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         create_user_directory(user_id)
     except OSError:
         message.reply_text(translate_key_to('ERR_CREATING_USER_FOLDER', user_data['language']))
-        logger.error(f"Couldn't create directory for user {user_id}")
+        logger.error(f"Couldn't create directory for user {user_id}", exc_info=True)
         return
 
     try:
@@ -135,14 +140,14 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         )
     except ValueError:
         message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', user_data['language']))
-        logger.error(f"Error on downloading {user_id}'s file. File type: Audio")
+        logger.error(f"Error on downloading {user_id}'s file. File type: Audio", exc_info=True)
         return
 
     try:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
         message.reply_text(translate_key_to('ERR_ON_READING_TAGS', user_data['language']))
-        logger.error(f"Error on reading the tags {user_id}'s file. File path: {file_download_path}")
+        logger.error(f"Error on reading the tags {user_id}'s file. File path: {file_download_path}", exc_info=True)
         return
 
     reset_user_data_context(context)
@@ -353,7 +358,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 except (ValueError, BaseException):
                     message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', lang))
-                    logger.error(f"Error on downloading {user_id}'s file. File type: Photo")
+                    logger.error(f"Error on downloading {user_id}'s file. File type: Photo", exc_info=True)
                     return
     else:
         reply_message = translate_key_to('DEFAULT_MESSAGE', lang)
@@ -526,7 +531,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 )
             except (OSError, BaseException):
                 update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
-                logger.error(f"Error on updating tags for file {music_path_cut}'s file.")
+                logger.error(f"Error on updating tags for file {music_path_cut}'s file.", exc_info=True)
 
             try:
                 # FIXME: After sending the file, the album art can't be read back
@@ -608,7 +613,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         )
     except (OSError, BaseException):
         message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
-        logger.error(f"Error on updating tags for file {music_path}'s file.")
+        logger.error(f"Error on updating tags for file {music_path}'s file.", exc_info=True)
 
     start_over_button_keyboard = generate_start_over_keyboard(lang)
 
