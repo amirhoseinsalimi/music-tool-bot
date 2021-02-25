@@ -467,7 +467,6 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     user_data = context.user_data
     music_path = user_data['music_path']
     art_path = user_data['art_path']
-    new_art_path = user_data['new_art_path']
     music_tags = user_data['tag_editor']
     lang = user_data['language']
 
@@ -490,6 +489,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     module_selector_keyboard = generate_module_selector_keyboard(lang)
 
     back_button_keyboard = generate_back_button_keyboard(lang)
+    start_over_button_keyboard = generate_start_over_keyboard(lang)
 
     if current_active_module == 'tag_editor':
         if not user_data['tag_editor']['current_tag']:
@@ -529,7 +529,12 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
             return
         if beginning_sec >= ending_sec:
             reply_message = translate_key_to('ERR_BEGINNING_POINT_IS_GREATER', lang)
-            message.reply_text(reply_message, reply_markup=back_button_keyboard)
+            message.reply_text(reply_message)
+            message.reply_text(
+                translate_key_to('MUSIC_CUTTER_HELP', lang),
+                reply_markup=back_button_keyboard
+            )
+            return
         else:
             diff_sec = ending_sec - beginning_sec
 
@@ -541,29 +546,22 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                     tags=music_tags,
                     new_art_path=art_path if art_path else ''
                 )
+
+                # FIXME: After sending the file, the album art can't be read back
+                context.bot.send_audio(
+                    audio=open(music_path_cut, 'rb'),
+                    chat_id=update.message.chat_id,
+                    duration=diff_sec,
+                    caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
+                            f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
+                            f"{BOT_USERNAME}",
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data['music_message_id']
+                )
             except (OSError, BaseException):
-                pass
-
-            start_over_button_keyboard = generate_start_over_keyboard(lang)
-
-            # FIXME: After sending the file, the album art can't be read back
-            context.bot.send_audio(
-                audio=open(music_path_cut, 'rb'),
-                chat_id=update.message.chat_id,
-                duration=diff_sec,
-                caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
-                        f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
-                        f"{BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data['music_message_id']
-            )
+                update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
 
             delete_file(music_path_cut)
-            delete_file(music_path)
-            if art_path:
-                delete_file(art_path)
-            if new_art_path:
-                delete_file(new_art_path)
 
             reset_user_data_context(context)
     else:
