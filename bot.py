@@ -186,6 +186,11 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     show_module_selector(update, context)
 
     increment_usage_counter_for_user(user_id=user_id)
+
+    user = User.where('user_id', '=', user_id).first()
+    user.username = update.effective_user.username
+    user.push()
+
     delete_file(old_music_path)
     delete_file(old_art_path)
     delete_file(old_new_art_path)
