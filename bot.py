@@ -59,6 +59,7 @@ Handlers
 
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
+    username = update.effective_user.username
 
     reset_user_data_context(context)
 
@@ -71,6 +72,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
     if not user:
         new_user = User()
         new_user.user_id = user_id
+        new_user.username = username
         new_user.number_of_files_sent = 0
 
         new_user.save()
