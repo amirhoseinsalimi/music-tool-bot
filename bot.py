@@ -59,6 +59,7 @@ Handlers
 
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
+    username = update.effective_user.username
 
     reset_user_data_context(context)
 
@@ -71,6 +72,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
     if not user:
         new_user = User()
         new_user.user_id = user_id
+        new_user.username = username
         new_user.number_of_files_sent = 0
 
         new_user.save()
@@ -184,6 +186,11 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     show_module_selector(update, context)
 
     increment_usage_counter_for_user(user_id=user_id)
+
+    user = User.where('user_id', '=', user_id).first()
+    user.username = update.effective_user.username
+    user.push()
+
     delete_file(old_music_path)
     delete_file(old_art_path)
     delete_file(old_new_art_path)
