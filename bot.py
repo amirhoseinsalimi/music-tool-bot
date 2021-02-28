@@ -680,6 +680,7 @@ def set_language(update: Update, context: CallbackContext) -> None:
 
 
 def ignore_file(update: Update, context: CallbackContext) -> None:
+    reset_user_data_context(context)
     update.message.reply_text(translate_key_to('START_OVER_MESSAGE', context.user_data['language']))
 
 
