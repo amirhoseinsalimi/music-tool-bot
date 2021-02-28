@@ -123,7 +123,7 @@ def reset_user_data_context(context: CallbackContext) -> None:
     user_data['language'] = user_data['language'] if ('language' in user_data) else 'en'
 
 
-def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -> None:
+def save_text_into_tag(value: str, current_tag: str, context: CallbackContext, is_number: bool = False) -> None:
     """Store a value of the given tag in the corresponding context.
 
     **Keyword arguments:**
@@ -131,8 +131,13 @@ def save_text_into_tag(value: str, current_tag: str, context: CallbackContext) -
      - current_tag (str) -- The key to store the value into
      - context (CallbackContext) -- The context of a user to store the key:value pair into
     """
-    # TODO: Check if the value is of the correct type
-    context.user_data['tag_editor'][current_tag] = value
+    if is_number:
+        if isinstance(int(value), int):
+            context.user_data['tag_editor'][current_tag] = value
+        else:
+            context.user_data['tag_editor'][current_tag] = 0
+    else:
+        context.user_data['tag_editor'][current_tag] = value
 
 
 def create_user_directory(user_id: int) -> str:
