@@ -459,6 +459,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     music_path = user_data['music_path']
     art_path = user_data['art_path']
     music_tags = user_data['tag_editor']
+    current_tag = music_tags['current_tag']
     lang = user_data['language']
 
     logging.info(f"{update.effective_user.id}:{update.effective_user.username}:{update.message.text}")
@@ -473,16 +474,21 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     start_over_button_keyboard = generate_start_over_keyboard(lang)
 
     if current_active_module == 'tag_editor':
-        if not user_data['tag_editor']['current_tag']:
+        if not current_tag:
             reply_message = translate_key_to('ASK_WHICH_TAG', lang)
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
-        if user_data['tag_editor']['current_tag'] == 'album_art':
+        if current_tag == 'album_art':
             reply_message = translate_key_to('ASK_FOR_ALBUM_ART', lang)
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
         else:
-            save_text_into_tag(message_text, user_data['tag_editor']['current_tag'], context)
+            save_text_into_tag(
+                value=message_text,
+                current_tag=current_tag,
+                context=context,
+                is_number=current_tag == 'year' or current_tag == 'disknumber' or current_tag == 'tracknumber'
+            )
             reply_message = f"{translate_key_to('DONE', lang)} " \
                             f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
                             f"{translate_key_to('OR', lang).upper()}" \
