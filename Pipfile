@@ -21,6 +21,7 @@ python-dotenv = "~=0.15.0"
 music-tag = "*"
 orator = "*"
 mysqlclient = "*"
+psutil = "*"
 
 [dev-packages]
 
