@@ -1,4 +1,5 @@
 import os
+import pathlib
 import re
 from pathlib import Path
 
@@ -357,3 +358,50 @@ def parse_cutting_range(text: str) -> (int, int):
             ending_sec = int(ending)
 
     return beginning_sec, ending_sec
+
+
+def pretty_print_size(number_of_bytes: float) -> str:
+    """Pretty print file sizes
+
+
+    **Keyword arguments:**
+     - number_of_bytes (float) -- Number of bytes to convert
+
+    **Returns:**
+     A human-readable file size
+    """
+    units = [
+        (1 << 50, ' PB'),
+        (1 << 40, ' TB'),
+        (1 << 30, ' GB'),
+        (1 << 20, ' MB'),
+        (1 << 10, ' KB'),
+        (1, (' byte', ' bytes')),
+    ]
+
+    for factor, suffix in units:
+        if number_of_bytes >= factor:
+            break
+    amount = int(number_of_bytes / factor)
+
+    if isinstance(suffix, tuple):
+        singular, multiple = suffix
+        if amount == 1:
+            suffix = singular
+        else:
+            suffix = multiple
+    return str(amount) + suffix
+
+
+def get_dir_size_in_bytes(dir_path: str) -> float:
+    """Return the size of a directory and its sub-directories in bytes
+
+
+    **Keyword arguments:**
+     - dir_path (str) -- The path of the directory
+
+    **Returns:**
+     Size of the directory
+    """
+    root_directory = Path(dir_path)
+    return sum(f.stat().st_size for f in root_directory.glob('**/*') if f.is_file())

@@ -8,6 +8,8 @@ import os
 import sys
 from datetime import datetime
 
+import psutil
+
 """
 Third-party modules
 """
@@ -23,7 +25,8 @@ My modules
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
     is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
     translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
-    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file, parse_cutting_range
+    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file, parse_cutting_range, \
+    pretty_print_size, get_dir_size_in_bytes
 
 from models.admin import Admin
 from models.user import User
@@ -227,15 +230,25 @@ def send_to_all():
     pass
 
 
-def count_users(update: Update, context: CallbackContext) -> None:
+def command_stats(update: Update, context: CallbackContext) -> None:
     if is_user_admin(update.effective_user.id):
+        downloads_dir_path = 'downloads'
+
         persian_users = User.all().where('language', 'fa')
         english_users = User.all().where('language', 'en')
 
+        downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(downloads_dir_path))
+        number_of_downloaded_files = len(os.listdir(downloads_dir_path))
+        occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = psutil.disk_usage('/')[-3:]
+
         update.message.reply_text(
-            f"{len(persian_users) + len(english_users)} users are using this bot!\n\n"
-            f"English users: {len(english_users)}\n"
-            f"Persian users: {len(persian_users)}"
+            f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
+            f"🇬🇧 English users: {len(english_users)}\n"
+            f"🇮🇷 Persian users: {len(persian_users)}\n\n"
+            
+            
+            f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
+            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available space: {pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}% used)\n"
         )
 
 
@@ -707,7 +720,7 @@ def main():
     dispatcher.add_handler(CommandHandler('addadmin', add_admin))
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
     dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
-    dispatcher.add_handler(CommandHandler('countusers', count_users))
+    dispatcher.add_handler(CommandHandler('stats', command_stats))
 
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
