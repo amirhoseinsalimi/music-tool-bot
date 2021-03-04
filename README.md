@@ -27,7 +27,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    Run `git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot && cd music-tool-bot`
 
 2. **Fire up your venv shell:**<br />
-   Run `python3 -m venv venv`
+   Run `python3 -m venv venv`, then install pipenv: `pip install pipenv`
 
 3. **Install dependencies:**<br />
    Run `pipenv install`
