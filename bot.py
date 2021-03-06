@@ -603,17 +603,22 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     tag_editor_context = user_data['tag_editor']
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
+    lang = user_data['language']
 
     if art_path or new_art_path:
         message.reply_photo(
             photo=open(new_art_path if new_art_path else art_path, "rb"),
-            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            caption=f"{generate_music_info(tag_editor_context).format('')}"
+                    f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
+                    f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
             parse_mode='Markdown'
         )
     else:
         message.reply_text(
-            generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            f"{generate_music_info(tag_editor_context).format('')}"
+            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
+            f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
         )
 
