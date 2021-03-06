@@ -632,6 +632,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     music_tags = user_data['tag_editor']
     lang = user_data['language']
 
+    start_over_button_keyboard = generate_start_over_keyboard(lang)
+
     try:
         save_tags_to_file(
             file=music_path,
@@ -639,10 +641,9 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             new_art_path=new_art_path
         )
     except (OSError, BaseException):
-        message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
+        message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang), reply_markup=start_over_button_keyboard)
         logger.error(f"Error on updating tags for file {music_path}'s file.", exc_info=True)
-
-    start_over_button_keyboard = generate_start_over_keyboard(lang)
+        return
 
     try:
         context.bot.send_audio(
