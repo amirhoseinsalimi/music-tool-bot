@@ -749,53 +749,50 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$') & (~Filters.command),
                                           set_language))
 
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
-                                          show_module_selector))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 بازگشت)$') & (~Filters.command),
-                                          show_module_selector))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 New File)$') & (~Filters.command),
-                                          start_over))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 فایل جدید)$') & (~Filters.command),
-                                          start_over))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
-                                          handle_music_tag_editor))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 تغییر تگ ها)$') & (~Filters.command),
-                                          handle_music_tag_editor))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Music to Voice Converter)$') & (~Filters.command),
-                                          handle_music_to_voice_converter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 تبدیل به پیام صوتی)$') & (~Filters.command),
-                                          handle_music_to_voice_converter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
-                                          handle_music_cutter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ بریدن آهنگ)$') & (~Filters.command),
-                                          handle_music_cutter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
-                                          handle_music_bitrate_changer))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 تغییر بیت ریت)$') & (~Filters.command),
-                                          handle_music_bitrate_changer))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')) & (~Filters.command),
+        show_module_selector))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🆕 New File)$') | Filters.regex('^(🆕 فایل جدید)$')) & (~Filters.command),
+        start_over))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎵 Tag Editor)$') | Filters.regex('^(🎵 تغییر تگ ها)$')) & (~Filters.command),
+        handle_music_tag_editor))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🗣 Music to Voice Converter)$') | Filters.regex('^(🗣 تبدیل به پیام صوتی)$')) &
+        (~Filters.command),
+        handle_music_to_voice_converter))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(✂️ Music Cutter)$') | Filters.regex('^(✂️ بریدن آهنگ)$')) & (~Filters.command),
+        handle_music_cutter))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$')) & (~Filters.command),
+        handle_music_bitrate_changer))
 
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 خواننده)$') & (~Filters.command), prepare_for_artist))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 عنوان)$') & (~Filters.command), prepare_for_title))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 آلبوم)$') & (~Filters.command), prepare_for_album))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 ژانر)$') & (~Filters.command), prepare_for_genre))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(🖼 Album Art)$') & (~Filters.command), prepare_for_album_art))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(🖼 عکس آلبوم)$') & (~Filters.command), prepare_for_album_art))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 سال)$') & (~Filters.command), prepare_for_year))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(💿  شماره دیسک)$') & (~Filters.command), prepare_for_disknumber))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(▶️ شماره ترک)$') & (~Filters.command), prepare_for_tracknumber))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🗣 Artist)$') | Filters.regex('^(🗣 خواننده)$')) & (~Filters.command),
+        prepare_for_artist))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎵 Title)$') | Filters.regex('^(🎵 عنوان)$')) & (~Filters.command),
+        prepare_for_title))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎼 Album)$') | Filters.regex('^(🎼 آلبوم)$')) & (~Filters.command),
+        prepare_for_album))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎹 Genre)$') | Filters.regex('^(🎹 ژانر)$')) & (~Filters.command),
+        prepare_for_genre))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🖼 Album Art)$') | Filters.regex('^(🖼 عکس آلبوم)$')) & (~Filters.command),
+        prepare_for_album_art))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(📅 Year)$') | Filters.regex('^(📅 سال)$')) & (~Filters.command),
+        prepare_for_year))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(💿 Disk Number)$') | Filters.regex('^(💿  شماره دیسک)$')) & (~Filters.command),
+        prepare_for_disknumber))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$')) & (~Filters.command),
+        prepare_for_tracknumber))
 
     dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
     dispatcher.add_handler(CommandHandler('preview', display_preview))
