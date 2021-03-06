@@ -172,6 +172,9 @@ def convert_seconds_to_human_readable_form(seconds: int) -> str:
     **Returns:**
      Formatted string
     """
+    if seconds <= 0:
+        return "00:00"
+
     minutes = int(seconds / 60)
     remainder = seconds % 60
 
