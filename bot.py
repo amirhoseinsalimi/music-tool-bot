@@ -270,14 +270,14 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     if art_path:
         message.reply_photo(
             photo=open(art_path, 'rb'),
-            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard,
             parse_mode='Markdown'
         )
     else:
         message.reply_text(
-            generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard
         )
@@ -311,7 +311,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
             voice=open(voice_path, 'rb'),
             duration=user_data['music_duration'],
             chat_id=message.chat_id,
-            caption=f"{BOT_USERNAME}",
+            caption=f"🆔 {BOT_USERNAME}",
             reply_markup=start_over_button_keyboard,
             reply_to_message_id=user_data['music_message_id']
         )
@@ -568,7 +568,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                     duration=diff_sec,
                     caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                             f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
-                            f"{BOT_USERNAME}",
+                            f"🆔 {BOT_USERNAME}",
                     reply_markup=start_over_button_keyboard,
                     reply_to_message_id=user_data['music_message_id']
                 )
@@ -655,7 +655,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             audio=open(music_path, 'rb'),
             duration=user_data['music_duration'],
             chat_id=update.message.chat_id,
-            caption=f"{BOT_USERNAME}",
+            caption=f"🆔 {BOT_USERNAME}",
             reply_markup=start_over_button_keyboard,
             reply_to_message_id=user_data['music_message_id']
         )

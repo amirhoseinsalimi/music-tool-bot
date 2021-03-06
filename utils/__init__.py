@@ -52,8 +52,8 @@ def generate_music_info(tag_editor_context: dict) -> str:
         f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
         f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
         f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        "🆔 {}\n"
+        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n"
+        "{}\n"
     )
 
 
