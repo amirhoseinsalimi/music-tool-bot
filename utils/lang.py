@@ -96,6 +96,10 @@ keys = {
         "en": "Language has been changed. If you want to change the language later, use /language command.",
         "fa": "زبان تغییر یافت. اگر میخواهید زبان را مجددا تغییر دهید، از دستور /language استفاده کنید.",
     },
+    "MUSIC_LENGTH": {
+        "en": "The file length is {}.",
+        "fa": "طول کل فایل {} است.",
+    },
     "REPORT_BUG_MESSAGE": {
         "en": "That's my fault! Please send a bug report here: @amirhoseinsalimii",
         "fa": "این اشتباه منه! لطفا این باگ رو از اینجا گزارش کنید: @amirhoseinsalimii",
@@ -201,22 +205,24 @@ keys = {
         "fa": "🆕 فایل جدید",
     },
     "MUSIC_CUTTER_HELP": {
-        "en": "\n\nNow send me which part of the music you want to cut out?\n\n"
+        "en": "\n\nNow send me which part of the music you want to cut out?\n"
+              "The file length is {}.\n\n"
               "Valid patterns are:\n"
               f"*mm:ss-mm:ss*:\n{EG_EN} 00:10-02:30\n"
               F"*ss-ss*:\n{EG_EN} 75-120\n\n"
               "- m = minute, s = second\n"
               "- Leading zeroes are optional\n"
               "- Extra spaces are ignored\n"
-              "- Only English numbers",
-        "fa": "\n\nحالا بهم بگو کجای موزیک رو میخوای ببری؟\n\n"
+              "- Only English numbers are valid",
+        "fa": "\n\nحالا بهم بگو کجای موزیک رو میخوای ببری؟\n"
+              "طول فایل {} است.\n\n"
               "الگو های مجاز:\n"
               f"*mm:ss-mm:ss*:\n{EG_FA} 00:10-02:30\n"
               f"*ss-ss*:\n{EG_FA} 75-120\n\n"
               "- دقیقه: m، ثانیه s\n"
               "- صفرهای ابتدایی دل بخواه هستن\n"
               "- فاصله های اضافی در نظر گرفته نمیشن\n"
-              "- تنها اعداد انگلیسی",
+              "- تنها اعداد انگلیسی مجاز هستند",
     },
     "DONE": {
         "en": "Done!",

@@ -5,14 +5,14 @@ Built-in modules
 """
 import logging
 import os
+import re
 import sys
 from datetime import datetime
-
-import psutil
 
 """
 Third-party modules
 """
+import psutil
 import music_tag
 from orator import Model
 from telegram.error import TelegramError
@@ -32,7 +32,6 @@ from models.admin import Admin
 from models.user import User
 from dbconfig import db
 
-
 Model.set_connection_resolver(db)
 
 """
@@ -45,6 +44,7 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 Logger
 """
 now = datetime.now()
+now = re.sub(':', '_', str(now))
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -53,7 +53,6 @@ stdout_handler = logging.StreamHandler(sys.stdout)
 
 logger.addHandler(output_file_handler)
 logger.addHandler(stdout_handler)
-
 
 """
 Handlers
@@ -115,11 +114,12 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
     user_data = context.user_data
     music_duration = message.audio.duration
+    music_file_size = message.audio.file_size
     old_music_path = user_data['music_path']
     old_art_path = user_data['art_path']
     old_new_art_path = user_data['new_art_path']
 
-    if music_duration >= 3600:
+    if music_duration >= 3600 and music_file_size > 48000000:
         message.reply_text(translate_key_to('ERR_TOO_LARGE_FILE', user_data['language']))
         return
 
@@ -239,16 +239,18 @@ def command_stats(update: Update, context: CallbackContext) -> None:
 
         downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(downloads_dir_path))
         number_of_downloaded_files = len(os.listdir(downloads_dir_path))
-        occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = psutil.disk_usage('/')[-3:]
+        occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = psutil.disk_usage('/')[
+                                                                                              -3:]
 
         update.message.reply_text(
             f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
             f"🇬🇧 English users: {len(english_users)}\n"
             f"🇮🇷 Persian users: {len(persian_users)}\n\n"
-            
-            
+
+
             f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
-            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available space: {pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}% used)\n"
+            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available space: "
+            f"{pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}% used)\n"
         )
 
 
@@ -266,16 +268,18 @@ def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     tag_editor_keyboard = generate_tag_editor_keyboard(lang)
 
     if art_path:
+        art_file = open(art_path, 'rb')
         message.reply_photo(
-            photo=open(art_path, 'rb'),
-            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            photo=art_file,
+            caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard,
             parse_mode='Markdown'
         )
+        art_file.close()
     else:
         message.reply_text(
-            generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
             reply_to_message_id=update.effective_message.message_id,
             reply_markup=tag_editor_keyboard
         )
@@ -305,14 +309,16 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     )
 
     try:
+        voice_file = open(voice_path, 'rb')
         context.bot.send_voice(
-            voice=open(voice_path, 'rb'),
+            voice=voice_file,
             duration=user_data['music_duration'],
             chat_id=message.chat_id,
-            caption=f"{BOT_USERNAME}",
+            caption=f"🆔 {BOT_USERNAME}",
             reply_markup=start_over_button_keyboard,
             reply_to_message_id=user_data['music_message_id']
         )
+        voice_file.close()
     except TelegramError as e:
         message.reply_text(
             translate_key_to('ERR_ON_UPLOADING', lang),
@@ -331,10 +337,11 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
     lang = user_data['language']
 
     back_button_keyboard = generate_back_button_keyboard(lang)
+    music_duration = convert_seconds_to_human_readable_form(user_data['music_duration'])
 
     # TODO: Send back the length of the music
     update.message.reply_text(
-        translate_key_to('MUSIC_CUTTER_HELP', lang),
+        f"{translate_key_to('MUSIC_CUTTER_HELP', lang).format(music_duration)}\n",
         reply_markup=back_button_keyboard
     )
 
@@ -365,7 +372,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                 try:
                     file_download_path = download_file(
                         user_id=user_id,
-                        file_to_download=message.photo[0],
+                        file_to_download=message.photo[len(message.photo) - 1],
                         file_type='photo',
                         context=context
                     )
@@ -559,17 +566,19 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 logger.error(f"Error on updating tags for file {music_path_cut}'s file.", exc_info=True)
 
             try:
+                music_file = open(music_path_cut, 'rb')
                 # FIXME: After sending the file, the album art can't be read back
                 context.bot.send_audio(
-                    audio=open(music_path_cut, 'rb'),
+                    audio=music_file,
                     chat_id=update.message.chat_id,
                     duration=diff_sec,
                     caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                             f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
-                            f"{BOT_USERNAME}",
+                            f"🆔 {BOT_USERNAME}",
                     reply_markup=start_over_button_keyboard,
                     reply_to_message_id=user_data['music_message_id']
                 )
+                music_file.close()
             except (TelegramError, BaseException) as e:
                 message.reply_text(
                     translate_key_to('ERR_ON_UPLOADING', lang),
@@ -601,17 +610,24 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     tag_editor_context = user_data['tag_editor']
     art_path = user_data['art_path']
     new_art_path = user_data['new_art_path']
+    lang = user_data['language']
 
     if art_path or new_art_path:
+        art_file = open(new_art_path if new_art_path else art_path, "rb")
         message.reply_photo(
-            photo=open(new_art_path if new_art_path else art_path, "rb"),
-            caption=generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            photo=art_file,
+            caption=f"{generate_music_info(tag_editor_context).format('')}"
+                    f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
+                    f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
             parse_mode='Markdown'
         )
+        art_file.close()
     else:
         message.reply_text(
-            generate_music_info(tag_editor_context).format(BOT_USERNAME),
+            f"{generate_music_info(tag_editor_context).format('')}"
+            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
+            f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
         )
 
@@ -630,6 +646,8 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     music_tags = user_data['tag_editor']
     lang = user_data['language']
 
+    start_over_button_keyboard = generate_start_over_keyboard(lang)
+
     try:
         save_tags_to_file(
             file=music_path,
@@ -637,20 +655,21 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             new_art_path=new_art_path
         )
     except (OSError, BaseException):
-        message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
+        message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang), reply_markup=start_over_button_keyboard)
         logger.error(f"Error on updating tags for file {music_path}'s file.", exc_info=True)
-
-    start_over_button_keyboard = generate_start_over_keyboard(lang)
+        return
 
     try:
+        music_file = open(music_path, 'rb')
         context.bot.send_audio(
-            audio=open(music_path, 'rb'),
+            audio=music_file,
             duration=user_data['music_duration'],
             chat_id=update.message.chat_id,
-            caption=f"{BOT_USERNAME}",
+            caption=f"🆔 {BOT_USERNAME}",
             reply_markup=start_over_button_keyboard,
             reply_to_message_id=user_data['music_message_id']
         )
+        music_file.close()
     except (TelegramError, BaseException) as e:
         message.reply_text(
             translate_key_to('ERR_ON_UPLOADING', lang),
@@ -705,81 +724,104 @@ def ignore_file(update: Update, context: CallbackContext) -> None:
 
 
 def main():
+    """
+    Start Bot
+    """
     defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
     persistence = PicklePersistence('persistence_storage')
 
     updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
     dispatcher = updater.dispatcher
 
+    """
+    Users Command Handlers
+    """
     dispatcher.add_handler(CommandHandler('start', command_start))
     dispatcher.add_handler(CommandHandler('new', start_over))
     dispatcher.add_handler(CommandHandler('language', show_language_keyboard))
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
 
+    dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
+    dispatcher.add_handler(CommandHandler('preview', display_preview))
+
+    """
+    Admin Command Handlers
+    """
     dispatcher.add_handler(CommandHandler('addadmin', add_admin))
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
     dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
     dispatcher.add_handler(CommandHandler('stats', command_stats))
 
+    """
+    File Handlers
+    """
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
+    """
+    Change Language Handlers
+    """
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$') & (~Filters.command),
                                           set_language))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$') & (~Filters.command),
                                           set_language))
 
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 Back)$') & (~Filters.command),
-                                          show_module_selector))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🔙 بازگشت)$') & (~Filters.command),
-                                          show_module_selector))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 New File)$') & (~Filters.command),
-                                          start_over))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🆕 فایل جدید)$') & (~Filters.command),
-                                          start_over))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Tag Editor)$') & (~Filters.command),
-                                          handle_music_tag_editor))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 تغییر تگ ها)$') & (~Filters.command),
-                                          handle_music_tag_editor))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Music to Voice Converter)$') & (~Filters.command),
-                                          handle_music_to_voice_converter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 تبدیل به پیام صوتی)$') & (~Filters.command),
-                                          handle_music_to_voice_converter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ Music Cutter)$') & (~Filters.command),
-                                          handle_music_cutter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(✂️ بریدن آهنگ)$') & (~Filters.command),
-                                          handle_music_cutter))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 Bitrate Changer)$') & (~Filters.command),
-                                          handle_music_bitrate_changer))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎙 تغییر بیت ریت)$') & (~Filters.command),
-                                          handle_music_bitrate_changer))
+    """
+    Module Selector Handlers
+    """
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')) & (~Filters.command),
+        show_module_selector))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🆕 New File)$') | Filters.regex('^(🆕 فایل جدید)$')) & (~Filters.command),
+        start_over))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎵 Tag Editor)$') | Filters.regex('^(🎵 تغییر تگ ها)$')) & (~Filters.command),
+        handle_music_tag_editor))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🗣 Music to Voice Converter)$') | Filters.regex('^(🗣 تبدیل به پیام صوتی)$')) &
+        (~Filters.command),
+        handle_music_to_voice_converter))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(✂️ Music Cutter)$') | Filters.regex('^(✂️ بریدن آهنگ)$')) & (~Filters.command),
+        handle_music_cutter))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$')) & (~Filters.command),
+        handle_music_bitrate_changer))
 
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 Artist)$') & (~Filters.command), prepare_for_artist))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🗣 خواننده)$') & (~Filters.command), prepare_for_artist))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 Title)$') & (~Filters.command), prepare_for_title))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎵 عنوان)$') & (~Filters.command), prepare_for_title))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 Album)$') & (~Filters.command), prepare_for_album))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 آلبوم)$') & (~Filters.command), prepare_for_album))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 ژانر)$') & (~Filters.command), prepare_for_genre))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🖼 Album Art)$') & (~Filters.command), prepare_for_album_art))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🖼 عکس آلبوم)$') & (~Filters.command), prepare_for_album_art))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 سال)$') & (~Filters.command), prepare_for_year))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(💿 Disk Number)$') & (~Filters.command), prepare_for_disknumber))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(💿  شماره دیسک)$') & (~Filters.command), prepare_for_disknumber))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(▶️ Track Number)$') & (~Filters.command), prepare_for_tracknumber))
-    dispatcher.add_handler(
-        MessageHandler(Filters.regex('^(▶️ شماره ترک)$') & (~Filters.command), prepare_for_tracknumber))
+    """
+    Tag Editor Handlers
+    """
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🗣 Artist)$') | Filters.regex('^(🗣 خواننده)$')) & (~Filters.command),
+        prepare_for_artist))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎵 Title)$') | Filters.regex('^(🎵 عنوان)$')) & (~Filters.command),
+        prepare_for_title))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎼 Album)$') | Filters.regex('^(🎼 آلبوم)$')) & (~Filters.command),
+        prepare_for_album))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🎹 Genre)$') | Filters.regex('^(🎹 ژانر)$')) & (~Filters.command),
+        prepare_for_genre))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(🖼 Album Art)$') | Filters.regex('^(🖼 عکس آلبوم)$')) & (~Filters.command),
+        prepare_for_album_art))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(📅 Year)$') | Filters.regex('^(📅 سال)$')) & (~Filters.command),
+        prepare_for_year))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(💿 Disk Number)$') | Filters.regex('^(💿  شماره دیسک)$')) & (~Filters.command),
+        prepare_for_disknumber))
+    dispatcher.add_handler(MessageHandler(
+        (Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$')) & (~Filters.command),
+        prepare_for_tracknumber))
 
-    dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
-    dispatcher.add_handler(CommandHandler('preview', display_preview))
+    """
+    Catch-all Handler
+    """
     dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
-
     dispatcher.add_handler(
         MessageHandler((Filters.video | Filters.document | Filters.contact) & (~Filters.command), ignore_file))
 

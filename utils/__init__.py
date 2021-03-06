@@ -1,5 +1,4 @@
 import os
-import pathlib
 import re
 from pathlib import Path
 
@@ -53,8 +52,8 @@ def generate_music_info(tag_editor_context: dict) -> str:
         f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
         f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
         f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n\n"
-        "🆔 {}\n"
+        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n"
+        "{}\n"
     )
 
 
@@ -106,6 +105,7 @@ def is_user_owner(user_id: int) -> bool:
 
 def reset_user_data_context(context: CallbackContext) -> None:
     user_data = context.user_data
+    language = user_data['language'] if ('language' in user_data) else 'en'
 
     if 'music_path' in user_data:
         delete_file(user_data['music_path'])
@@ -114,14 +114,17 @@ def reset_user_data_context(context: CallbackContext) -> None:
     if 'new_art_path' in user_data:
         delete_file(user_data['new_art_path'])
 
-    user_data['tag_editor'] = {}
-    user_data['music_path'] = ''
-    user_data['music_duration'] = ''
-    user_data['art_path'] = ''
-    user_data['new_art_path'] = ''
-    user_data['current_active_module'] = ''
-    user_data['music_message_id'] = ''
-    user_data['language'] = user_data['language'] if ('language' in user_data) else 'en'
+    new_user_data = {
+        'tag_editor': {},
+        'music_path': '',
+        'music_duration': 0,
+        'art_path': '',
+        'new_art_path': '',
+        'current_active_module': '',
+        'music_message_id': 0,
+        'language': language,
+    }
+    context.user_data.update(new_user_data)
 
 
 def save_text_into_tag(value: str, current_tag: str, context: CallbackContext, is_number: bool = False) -> None:
@@ -169,6 +172,9 @@ def convert_seconds_to_human_readable_form(seconds: int) -> str:
     **Returns:**
      Formatted string
     """
+    if seconds <= 0:
+        return "00:00"
+
     minutes = int(seconds / 60)
     remainder = seconds % 60
 
