@@ -744,7 +744,6 @@ def main():
 
     dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
     dispatcher.add_handler(CommandHandler('preview', display_preview))
-    dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
 
     """
     Admin Command Handlers
@@ -822,6 +821,7 @@ def main():
     """
     Catch-all Handler
     """
+    dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
     dispatcher.add_handler(
         MessageHandler((Filters.video | Filters.document | Filters.contact) & (~Filters.command), ignore_file))
 
