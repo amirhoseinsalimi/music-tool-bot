@@ -5,6 +5,7 @@ Built-in modules
 """
 import logging
 import os
+import re
 import sys
 from datetime import datetime
 
@@ -45,6 +46,7 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 Logger
 """
 now = datetime.now()
+now = re.sub(':', '_', str(now))
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
