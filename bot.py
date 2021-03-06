@@ -9,11 +9,10 @@ import re
 import sys
 from datetime import datetime
 
-import psutil
-
 """
 Third-party modules
 """
+import psutil
 import music_tag
 from orator import Model
 from telegram.error import TelegramError
@@ -32,7 +31,6 @@ from utils import download_file, create_user_directory, convert_seconds_to_human
 from models.admin import Admin
 from models.user import User
 from dbconfig import db
-
 
 Model.set_connection_resolver(db)
 
@@ -55,7 +53,6 @@ stdout_handler = logging.StreamHandler(sys.stdout)
 
 logger.addHandler(output_file_handler)
 logger.addHandler(stdout_handler)
-
 
 """
 Handlers
@@ -242,16 +239,18 @@ def command_stats(update: Update, context: CallbackContext) -> None:
 
         downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(downloads_dir_path))
         number_of_downloaded_files = len(os.listdir(downloads_dir_path))
-        occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = psutil.disk_usage('/')[-3:]
+        occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = psutil.disk_usage('/')[
+                                                                                              -3:]
 
         update.message.reply_text(
             f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
             f"🇬🇧 English users: {len(english_users)}\n"
             f"🇮🇷 Persian users: {len(persian_users)}\n\n"
-            
-            
+
+
             f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
-            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available space: {pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}% used)\n"
+            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available space: "
+            f"{pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}% used)\n"
         )
 
 
@@ -767,8 +766,10 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎼 آلبوم)$') & (~Filters.command), prepare_for_album))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 Genre)$') & (~Filters.command), prepare_for_genre))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🎹 ژانر)$') & (~Filters.command), prepare_for_genre))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🖼 Album Art)$') & (~Filters.command), prepare_for_album_art))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🖼 عکس آلبوم)$') & (~Filters.command), prepare_for_album_art))
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(🖼 Album Art)$') & (~Filters.command), prepare_for_album_art))
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^(🖼 عکس آلبوم)$') & (~Filters.command), prepare_for_album_art))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 Year)$') & (~Filters.command), prepare_for_year))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(📅 سال)$') & (~Filters.command), prepare_for_year))
     dispatcher.add_handler(
