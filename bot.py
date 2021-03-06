@@ -724,31 +724,53 @@ def ignore_file(update: Update, context: CallbackContext) -> None:
 
 
 def main():
+    """
+    Start Bot
+    """
     defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
     persistence = PicklePersistence('persistence_storage')
 
     updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
     dispatcher = updater.dispatcher
 
+    """
+    Users Command Handlers
+    """
     dispatcher.add_handler(CommandHandler('start', command_start))
     dispatcher.add_handler(CommandHandler('new', start_over))
     dispatcher.add_handler(CommandHandler('language', show_language_keyboard))
     dispatcher.add_handler(CommandHandler('help', command_help))
     dispatcher.add_handler(CommandHandler('about', command_about))
 
+    dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
+    dispatcher.add_handler(CommandHandler('preview', display_preview))
+    dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
+
+    """
+    Admin Command Handlers
+    """
     dispatcher.add_handler(CommandHandler('addadmin', add_admin))
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
     dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
     dispatcher.add_handler(CommandHandler('stats', command_stats))
 
+    """
+    File Handlers
+    """
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
+    """
+    Change Language Handlers
+    """
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$') & (~Filters.command),
                                           set_language))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$') & (~Filters.command),
                                           set_language))
 
+    """
+    Module Selector Handlers
+    """
     dispatcher.add_handler(MessageHandler(
         (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')) & (~Filters.command),
         show_module_selector))
@@ -769,6 +791,9 @@ def main():
         (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$')) & (~Filters.command),
         handle_music_bitrate_changer))
 
+    """
+    Tag Editor Handlers
+    """
     dispatcher.add_handler(MessageHandler(
         (Filters.regex('^(🗣 Artist)$') | Filters.regex('^(🗣 خواننده)$')) & (~Filters.command),
         prepare_for_artist))
@@ -794,10 +819,9 @@ def main():
         (Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$')) & (~Filters.command),
         prepare_for_tracknumber))
 
-    dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
-    dispatcher.add_handler(CommandHandler('preview', display_preview))
-    dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
-
+    """
+    Catch-all Handler
+    """
     dispatcher.add_handler(
         MessageHandler((Filters.video | Filters.document | Filters.contact) & (~Filters.command), ignore_file))
 
