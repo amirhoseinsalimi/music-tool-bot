@@ -117,11 +117,12 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
     user_data = context.user_data
     music_duration = message.audio.duration
+    music_file_size = message.audio.file_size
     old_music_path = user_data['music_path']
     old_art_path = user_data['art_path']
     old_new_art_path = user_data['new_art_path']
 
-    if music_duration >= 3600:
+    if music_duration >= 3600 and music_file_size > 48000000:
         message.reply_text(translate_key_to('ERR_TOO_LARGE_FILE', user_data['language']))
         return
 
