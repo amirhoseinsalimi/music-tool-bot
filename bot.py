@@ -22,6 +22,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 """
 My modules
 """
+import utils.lang as lp # Language Pack
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
     is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
     translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
@@ -67,7 +68,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
     user = User.where('user_id', '=', user_id).first()
 
-    update.message.reply_text(translate_key_to('START_MESSAGE', context.user_data['language']))
+    update.message.reply_text(translate_key_to(lp.START_MESSAGE, context.user_data['language']))
 
     show_language_keyboard(update, context)
 
@@ -86,13 +87,13 @@ def start_over(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(context)
 
     update.message.reply_text(
-        translate_key_to('START_OVER_MESSAGE', context.user_data['language']),
+        translate_key_to(lp.START_OVER_MESSAGE, context.user_data['language']),
         reply_to_message_id=update.effective_message.message_id,
     )
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(translate_key_to('HELP_MESSAGE', context.user_data['language']))
+    update.message.reply_text(translate_key_to(lp.HELP_MESSAGE, context.user_data['language']))
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
@@ -103,7 +104,7 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     module_selector_keyboard = generate_module_selector_keyboard(lang)
 
     update.message.reply_text(
-        translate_key_to('ASK_WHICH_MODULE', lang),
+        translate_key_to(lp.ASK_WHICH_MODULE, lang),
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
@@ -120,7 +121,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     old_new_art_path = user_data['new_art_path']
 
     if music_duration >= 3600 and music_file_size > 48000000:
-        message.reply_text(translate_key_to('ERR_TOO_LARGE_FILE', user_data['language']))
+        message.reply_text(translate_key_to(lp.ERR_TOO_LARGE_FILE, user_data['language']))
         return
 
     context.bot.send_chat_action(
@@ -131,7 +132,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     try:
         create_user_directory(user_id)
     except OSError:
-        message.reply_text(translate_key_to('ERR_CREATING_USER_FOLDER', user_data['language']))
+        message.reply_text(translate_key_to(lp.ERR_CREATING_USER_FOLDER, user_data['language']))
         logger.error(f"Couldn't create directory for user {user_id}", exc_info=True)
         return
 
@@ -143,14 +144,14 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             context=context
         )
     except ValueError:
-        message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', user_data['language']))
+        message.reply_text(translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, user_data['language']))
         logger.error(f"Error on downloading {user_id}'s file. File type: Audio", exc_info=True)
         return
 
     try:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
-        message.reply_text(translate_key_to('ERR_ON_READING_TAGS', user_data['language']))
+        message.reply_text(translate_key_to(lp.ERR_ON_READING_TAGS, user_data['language']))
         logger.error(f"Error on reading the tags {user_id}'s file. File path: {file_download_path}", exc_info=True)
         return
 
@@ -254,22 +255,6 @@ def command_stats(update: Update, context: CallbackContext) -> None:
         )
 
 
-def command_list_users(update: Update, context: CallbackContext) -> None:
-    if is_user_admin(update.effective_user.id):
-        users = User.all()
-
-        reply_message = ''
-
-        for user in users:
-            reply_message += f"{user.user_id}: {f'@{user.username}' if user.username else '-'}\n"
-
-        update.message.reply_text(
-            f"👥 List of all users ({len(users)} in total):\n\n"
-            f"{reply_message}",
-            parse_mode='',
-        )
-
-
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_data = context.user_data
@@ -337,7 +322,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
         voice_file.close()
     except TelegramError as e:
         message.reply_text(
-            translate_key_to('ERR_ON_UPLOADING', lang),
+            translate_key_to(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
         logger.exception(f"Telegram error: {e}")
@@ -357,7 +342,7 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
 
     # TODO: Send back the length of the music
     update.message.reply_text(
-        f"{translate_key_to('MUSIC_CUTTER_HELP', lang).format(music_duration)}\n",
+        f"{translate_key_to(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
         reply_markup=back_button_keyboard
     )
 
@@ -381,7 +366,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
     if music_path:
         if current_active_module == 'tag_editor':
             if not current_tag or current_tag != 'album_art':
-                reply_message = translate_key_to('ASK_WHICH_TAG', lang)
+                reply_message = translate_key_to(lp.ASK_WHICH_TAG, lang)
                 message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 return
             else:
@@ -392,37 +377,37 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                         file_type='photo',
                         context=context
                     )
-                    reply_message = f"{translate_key_to('ALBUM_ART_CHANGED', lang)} " \
-                                    f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
-                                    f"{translate_key_to('OR', lang).upper()} " \
-                                    f"{translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
+                    reply_message = f"{translate_key_to(lp.ALBUM_ART_CHANGED, lang)} " \
+                                    f"{translate_key_to(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
+                                    f"{translate_key_to(lp.OR, lang).upper()} " \
+                                    f"{translate_key_to(lp.CLICK_DONE_MESSAGE, lang).lower()}"
                     user_data['new_art_path'] = file_download_path
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 except (ValueError, BaseException):
-                    message.reply_text(translate_key_to('ERR_ON_DOWNLOAD_AUDIO_MESSAGE', lang))
+                    message.reply_text(translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
                     logger.error(f"Error on downloading {user_id}'s file. File type: Photo", exc_info=True)
                     return
     else:
-        reply_message = translate_key_to('DEFAULT_MESSAGE', lang)
+        reply_message = translate_key_to(lp.DEFAULT_MESSAGE, lang)
         message.reply_text(reply_message)
 
 
 def prepare_for_artist(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'artist'
-        message_text = translate_key_to('ASK_FOR_ARTIST', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_ARTIST, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_title(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'title'
-        message_text = translate_key_to('ASK_FOR_TITLE', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_TITLE, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -432,65 +417,65 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
 
     back_button_keyboard = generate_back_button_keyboard(lang)
 
-    update.message.reply_text(translate_key_to('ERR_NOT_IMPLEMENTED', lang), reply_markup=back_button_keyboard)
+    update.message.reply_text(translate_key_to(lp.ERR_NOT_IMPLEMENTED, lang), reply_markup=back_button_keyboard)
 
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'album'
-        message_text = translate_key_to('ASK_FOR_ALBUM', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_ALBUM, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'genre'
-        message_text = translate_key_to('ASK_FOR_GENRE', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_GENRE, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_year(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'year'
-        message_text = translate_key_to('ASK_FOR_YEAR', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_YEAR, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'album_art'
-        message_text = translate_key_to('ASK_FOR_ALBUM_ART', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_ALBUM_ART, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'disknumber'
-        message_text = translate_key_to('ASK_FOR_DISK_NUMBER', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_DISK_NUMBER, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to('DEFAULT_MESSAGE', context.user_data['language'])
+        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'tracknumber'
-        message_text = translate_key_to('ASK_FOR_TRACK_NUMBER', context.user_data['language'])
+        message_text = translate_key_to(lp.ASK_FOR_TRACK_NUMBER, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -518,11 +503,11 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
     if current_active_module == 'tag_editor':
         if not current_tag:
-            reply_message = translate_key_to('ASK_WHICH_TAG', lang)
+            reply_message = translate_key_to(lp.ASK_WHICH_TAG, lang)
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
         if current_tag == 'album_art':
-            reply_message = translate_key_to('ASK_FOR_ALBUM_ART', lang)
+            reply_message = translate_key_to(lp.ASK_FOR_ALBUM_ART, lang)
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             return
         else:
@@ -532,17 +517,17 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 context=context,
                 is_number=current_tag == 'year' or current_tag == 'disknumber' or current_tag == 'tracknumber'
             )
-            reply_message = f"{translate_key_to('DONE', lang)} " \
-                            f"{translate_key_to('CLICK_PREVIEW_MESSAGE', lang)} " \
-                            f"{translate_key_to('OR', lang).upper()}" \
-                            f" {translate_key_to('CLICK_DONE_MESSAGE', lang).lower()}"
+            reply_message = f"{translate_key_to(lp.DONE, lang)} " \
+                            f"{translate_key_to(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
+                            f"{translate_key_to(lp.OR, lang).upper()}" \
+                            f" {translate_key_to(lp.CLICK_DONE_MESSAGE, lang).lower()}"
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_active_module == 'music_cutter':
         try:
             beginning_sec, ending_sec = parse_cutting_range(message_text)
         except (ValueError, BaseException):
-            reply_message = translate_key_to('ERR_MALFORMED_RANGE', lang).format(
-                translate_key_to('MUSIC_CUTTER_HELP', lang),
+            reply_message = translate_key_to(lp.ERR_MALFORMED_RANGE, lang).format(
+                translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
             )
             message.reply_text(reply_message, reply_markup=back_button_keyboard)
             return
@@ -550,19 +535,19 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         music_duration = user_data['music_duration']
 
         if beginning_sec > music_duration or ending_sec > music_duration:
-            reply_message = translate_key_to('ERR_OUT_OF_RANGE', lang).format(
+            reply_message = translate_key_to(lp.ERR_OUT_OF_RANGE, lang).format(
                 convert_seconds_to_human_readable_form(music_duration))
             message.reply_text(reply_message)
             message.reply_text(
-                translate_key_to('MUSIC_CUTTER_HELP', lang),
+                translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
                 reply_markup=back_button_keyboard
             )
             return
         if beginning_sec >= ending_sec:
-            reply_message = translate_key_to('ERR_BEGINNING_POINT_IS_GREATER', lang)
+            reply_message = translate_key_to(lp.ERR_BEGINNING_POINT_IS_GREATER, lang)
             message.reply_text(reply_message)
             message.reply_text(
-                translate_key_to('MUSIC_CUTTER_HELP', lang),
+                translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
                 reply_markup=back_button_keyboard
             )
             return
@@ -578,7 +563,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                     new_art_path=art_path if art_path else ''
                 )
             except (OSError, BaseException):
-                update.message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang))
+                update.message.reply_text(translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang))
                 logger.error(f"Error on updating tags for file {music_path_cut}'s file.", exc_info=True)
 
             try:
@@ -597,7 +582,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 music_file.close()
             except (TelegramError, BaseException) as e:
                 message.reply_text(
-                    translate_key_to('ERR_ON_UPLOADING', lang),
+                    translate_key_to(lp.ERR_ON_UPLOADING, lang),
                     reply_markup=start_over_button_keyboard
                 )
                 logger.exception(f"Telegram error: {e}")
@@ -609,14 +594,14 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         if music_path:
             if user_data['current_active_module']:
                 message.reply_text(
-                    translate_key_to('ASK_WHICH_MODULE', lang),
+                    translate_key_to(lp.ASK_WHICH_MODULE, lang),
                     reply_markup=module_selector_keyboard
                 )
         elif not music_path:
-            message.reply_text(translate_key_to('START_OVER_MESSAGE', lang))
+            message.reply_text(translate_key_to(lp.START_OVER_MESSAGE, lang))
         else:
             # Not implemented
-            reply_message = translate_key_to('ERR_NOT_IMPLEMENTED', lang)
+            reply_message = translate_key_to(lp.ERR_NOT_IMPLEMENTED, lang)
             message.reply_text(reply_message)
 
 
@@ -633,7 +618,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
         message.reply_photo(
             photo=art_file,
             caption=f"{generate_music_info(tag_editor_context).format('')}"
-                    f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
+                    f"{translate_key_to(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
                     f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
             parse_mode='Markdown'
@@ -642,7 +627,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     else:
         message.reply_text(
             f"{generate_music_info(tag_editor_context).format('')}"
-            f"{translate_key_to('CLICK_DONE_MESSAGE', lang)}\n\n"
+            f"{translate_key_to(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
             f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
         )
@@ -671,7 +656,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             new_art_path=new_art_path
         )
     except (OSError, BaseException):
-        message.reply_text(translate_key_to('ERR_ON_UPDATING_TAGS', lang), reply_markup=start_over_button_keyboard)
+        message.reply_text(translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang), reply_markup=start_over_button_keyboard)
         logger.error(f"Error on updating tags for file {music_path}'s file.", exc_info=True)
         return
 
@@ -688,7 +673,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         music_file.close()
     except (TelegramError, BaseException) as e:
         message.reply_text(
-            translate_key_to('ERR_ON_UPLOADING', lang),
+            translate_key_to(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
         logger.exception(f"Telegram error: {e}")
@@ -697,7 +682,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(translate_key_to('ABOUT_MESSAGE', context.user_data['language']))
+    update.message.reply_text(translate_key_to(lp.ABOUT_MESSAGE, context.user_data['language']))
 
 
 def show_language_keyboard(update: Update, context: CallbackContext) -> None:
@@ -726,8 +711,8 @@ def set_language(update: Update, context: CallbackContext) -> None:
     elif "فارسی" in lang:
         user_data['language'] = 'fa'
 
-    update.message.reply_text(translate_key_to('LANGUAGE_CHANGED', user_data['language']))
-    update.message.reply_text(translate_key_to('START_OVER_MESSAGE', user_data['language']))
+    update.message.reply_text(translate_key_to(lp.LANGUAGE_CHANGED, user_data['language']))
+    update.message.reply_text(translate_key_to(lp.START_OVER_MESSAGE, user_data['language']))
 
     user = User.where('user_id', '=', user_id).first()
     user.language = user_data['language']
@@ -736,7 +721,7 @@ def set_language(update: Update, context: CallbackContext) -> None:
 
 def ignore_file(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(context)
-    update.message.reply_text(translate_key_to('START_OVER_MESSAGE', context.user_data['language']))
+    update.message.reply_text(translate_key_to(lp.START_OVER_MESSAGE, context.user_data['language']))
 
 
 def main():
@@ -768,7 +753,6 @@ def main():
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
     dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
     dispatcher.add_handler(CommandHandler('stats', command_stats))
-    dispatcher.add_handler(CommandHandler('listusers', command_list_users))
 
     """
     File Handlers
