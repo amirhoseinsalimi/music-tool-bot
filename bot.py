@@ -702,13 +702,13 @@ def show_language_keyboard(update: Update, context: CallbackContext) -> None:
 
 
 def set_language(update: Update, context: CallbackContext) -> None:
-    lang = update.message.text.lower()
+    selected_lang = update.message.text.lower()
     user_data = context.user_data
     user_id = update.effective_user.id
 
-    if "english" in lang:
+    if "english" in selected_lang:
         user_data['language'] = 'en'
-    elif "فارسی" in lang:
+    elif "فارسی" in selected_lang:
         user_data['language'] = 'fa'
 
     update.message.reply_text(translate_key_to(lp.LANGUAGE_CHANGED, user_data['language']))
