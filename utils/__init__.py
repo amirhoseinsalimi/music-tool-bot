@@ -8,7 +8,7 @@ from telegram.ext import CallbackContext
 
 from models.admin import Admin
 from models.user import User
-import utils.lang as lang
+from utils.lang import keys
 
 
 def translate_key_to(key: str, destination_lang: str) -> str:
@@ -21,8 +21,8 @@ def translate_key_to(key: str, destination_lang: str) -> str:
     **Returns:**
      - The value of the requested key in the dictionary
     """
-    if key in lang:
-        return lang[key][destination_lang]
+    if key in keys:
+        return keys[key][destination_lang]
 
 
 def delete_file(file_path: str) -> None:
