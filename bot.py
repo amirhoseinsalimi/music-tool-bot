@@ -254,6 +254,22 @@ def command_stats(update: Update, context: CallbackContext) -> None:
         )
 
 
+def command_list_users(update: Update, context: CallbackContext) -> None:
+    if is_user_admin(update.effective_user.id):
+        users = User.all()
+
+        reply_message = ''
+
+        for user in users:
+            reply_message += f"{user.user_id}: {f'@{user.username}' if user.username else '-'}\n"
+
+        update.message.reply_text(
+            f"👥 List of all users ({len(users)} in total):\n\n"
+            f"{reply_message}",
+            parse_mode='',
+        )
+
+
 def handle_music_tag_editor(update: Update, context: CallbackContext) -> None:
     message = update.message
     user_data = context.user_data
@@ -752,6 +768,7 @@ def main():
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
     dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
     dispatcher.add_handler(CommandHandler('stats', command_stats))
+    dispatcher.add_handler(CommandHandler('listusers', command_list_users))
 
     """
     File Handlers
