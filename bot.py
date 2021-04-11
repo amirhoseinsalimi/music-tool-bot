@@ -22,7 +22,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 """
 My modules
 """
-import utils.lang as lp # Language Pack
+import utils.lang as lp  # Language Pack
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
     is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
     translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
@@ -49,7 +49,7 @@ now = re.sub(':', '_', str(now))
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-output_file_handler = logging.FileHandler(f"logs/{now}.log", encoding="UTF-8")
+output_file_handler = logging.FileHandler(f"logs/{now}.log")
 stdout_handler = logging.StreamHandler(sys.stdout)
 
 logger.addHandler(output_file_handler)
@@ -252,6 +252,22 @@ def command_stats(update: Update, context: CallbackContext) -> None:
             f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
             f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available space: "
             f"{pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}% used)\n"
+        )
+
+
+def command_list_users(update: Update, context: CallbackContext) -> None:
+    if is_user_admin(update.effective_user.id):
+        users = User.all()
+
+        reply_message = ''
+
+        for user in users:
+            reply_message += f"{user.user_id}: {f'@{user.username}' if user.username else '-'}\n"
+
+        update.message.reply_text(
+            f"👥 List of all users ({len(users)} in total):\n\n"
+            f"{reply_message}",
+            parse_mode='',
         )
 
 
@@ -753,6 +769,7 @@ def main():
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
     dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
     dispatcher.add_handler(CommandHandler('stats', command_stats))
+    dispatcher.add_handler(CommandHandler('listusers', command_list_users))
 
     """
     File Handlers
