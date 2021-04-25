@@ -16,7 +16,7 @@ import psutil
 import music_tag
 from orator import Model
 from telegram.error import TelegramError
-from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
+from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
 """
@@ -68,7 +68,10 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
     user = User.where('user_id', '=', user_id).first()
 
-    update.message.reply_text(translate_key_to(lp.START_MESSAGE, context.user_data['language']))
+    update.message.reply_text(
+        translate_key_to(lp.START_MESSAGE, context.user_data['language']),
+        reply_markup=ReplyKeyboardRemove()
+    )
 
     show_language_keyboard(update, context)
 
@@ -89,6 +92,7 @@ def start_over(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(
         translate_key_to(lp.START_OVER_MESSAGE, context.user_data['language']),
         reply_to_message_id=update.effective_message.message_id,
+        reply_markup=ReplyKeyboardRemove()
     )
 
 
@@ -119,9 +123,13 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     old_music_path = user_data['music_path']
     old_art_path = user_data['art_path']
     old_new_art_path = user_data['new_art_path']
+    language = user_data['language']
 
     if music_duration >= 3600 and music_file_size > 48000000:
-        message.reply_text(translate_key_to(lp.ERR_TOO_LARGE_FILE, user_data['language']))
+        message.reply_text(
+            translate_key_to(lp.ERR_TOO_LARGE_FILE, language),
+            reply_markup=generate_start_over_keyboard(language)
+        )
         return
 
     context.bot.send_chat_action(
@@ -132,7 +140,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     try:
         create_user_directory(user_id)
     except OSError:
-        message.reply_text(translate_key_to(lp.ERR_CREATING_USER_FOLDER, user_data['language']))
+        message.reply_text(translate_key_to(lp.ERR_CREATING_USER_FOLDER, language))
         logger.error(f"Couldn't create directory for user {user_id}", exc_info=True)
         return
 
@@ -144,14 +152,20 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             context=context
         )
     except ValueError:
-        message.reply_text(translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, user_data['language']))
+        message.reply_text(
+            translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, language),
+            reply_markup=generate_start_over_keyboard(language)
+        )
         logger.error(f"Error on downloading {user_id}'s file. File type: Audio", exc_info=True)
         return
 
     try:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
-        message.reply_text(translate_key_to(lp.ERR_ON_READING_TAGS, user_data['language']))
+        message.reply_text(
+            translate_key_to(lp.ERR_ON_READING_TAGS, language),
+            reply_markup=generate_start_over_keyboard(language)
+        )
         logger.error(f"Error on reading the tags {user_id}'s file. File path: {file_download_path}", exc_info=True)
         return
 
@@ -405,7 +419,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                     return
     else:
         reply_message = translate_key_to(lp.DEFAULT_MESSAGE, lang)
-        message.reply_text(reply_message)
+        message.reply_text(reply_message, reply_markup=ReplyKeyboardRemove())
 
 
 def prepare_for_artist(update: Update, context: CallbackContext) -> None:
@@ -637,7 +651,6 @@ def display_preview(update: Update, context: CallbackContext) -> None:
                     f"{translate_key_to(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
                     f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
-            parse_mode='Markdown'
         )
         art_file.close()
     else:
@@ -728,7 +741,10 @@ def set_language(update: Update, context: CallbackContext) -> None:
         user_data['language'] = 'fa'
 
     update.message.reply_text(translate_key_to(lp.LANGUAGE_CHANGED, user_data['language']))
-    update.message.reply_text(translate_key_to(lp.START_OVER_MESSAGE, user_data['language']))
+    update.message.reply_text(
+        translate_key_to(lp.START_OVER_MESSAGE, user_data['language']),
+        reply_markup=ReplyKeyboardRemove()
+    )
 
     user = User.where('user_id', '=', user_id).first()
     user.language = user_data['language']
@@ -737,7 +753,10 @@ def set_language(update: Update, context: CallbackContext) -> None:
 
 def ignore_file(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(context)
-    update.message.reply_text(translate_key_to(lp.START_OVER_MESSAGE, context.user_data['language']))
+    update.message.reply_text(
+        translate_key_to(lp.START_OVER_MESSAGE, context.user_data['language']),
+        reply_markup=ReplyKeyboardRemove()
+    )
 
 
 def main():
