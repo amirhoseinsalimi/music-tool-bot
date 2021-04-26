@@ -517,7 +517,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     music_path = user_data['music_path']
     art_path = user_data['art_path']
     music_tags = user_data['tag_editor']
-    current_tag = music_tags['current_tag']
+    current_tag = music_tags.get('current_tag')
     lang = user_data['language']
 
     logging.info(f"{update.effective_user.id}:{update.effective_user.username}:{update.message.text}")
