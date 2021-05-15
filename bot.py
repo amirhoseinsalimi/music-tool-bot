@@ -15,6 +15,7 @@ Third-party modules
 import psutil
 import music_tag
 from orator import Model
+from persiantools import digits
 from telegram.error import TelegramError
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
@@ -512,7 +513,7 @@ def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
 
 def handle_responses(update: Update, context: CallbackContext) -> None:
     message = update.message
-    message_text = message.text
+    message_text = digits.ar_to_fa(digits.fa_to_en(message.text))
     user_data = context.user_data
     music_path = user_data['music_path']
     art_path = user_data['art_path']
