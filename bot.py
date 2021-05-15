@@ -50,7 +50,7 @@ now = re.sub(':', '_', str(now))
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-output_file_handler = logging.FileHandler(f"logs/{now}.log")
+output_file_handler = logging.FileHandler(f"logs/{now}.log", encoding='UTF-8')
 stdout_handler = logging.StreamHandler(sys.stdout)
 
 logger.addHandler(output_file_handler)
