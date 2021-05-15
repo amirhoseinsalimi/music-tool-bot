@@ -23,6 +23,8 @@ def translate_key_to(key: str, destination_lang: str) -> str:
     """
     if key in keys:
         return keys[key][destination_lang]
+    else:
+        raise KeyError("Specified key doesn't exist")
 
 
 def delete_file(file_path: str) -> None:
