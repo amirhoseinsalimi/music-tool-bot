@@ -94,7 +94,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
         new_user.save()
 
-        logger.info(f"A user with id {user_id} has been started to use the bot.")
+        logger.info("A user with id %s has been started to use the bot.", user_id)
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
@@ -152,7 +152,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         create_user_directory(user_id)
     except OSError:
         message.reply_text(translate_key_to(lp.ERR_CREATING_USER_FOLDER, language))
-        logger.error(f"Couldn't create directory for user {user_id}", exc_info=True)
+        logger.error("Couldn't create directory for user %s", user_id, exc_info=True)
         return
 
     try:
@@ -167,7 +167,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, language),
             reply_markup=generate_start_over_keyboard(language)
         )
-        logger.error(f"Error on downloading {user_id}'s file. File type: Audio", exc_info=True)
+        logger.error("Error on downloading %s's file. File type: Audio", user_id, exc_info=True)
         return
 
     try:
@@ -177,7 +177,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             translate_key_to(lp.ERR_ON_READING_TAGS, language),
             reply_markup=generate_start_over_keyboard(language)
         )
-        logger.error(f"Error on reading the tags {user_id}'s file. File path: {file_download_path}", exc_info=True)
+        logger.error("Error on reading the tags %s's file. File path: %s", user_id, file_download_path, exc_info=True)
         return
 
     reset_user_data_context(context)
@@ -366,7 +366,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
             translate_key_to(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
-        logger.exception(f"Telegram error: {e}")
+        logger.exception("Telegram error: %s", e)
 
     delete_file(voice_path)
 
@@ -426,7 +426,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 except (ValueError, BaseException):
                     message.reply_text(translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
-                    logger.error(f"Error on downloading {user_id}'s file. File type: Photo", exc_info=True)
+                    logger.error("Error on downloading %s's file. File type: Photo", user_id, exc_info=True)
                     return
     else:
         reply_message = translate_key_to(lp.DEFAULT_MESSAGE, lang)
@@ -531,7 +531,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     current_tag = music_tags.get('current_tag')
     lang = user_data['language']
 
-    logging.info(f"{update.effective_user.id}:{update.effective_user.username}:{update.message.text}")
+    logging.info("%s:%s:%s", update.effective_user.id, update.effective_user.username, update.message.text)
 
     current_active_module = user_data['current_active_module']
 
@@ -605,7 +605,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 )
             except (OSError, BaseException):
                 update.message.reply_text(translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang))
-                logger.error(f"Error on updating tags for file {music_path_cut}'s file.", exc_info=True)
+                logger.error("Error on updating tags for file %s's file.", music_path_cut, exc_info=True)
 
             try:
                 music_file = open(music_path_cut, 'rb')
@@ -626,7 +626,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                     translate_key_to(lp.ERR_ON_UPLOADING, lang),
                     reply_markup=start_over_button_keyboard
                 )
-                logger.exception(f"Telegram error: {e}")
+                logger.exception("Telegram error: {e}")
 
             delete_file(music_path_cut)
 
@@ -697,7 +697,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         )
     except (OSError, BaseException):
         message.reply_text(translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang), reply_markup=start_over_button_keyboard)
-        logger.error(f"Error on updating tags for file {music_path}'s file.", exc_info=True)
+        logger.error("Error on updating tags for file %s's file.", music_path, exc_info=True)
         return
 
     try:
@@ -716,7 +716,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             translate_key_to(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
-        logger.exception(f"Telegram error: {e}")
+        logger.exception("Telegram error: %s", e)
 
     reset_user_data_context(context)
 
