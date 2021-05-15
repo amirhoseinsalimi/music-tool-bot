@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 
 """
-Built-in modules
+Main Program
 """
+
+
+####################
+# Built-in modules #
+####################
 import logging
 import os
 import re
 import sys
 from datetime import datetime
 
-"""
-Third-party modules
-"""
+
+#######################
+# Third-party modules #
+#######################
 import psutil
 import music_tag
 from orator import Model
@@ -20,9 +26,10 @@ from telegram.error import TelegramError
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
 
-"""
-My modules
-"""
+
+##############
+# My modules #
+##############
 import utils.lang as lp  # Language Pack
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
     is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
@@ -36,15 +43,17 @@ from dbconfig import db
 
 Model.set_connection_resolver(db)
 
-"""
-Global variables
-"""
+
+####################
+# Global variables #
+####################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
-"""
-Logger
-"""
+
+##########
+# Logger #
+##########
 now = datetime.now()
 now = re.sub(':', '_', str(now))
 logger = logging.getLogger()
@@ -56,9 +65,10 @@ stdout_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(output_file_handler)
 logger.addHandler(stdout_handler)
 
-"""
-Handlers
-"""
+
+############
+# Handlers #
+############
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
@@ -770,9 +780,9 @@ def main():
     updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
     dispatcher = updater.dispatcher
 
-    """
-    Users Command Handlers
-    """
+    ##########################
+    # Users Command Handlers #
+    ##########################
     dispatcher.add_handler(CommandHandler('start', command_start))
     dispatcher.add_handler(CommandHandler('new', start_over))
     dispatcher.add_handler(CommandHandler('language', show_language_keyboard))
@@ -782,32 +792,32 @@ def main():
     dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
     dispatcher.add_handler(CommandHandler('preview', display_preview))
 
-    """
-    Admin Command Handlers
-    """
+    ##########################
+    # Admin Command Handlers #
+    ##########################
     dispatcher.add_handler(CommandHandler('addadmin', add_admin))
     dispatcher.add_handler(CommandHandler('deladmin', del_admin))
     dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
     dispatcher.add_handler(CommandHandler('stats', command_stats))
     dispatcher.add_handler(CommandHandler('listusers', command_list_users))
 
-    """
-    File Handlers
-    """
+    #################
+    # File Handlers #
+    #################
     dispatcher.add_handler(MessageHandler(Filters.audio & (~Filters.command), handle_music_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & (~Filters.command), handle_photo_message))
 
-    """
-    Change Language Handlers
-    """
+    ############################
+    # Change Language Handlers #
+    ############################
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$') & (~Filters.command),
                                           set_language))
     dispatcher.add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$') & (~Filters.command),
                                           set_language))
 
-    """
-    Module Selector Handlers
-    """
+    ############################
+    # Module Selector Handlers #
+    ############################
     dispatcher.add_handler(MessageHandler(
         (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')) & (~Filters.command),
         show_module_selector))
@@ -828,9 +838,9 @@ def main():
         (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$')) & (~Filters.command),
         handle_music_bitrate_changer))
 
-    """
-    Tag Editor Handlers
-    """
+    #######################
+    # Tag Editor Handlers #
+    #######################
     dispatcher.add_handler(MessageHandler(
         (Filters.regex('^(🗣 Artist)$') | Filters.regex('^(🗣 خواننده)$')) & (~Filters.command),
         prepare_for_artist))
@@ -856,9 +866,9 @@ def main():
         (Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$')) & (~Filters.command),
         prepare_for_tracknumber))
 
-    """
-    Catch-all Handler
-    """
+    #####################
+    # Catch-all Handler #
+    #####################
     dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
     dispatcher.add_handler(
         MessageHandler((Filters.video | Filters.document | Filters.contact) & (~Filters.command), ignore_file))
