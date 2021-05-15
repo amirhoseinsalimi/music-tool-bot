@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f4d423965dfbe5148f41eb1fd0d7e61b792d393ceb4d534f63769582f62f7f17"
+            "sha256": "ee23a2e1a9d4b5ca8b53a58eaff922f571f14ca99e491ce4411ae6a895a226c7"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -149,6 +149,14 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.5.1"
+        },
+        "persiantools": {
+            "hashes": [
+                "sha256:0cfc60889cea0988bd8e4305ab55dd47866568f66a61b7e2bdf0599c4a86cc0f",
+                "sha256:36623ebf6f195c6bb568d1dcf12b60be956400c5740c7da03a3608e652757cd5"
+            ],
+            "index": "pypi",
+            "version": "==2.1.1"
         },
         "psutil": {
             "hashes": [
