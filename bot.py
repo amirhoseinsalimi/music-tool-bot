@@ -280,12 +280,12 @@ def command_stats(update: Update, _context: CallbackContext) -> None:
             f"🇮🇷 Persian users: {len(persian_users)}\n\n"
 
 
-            f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying \
-                {downloads_dir_size}\n"
-            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available \
-                space: "
-            f"{pretty_print_size(available_disk_space_bytes)} \({available_disk_space_percent}% \
-                used)\n"
+            f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying"
+            f" {downloads_dir_size}\n"
+            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available"
+            " space: "
+            f"{pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}%"
+            " used)\n"
         )
 
 

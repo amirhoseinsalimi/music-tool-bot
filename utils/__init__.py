@@ -47,16 +47,16 @@ def generate_music_info(tag_editor_context: dict) -> str:
     **Returns:**
      `str`
     """
+    ctx = tag_editor_context
+
     return (
-        f"*🗣 Artist:* {tag_editor_context['artist'] if tag_editor_context['artist'] else '-'}\n"
-        f"*🎵 Title:* {tag_editor_context['title'] if tag_editor_context['title'] else '-'}\n"
-        f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
-        f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
-        f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        f"*💿 Disk Number:* \
-        {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* \
-        {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n"
+        f"*🗣 Artist:* {ctx['artist'] if ctx['artist'] else '-'}\n"
+        f"*🎵 Title:* {ctx['title'] if ctx['title'] else '-'}\n"
+        f"*🎼 Album:* {ctx['album'] if ctx['album'] else '-'}\n"
+        f"*🎹 Genre:* {ctx['genre'] if ctx['genre'] else '-'}\n"
+        f"*📅 Year:* {ctx['year'] if ctx['year'] else '-'}\n"
+        f"*💿 Disk Number:* {ctx['disknumber'] if ctx['disknumber'] else '-'}\n"
+        f"*▶️ Track Number:* {ctx['tracknumber'] if ctx['tracknumber'] else '-'}\n"
         "{}\n"
     )
 
