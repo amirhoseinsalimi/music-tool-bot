@@ -802,68 +802,68 @@ def main():
     persistence = PicklePersistence('persistence_storage')
 
     updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
-    dispatcher = updater.dispatcher
+    add_handler = updater.dispatcher.add_handler
 
     ##########################
     # Users Command Handlers #
     ##########################
-    dispatcher.add_handler(CommandHandler('start', command_start))
-    dispatcher.add_handler(CommandHandler('new', start_over))
-    dispatcher.add_handler(CommandHandler('language', show_language_keyboard))
-    dispatcher.add_handler(CommandHandler('help', command_help))
-    dispatcher.add_handler(CommandHandler('about', command_about))
+    add_handler(CommandHandler('start', command_start))
+    add_handler(CommandHandler('new', start_over))
+    add_handler(CommandHandler('language', show_language_keyboard))
+    add_handler(CommandHandler('help', command_help))
+    add_handler(CommandHandler('about', command_about))
 
-    dispatcher.add_handler(CommandHandler('done', finish_editing_tags))
-    dispatcher.add_handler(CommandHandler('preview', display_preview))
+    add_handler(CommandHandler('done', finish_editing_tags))
+    add_handler(CommandHandler('preview', display_preview))
 
     ##########################
     # Admin Command Handlers #
     ##########################
-    dispatcher.add_handler(CommandHandler('addadmin', add_admin))
-    dispatcher.add_handler(CommandHandler('deladmin', del_admin))
-    dispatcher.add_handler(CommandHandler('senttoall', send_to_all))
-    dispatcher.add_handler(CommandHandler('stats', command_stats))
-    dispatcher.add_handler(CommandHandler('listusers', command_list_users))
+    add_handler(CommandHandler('addadmin', add_admin))
+    add_handler(CommandHandler('deladmin', del_admin))
+    add_handler(CommandHandler('senttoall', send_to_all))
+    add_handler(CommandHandler('stats', command_stats))
+    add_handler(CommandHandler('listusers', command_list_users))
 
     #################
     # File Handlers #
     #################
-    dispatcher.add_handler(MessageHandler(Filters.audio, handle_music_message))
-    dispatcher.add_handler(MessageHandler(Filters.photo, handle_photo_message))
+    add_handler(MessageHandler(Filters.audio, handle_music_message))
+    add_handler(MessageHandler(Filters.photo, handle_photo_message))
 
     ############################
     # Change Language Handlers #
     ############################
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$'), set_language))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$'), set_language))
+    add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$'), set_language))
+    add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$'), set_language))
 
     ############################
     # Module Selector Handlers #
     ############################
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
             (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')),
             show_module_selector)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(🆕 New File)$') | Filters.regex('^(🆕 فایل جدید)$')),
         start_over)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(🎵 Tag Editor)$') | Filters.regex('^(🎵 تغییر تگ ها)$')),
         handle_music_tag_editor)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
             (
                 Filters.regex('^(🗣 Music to Voice Converter)$')
                 | Filters.regex('^(🗣 تبدیل به پیام صوتی)$')
             ),
             handle_music_to_voice_converter)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
             (Filters.regex('^(✂️ Music Cutter)$') | Filters.regex('^(✂️ بریدن آهنگ)$')),
             handle_music_cutter)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
             (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$')),
             handle_music_bitrate_changer)
     )
@@ -871,35 +871,35 @@ def main():
     #######################
     # Tag Editor Handlers #
     #######################
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(🗣 Artist)$') | Filters.regex('^(🗣 خواننده)$')),
         prepare_for_artist)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(🎵 Title)$') | Filters.regex('^(🎵 عنوان)$')),
         prepare_for_title)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(🎼 Album)$') | Filters.regex('^(🎼 آلبوم)$')),
         prepare_for_album)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(🎹 Genre)$') | Filters.regex('^(🎹 ژانر)$')),
         prepare_for_genre)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(🖼 Album Art)$') | Filters.regex('^(🖼 عکس آلبوم)$')),
         prepare_for_album_art)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(📅 Year)$') | Filters.regex('^(📅 سال)$')),
         prepare_for_year)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(💿 Disk Number)$') | Filters.regex('^(💿  شماره دیسک)$')),
         prepare_for_disknumber)
     )
-    dispatcher.add_handler(MessageHandler(
+    add_handler(MessageHandler(
         (Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$')),
         prepare_for_tracknumber)
     )
@@ -907,11 +907,8 @@ def main():
     #####################
     # Catch-all Handler #
     #####################
-    dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
-    dispatcher.add_handler(MessageHandler(
-        (Filters.video | Filters.document | Filters.contact),
-        ignore_file)
-    )
+    add_handler(MessageHandler(Filters.text, handle_responses))
+    add_handler(MessageHandler((Filters.video | Filters.document | Filters.contact), ignore_file))
 
     updater.start_polling()
     updater.idle()
