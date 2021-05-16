@@ -553,7 +553,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 value=message_text,
                 current_tag=current_tag,
                 context=context,
-                is_number=current_tag == 'year' or current_tag == 'disknumber' or current_tag == 'tracknumber'
+                is_number=current_tag in ('year', 'disknumber', 'tracknumber')
             )
             reply_message = f"{translate_key_to(lp.DONE, lang)} " \
                             f"{translate_key_to(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
