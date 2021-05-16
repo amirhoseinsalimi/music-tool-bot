@@ -21,10 +21,10 @@ def translate_key_to(key: str, destination_lang: str) -> str:
     **Returns:**
      - The value of the requested key in the dictionary
     """
-    if key in keys:
-        return keys[key][destination_lang]
-    else:
+    if key not in keys:
         raise KeyError("Specified key doesn't exist")
+
+    return keys[key][destination_lang]
 
 
 def delete_file(file_path: str) -> None:
@@ -75,6 +75,8 @@ def increment_usage_counter_for_user(user_id: int) -> int:
         user.push()
 
         return user.number_of_files_sent
+
+    raise LookupError(f'User with id {user_id} not found.')
 
 
 def is_user_admin(user_id: int) -> bool:
@@ -350,20 +352,20 @@ def parse_cutting_range(text: str) -> (int, int):
 
     if '-' not in text:
         raise ValueError('Malformed music range')
-    else:
-        if ':' in text:
-            beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
-                                beginning.partition(':')[0].lstrip('0') else 0) * 60 \
-                            + int(beginning.partition(':')[2].lstrip('0') if
-                                  beginning.partition(':')[2].lstrip('0') else 0)
 
-            ending_sec = int(ending.partition(':')[0].lstrip('0') if
-                             ending.partition(':')[0].lstrip('0') else 0) * 60 \
-                + int(ending.partition(':')[2].lstrip('0') if
-                      ending.partition(':')[2].lstrip('0') else 0)
-        else:
-            beginning_sec = int(beginning)
-            ending_sec = int(ending)
+    if ':' in text:
+        beginning_sec = int(beginning.partition(':')[0].lstrip('0') if
+                            beginning.partition(':')[0].lstrip('0') else 0) * 60 \
+                        + int(beginning.partition(':')[2].lstrip('0') if
+                              beginning.partition(':')[2].lstrip('0') else 0)
+
+        ending_sec = int(ending.partition(':')[0].lstrip('0') if
+                         ending.partition(':')[0].lstrip('0') else 0) * 60 \
+            + int(ending.partition(':')[2].lstrip('0') if
+                  ending.partition(':')[2].lstrip('0') else 0)
+    else:
+        beginning_sec = int(beginning)
+        ending_sec = int(ending)
 
     return beginning_sec, ending_sec
 

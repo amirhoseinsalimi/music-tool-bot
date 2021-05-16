@@ -409,7 +409,6 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
             if not current_tag or current_tag != 'album_art':
                 reply_message = translate_key_to(lp.ASK_WHICH_TAG, lang)
                 message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
-                return
             else:
                 try:
                     file_download_path = download_file(
@@ -546,11 +545,9 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         if not current_tag:
             reply_message = translate_key_to(lp.ASK_WHICH_TAG, lang)
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
-            return
-        if current_tag == 'album_art':
+        elif current_tag == 'album_art':
             reply_message = translate_key_to(lp.ASK_FOR_ALBUM_ART, lang)
             message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
-            return
         else:
             save_text_into_tag(
                 value=message_text,
@@ -583,15 +580,13 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
                 reply_markup=back_button_keyboard
             )
-            return
-        if beginning_sec >= ending_sec:
+        elif beginning_sec >= ending_sec:
             reply_message = translate_key_to(lp.ERR_BEGINNING_POINT_IS_GREATER, lang)
             message.reply_text(reply_message)
             message.reply_text(
                 translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
                 reply_markup=back_button_keyboard
             )
-            return
         else:
             diff_sec = ending_sec - beginning_sec
 
