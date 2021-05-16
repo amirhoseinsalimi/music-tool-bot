@@ -24,18 +24,20 @@ from orator import Model
 from persiantools import digits
 from telegram.error import TelegramError
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, ReplyKeyboardRemove
-from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, Defaults, PicklePersistence
+from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, MessageHandler, \
+    Defaults, PicklePersistence
 
 
 ##############
 # My modules #
 ##############
 import utils.lang as lp  # Language Pack
-from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, generate_music_info, \
-    is_user_owner, is_user_admin, reset_user_data_context, save_text_into_tag, increment_usage_counter_for_user, \
-    translate_key_to, delete_file, generate_back_button_keyboard, generate_start_over_keyboard, \
-    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file, parse_cutting_range, \
-    pretty_print_size, get_dir_size_in_bytes
+from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, \
+    generate_music_info, is_user_owner, is_user_admin, reset_user_data_context, \
+    save_text_into_tag, increment_usage_counter_for_user, translate_key_to, delete_file, \
+    generate_back_button_keyboard, generate_start_over_keyboard, \
+    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file, \
+    parse_cutting_range, pretty_print_size, get_dir_size_in_bytes
 
 from models.admin import Admin
 from models.user import User
@@ -177,7 +179,12 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
             translate_key_to(lp.ERR_ON_READING_TAGS, language),
             reply_markup=generate_start_over_keyboard(language)
         )
-        logger.error("Error on reading the tags %s's file. File path: %s", user_id, file_download_path, exc_info=True)
+        logger.error(
+            "Error on reading the tags %s's file. File path: %s",
+            user_id,
+            file_download_path,
+            exc_info=True
+        )
         return
 
     reset_user_data_context(context)
@@ -264,8 +271,8 @@ def command_stats(update: Update, _context: CallbackContext) -> None:
 
         downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(downloads_dir_path))
         number_of_downloaded_files = len(os.listdir(downloads_dir_path))
-        occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = psutil.disk_usage('/')[
-                                                                                              -3:]
+        occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = \
+            psutil.disk_usage('/')[-3:]
 
         update.message.reply_text(
             f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
@@ -273,9 +280,12 @@ def command_stats(update: Update, _context: CallbackContext) -> None:
             f"🇮🇷 Persian users: {len(persian_users)}\n\n"
 
 
-            f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
-            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available space: "
-            f"{pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}% used)\n"
+            f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying \
+                {downloads_dir_size}\n"
+            f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available \
+                space: "
+            f"{pretty_print_size(available_disk_space_bytes)} \({available_disk_space_percent}% \
+                used)\n"
         )
 
 
@@ -338,7 +348,10 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
     lang = user_data['language']
     user_data['current_active_module'] = 'mp3_to_voice_converter'  # TODO: Make modules a dict
 
-    os.system(f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off {input_music_path}")
+    os.system(
+        f"ffmpeg -i -y {input_music_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off \
+         {input_music_path}"
+    )
     os.system(f"ffmpeg -i {input_music_path} -c:a libvorbis -q:a 4 {voice_path}")
 
     start_over_button_keyboard = generate_start_over_keyboard(lang)
@@ -422,7 +435,11 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 except (ValueError, BaseException):
                     message.reply_text(translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
-                    logger.error("Error on downloading %s's file. File type: Photo", user_id, exc_info=True)
+                    logger.error(
+                        "Error on downloading %s's file. File type: Photo",
+                        user_id,
+                        exc_info=True
+                    )
                     return
     else:
         reply_message = translate_key_to(lp.DEFAULT_MESSAGE, lang)
@@ -454,7 +471,10 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
 
     back_button_keyboard = generate_back_button_keyboard(lang)
 
-    update.message.reply_text(translate_key_to(lp.ERR_NOT_IMPLEMENTED, lang), reply_markup=back_button_keyboard)
+    update.message.reply_text(
+        translate_key_to(lp.ERR_NOT_IMPLEMENTED, lang),
+        reply_markup=back_button_keyboard
+    )
 
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
@@ -527,7 +547,12 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     current_tag = music_tags.get('current_tag')
     lang = user_data['language']
 
-    logging.info("%s:%s:%s", update.effective_user.id, update.effective_user.username, update.message.text)
+    logging.info(
+        "%s:%s:%s",
+        update.effective_user.id,
+        update.effective_user.username,
+        update.message.text
+    )
 
     current_active_module = user_data['current_active_module']
 
@@ -587,7 +612,10 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         else:
             diff_sec = ending_sec - beginning_sec
 
-            os.system(f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy {music_path_cut}")
+            os.system(
+                f"ffmpeg -y -ss {beginning_sec} -t {diff_sec} -i {music_path} -acodec copy \
+                {music_path_cut}"
+            )
 
             try:
                 save_tags_to_file(
@@ -597,7 +625,11 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                 )
             except (OSError, BaseException):
                 update.message.reply_text(translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang))
-                logger.error("Error on updating tags for file %s's file.", music_path_cut, exc_info=True)
+                logger.error(
+                    "Error on updating tags for file %s's file.",
+                    music_path_cut,
+                    exc_info=True
+                )
 
             try:
                 with open(music_path_cut, 'rb') as music_file:
@@ -686,7 +718,10 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             new_art_path=new_art_path
         )
     except (OSError, BaseException):
-        message.reply_text(translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang), reply_markup=start_over_button_keyboard)
+        message.reply_text(
+            translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang),
+            reply_markup=start_over_button_keyboard
+        )
         logger.error("Error on updating tags for file %s's file.", music_path, exc_info=True)
         return
 
@@ -799,33 +834,51 @@ def main():
     ############################
     # Change Language Handlers #
     ############################
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$') & (~Filters.command),
-                                          set_language))
-    dispatcher.add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$') & (~Filters.command),
-                                          set_language))
+    dispatcher.add_handler(
+        MessageHandler(
+            Filters.regex('^(🇬🇧 English)$') & (~Filters.command), set_language)
+    )
+    dispatcher.add_handler(
+        MessageHandler(
+            Filters.regex('^(🇮🇷 فارسی)$') & (~Filters.command), set_language)
+    )
 
     ############################
     # Module Selector Handlers #
     ############################
-    dispatcher.add_handler(MessageHandler(
-        (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')) & (~Filters.command),
-        show_module_selector))
+    dispatcher.add_handler(
+        MessageHandler(
+            (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$'))
+            & (~Filters.command),
+            show_module_selector)
+    )
     dispatcher.add_handler(MessageHandler(
         (Filters.regex('^(🆕 New File)$') | Filters.regex('^(🆕 فایل جدید)$')) & (~Filters.command),
         start_over))
     dispatcher.add_handler(MessageHandler(
-        (Filters.regex('^(🎵 Tag Editor)$') | Filters.regex('^(🎵 تغییر تگ ها)$')) & (~Filters.command),
+        (Filters.regex('^(🎵 Tag Editor)$') | Filters.regex('^(🎵 تغییر تگ ها)$'))
+        & (~Filters.command),
         handle_music_tag_editor))
-    dispatcher.add_handler(MessageHandler(
-        (Filters.regex('^(🗣 Music to Voice Converter)$') | Filters.regex('^(🗣 تبدیل به پیام صوتی)$')) &
-        (~Filters.command),
-        handle_music_to_voice_converter))
-    dispatcher.add_handler(MessageHandler(
-        (Filters.regex('^(✂️ Music Cutter)$') | Filters.regex('^(✂️ بریدن آهنگ)$')) & (~Filters.command),
-        handle_music_cutter))
-    dispatcher.add_handler(MessageHandler(
-        (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$')) & (~Filters.command),
-        handle_music_bitrate_changer))
+    dispatcher.add_handler(
+        MessageHandler(
+            (
+                Filters.regex('^(🗣 Music to Voice Converter)$') |
+                Filters.regex('^(🗣 تبدیل به پیام صوتی)$')
+            ) & (~Filters.command),
+            handle_music_to_voice_converter)
+    )
+    dispatcher.add_handler(
+        MessageHandler(
+            (Filters.regex('^(✂️ Music Cutter)$') | Filters.regex('^(✂️ بریدن آهنگ)$'))
+            & (~Filters.command),
+            handle_music_cutter)
+    )
+    dispatcher.add_handler(
+        MessageHandler(
+            (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$'))
+            & (~Filters.command),
+            handle_music_bitrate_changer)
+    )
 
     #######################
     # Tag Editor Handlers #
@@ -848,19 +901,28 @@ def main():
     dispatcher.add_handler(MessageHandler(
         (Filters.regex('^(📅 Year)$') | Filters.regex('^(📅 سال)$')) & (~Filters.command),
         prepare_for_year))
-    dispatcher.add_handler(MessageHandler(
-        (Filters.regex('^(💿 Disk Number)$') | Filters.regex('^(💿  شماره دیسک)$')) & (~Filters.command),
-        prepare_for_disknumber))
-    dispatcher.add_handler(MessageHandler(
-        (Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$')) & (~Filters.command),
-        prepare_for_tracknumber))
+    dispatcher.add_handler(
+        MessageHandler(
+            (Filters.regex('^(💿 Disk Number)$') | Filters.regex('^(💿  شماره دیسک)$'))
+            & (~Filters.command),
+            prepare_for_disknumber)
+    )
+    dispatcher.add_handler(
+        MessageHandler(
+            (Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$'))
+            & (~Filters.command),
+            prepare_for_tracknumber)
+    )
 
     #####################
     # Catch-all Handler #
     #####################
     dispatcher.add_handler(MessageHandler(Filters.text, handle_responses))
     dispatcher.add_handler(
-        MessageHandler((Filters.video | Filters.document | Filters.contact) & (~Filters.command), ignore_file))
+        MessageHandler(
+            (Filters.video | Filters.document | Filters.contact)
+            & (~Filters.command), ignore_file)
+    )
 
     updater.start_polling()
     updater.idle()

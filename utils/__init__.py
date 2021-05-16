@@ -53,8 +53,10 @@ def generate_music_info(tag_editor_context: dict) -> str:
         f"*🎼 Album:* {tag_editor_context['album'] if tag_editor_context['album'] else '-'}\n"
         f"*🎹 Genre:* {tag_editor_context['genre'] if tag_editor_context['genre'] else '-'}\n"
         f"*📅 Year:* {tag_editor_context['year'] if tag_editor_context['year'] else '-'}\n"
-        f"*💿 Disk Number:* {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n"
+        f"*💿 Disk Number:* \
+        {tag_editor_context['disknumber'] if tag_editor_context['disknumber'] else '-'}\n"
+        f"*▶️ Track Number:* \
+        {tag_editor_context['tracknumber'] if tag_editor_context['tracknumber'] else '-'}\n"
         "{}\n"
     )
 
@@ -131,7 +133,12 @@ def reset_user_data_context(context: CallbackContext) -> None:
     context.user_data.update(new_user_data)
 
 
-def save_text_into_tag(value: str, current_tag: str, context: CallbackContext, is_number: bool = False) -> None:
+def save_text_into_tag(
+        value: str,
+        current_tag: str,
+        context: CallbackContext,
+        is_number: bool = False
+) -> None:
     """Store a value of the given tag in the corresponding context.
 
     **Keyword arguments:**
@@ -277,9 +284,14 @@ def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
     return (
         ReplyKeyboardMarkup(
             [
-                [translate_key_to('BTN_TAG_EDITOR', language),
-                 translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', language)],
-                [translate_key_to('BTN_MUSIC_CUTTER', language), translate_key_to('BTN_BITRATE_CHANGER', language)]
+                [
+                    translate_key_to('BTN_TAG_EDITOR', language),
+                    translate_key_to('BTN_MUSIC_TO_VOICE_CONVERTER', language)
+                ],
+                [
+                    translate_key_to('BTN_MUSIC_CUTTER', language),
+                    translate_key_to('BTN_BITRATE_CHANGER', language)
+                ]
             ],
             resize_keyboard=True,
             one_time_keyboard=True,
@@ -300,12 +312,23 @@ def generate_tag_editor_keyboard(language: str) -> ReplyKeyboardMarkup:
     return (
         ReplyKeyboardMarkup(
             [
-                [translate_key_to('BTN_ARTIST', language), translate_key_to('BTN_TITLE', language),
-                 translate_key_to('BTN_ALBUM', language)],
-                [translate_key_to('BTN_GENRE', language), translate_key_to('BTN_YEAR', language),
-                 translate_key_to('BTN_ALBUM_ART', language)],
-                [translate_key_to('BTN_DISK_NUMBER', language), translate_key_to('BTN_TRACK_NUMBER', language)],
-                [translate_key_to('BTN_BACK', language)]
+                [
+                    translate_key_to('BTN_ARTIST', language),
+                    translate_key_to('BTN_TITLE', language),
+                    translate_key_to('BTN_ALBUM', language)
+                ],
+                [
+                    translate_key_to('BTN_GENRE', language),
+                    translate_key_to('BTN_YEAR', language),
+                    translate_key_to('BTN_ALBUM_ART', language)
+                ],
+                [
+                    translate_key_to('BTN_DISK_NUMBER', language),
+                    translate_key_to('BTN_TRACK_NUMBER', language)
+                ],
+                [
+                    translate_key_to('BTN_BACK', language)
+                ]
             ],
             resize_keyboard=True,
         )
