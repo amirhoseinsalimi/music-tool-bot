@@ -225,7 +225,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     delete_file(old_new_art_path)
 
 
-def add_admin(update: Update, context: CallbackContext) -> None:
+def add_admin(update: Update, _context: CallbackContext) -> None:
     user_id = update.message.text.partition(' ')[2]
     user_id = int(user_id)
 
@@ -238,7 +238,7 @@ def add_admin(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(f"User {user_id} has been added as admins")
 
 
-def del_admin(update: Update, context: CallbackContext) -> None:
+def del_admin(update: Update, _context: CallbackContext) -> None:
     user_id = update.message.text.partition(' ')[2]
     # TODO: Check if the value is of type `int`
     user_id = int(user_id)
@@ -256,7 +256,7 @@ def send_to_all():
     pass
 
 
-def command_stats(update: Update, context: CallbackContext) -> None:
+def command_stats(update: Update, _context: CallbackContext) -> None:
     if is_user_admin(update.effective_user.id):
         downloads_dir_path = 'downloads'
 
@@ -280,7 +280,7 @@ def command_stats(update: Update, context: CallbackContext) -> None:
         )
 
 
-def command_list_users(update: Update, context: CallbackContext) -> None:
+def command_list_users(update: Update, _context: CallbackContext) -> None:
     if is_user_admin(update.effective_user.id):
         users = User.all()
 
@@ -621,7 +621,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                     translate_key_to(lp.ERR_ON_UPLOADING, lang),
                     reply_markup=start_over_button_keyboard
                 )
-                logger.exception("Telegram error: {e}")
+                logger.exception("Telegram error: %s", e)
 
             delete_file(music_path_cut)
 
@@ -720,7 +720,7 @@ def command_about(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(translate_key_to(lp.ABOUT_MESSAGE, context.user_data['language']))
 
 
-def show_language_keyboard(update: Update, context: CallbackContext) -> None:
+def show_language_keyboard(update: Update, _context: CallbackContext) -> None:
     language_button_keyboard = ReplyKeyboardMarkup(
         [
             ['🇬🇧 English', '🇮🇷 فارسی'],
