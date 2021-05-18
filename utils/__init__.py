@@ -168,8 +168,8 @@ def create_user_directory(user_id: int) -> str:
 
     try:
         Path(user_download_dir).mkdir(parents=True, exist_ok=True)
-    except (OSError, FileNotFoundError, BaseException) as e:
-        raise Exception(f"Can't create directory for user_id: {user_id}") from e
+    except (OSError, FileNotFoundError, BaseException) as error:
+        raise Exception(f"Can't create directory for user_id: {user_id}") from error
 
     return user_download_dir
 
@@ -223,8 +223,8 @@ def download_file(user_id: int, file_to_download, file_type: str, context: Callb
 
     try:
         file_id.download(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
-    except ValueError as e:
-        raise Exception(f"Couldn't download the file with file_id: {file_id}") from e
+    except ValueError as error:
+        raise Exception(f"Couldn't download the file with file_id: {file_id}") from error
 
     return file_download_path
 
@@ -353,8 +353,8 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> str:
         if new_art_path:
             with open(new_art_path, 'rb') as art:
                 music['artwork'] = art.read()
-    except OSError as e:
-        raise Exception("Couldn't set hashtags") from e
+    except OSError as error:
+        raise Exception("Couldn't set hashtags") from error
 
     music['artist'] = tags['artist'] if tags['artist'] else ''
     music['title'] = tags['title'] if tags['title'] else ''

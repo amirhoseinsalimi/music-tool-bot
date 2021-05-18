@@ -371,12 +371,12 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
-    except TelegramError as e:
+    except TelegramError as error:
         message.reply_text(
             translate_key_to(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
-        logger.exception("Telegram error: %s", e)
+        logger.exception("Telegram error: %s", error)
 
     delete_file(voice_path)
 
@@ -644,12 +644,12 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
                         reply_markup=start_over_button_keyboard,
                         reply_to_message_id=user_data['music_message_id']
                     )
-            except (TelegramError, BaseException) as e:
+            except (TelegramError, BaseException) as error:
                 message.reply_text(
                     translate_key_to(lp.ERR_ON_UPLOADING, lang),
                     reply_markup=start_over_button_keyboard
                 )
-                logger.exception("Telegram error: %s", e)
+                logger.exception("Telegram error: %s", error)
 
             delete_file(music_path_cut)
 
@@ -735,12 +735,12 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
-    except (TelegramError, BaseException) as e:
+    except (TelegramError, BaseException) as error:
         message.reply_text(
             translate_key_to(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
-        logger.exception("Telegram error: %s", e)
+        logger.exception("Telegram error: %s", error)
 
     reset_user_data_context(context)
 

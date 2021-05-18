@@ -1,3 +1,5 @@
+# pylint: disable=invalid-name
+
 from orator.migrations import Migration
 
 
