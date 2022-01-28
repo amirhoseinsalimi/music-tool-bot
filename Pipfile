@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [scripts]
-start = "pm2 start --name music-tool-bot bot.py --interpreter python"
+start = "pm2 start --name music-tool-bot bot.py --time --interpreter python"
 restart = "pm2 restart music-tool-bot"
 stop = "pm2 stop music-tool-bot"
 "db:migrate" = "orator migrate -c dbconfig.py"
