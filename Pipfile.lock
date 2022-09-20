@@ -112,10 +112,10 @@
         },
         "music-tag": {
             "hashes": [
-                "sha256:99ebabff7f83ff77e4d71e6af9afcc1b8db439c3b5e366b4e98d18751b1b6e9b"
+                "sha256:0aab6e6eeda8df0f5316ec2d2190bd74561b7e03562ab091ce8d5687cdbcfff6"
             ],
             "index": "pypi",
-            "version": "==0.4.2"
+            "version": "==0.4.3"
         },
         "mutagen": {
             "hashes": [
