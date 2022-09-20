@@ -170,11 +170,11 @@
         },
         "persiantools": {
             "hashes": [
-                "sha256:0cfc60889cea0988bd8e4305ab55dd47866568f66a61b7e2bdf0599c4a86cc0f",
-                "sha256:36623ebf6f195c6bb568d1dcf12b60be956400c5740c7da03a3608e652757cd5"
+                "sha256:bef45f0bebf0d9e74caed6b28908de2f929eb256f6ad4018477c38b0dcf4a330",
+                "sha256:ce28a1b015064d984546b435f68aeab03f2db7070e6690e326d64be3cedb8931"
             ],
             "index": "pypi",
-            "version": "==2.1.1"
+            "version": "==3.0.1"
         },
         "psutil": {
             "hashes": [
