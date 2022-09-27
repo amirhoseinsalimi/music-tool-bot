@@ -17,7 +17,7 @@ t = "pipenv run test"
 
 [packages]
 python-telegram-bot = "~=13.1"
-python-dotenv = "~=0.15.0"
+python-dotenv = "~=0.21.0"
 music-tag = "*"
 orator = "*"
 mysqlclient = "*"
