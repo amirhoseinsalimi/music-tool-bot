@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-"""
-Main Program
-"""
-
-
-####################
-# Built-in modules #
-####################
 import logging
 import os
 import re
@@ -15,9 +7,6 @@ import sys
 from datetime import datetime
 
 
-#######################
-# Third-party modules #
-#######################
 import psutil
 import music_tag
 from orator import Model
@@ -28,9 +17,6 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
     Defaults, PicklePersistence
 
 
-##############
-# My modules #
-##############
 import utils.lang as lp  # Language Pack
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, \
     generate_music_info, is_user_owner, is_user_admin, reset_user_data_context, \
@@ -46,16 +32,10 @@ from dbconfig import db
 Model.set_connection_resolver(db)
 
 
-####################
-# Global variables #
-####################
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
 
-##########
-# Logger #
-##########
 now = datetime.now()
 now = re.sub(':', '_', str(now))
 logger = logging.getLogger()
@@ -66,11 +46,6 @@ stdout_handler = logging.StreamHandler(sys.stdout)
 
 logger.addHandler(output_file_handler)
 logger.addHandler(stdout_handler)
-
-
-############
-# Handlers #
-############
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
@@ -795,18 +770,12 @@ def ignore_file(update: Update, context: CallbackContext) -> None:
 
 
 def main():
-    """
-    Start Bot
-    """
     defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
     persistence = PicklePersistence('persistence_storage')
 
     updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
     add_handler = updater.dispatcher.add_handler
 
-    ##########################
-    # Users Command Handlers #
-    ##########################
     add_handler(CommandHandler('start', command_start))
     add_handler(CommandHandler('new', start_over))
     add_handler(CommandHandler('language', show_language_keyboard))
@@ -816,30 +785,18 @@ def main():
     add_handler(CommandHandler('done', finish_editing_tags))
     add_handler(CommandHandler('preview', display_preview))
 
-    ##########################
-    # Admin Command Handlers #
-    ##########################
     add_handler(CommandHandler('addadmin', add_admin))
     add_handler(CommandHandler('deladmin', del_admin))
     add_handler(CommandHandler('senttoall', send_to_all))
     add_handler(CommandHandler('stats', command_stats))
     add_handler(CommandHandler('listusers', command_list_users))
 
-    #################
-    # File Handlers #
-    #################
     add_handler(MessageHandler(Filters.audio, handle_music_message))
     add_handler(MessageHandler(Filters.photo, handle_photo_message))
 
-    ############################
-    # Change Language Handlers #
-    ############################
     add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$'), set_language))
     add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$'), set_language))
 
-    ############################
-    # Module Selector Handlers #
-    ############################
     add_handler(MessageHandler(
             (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')),
             show_module_selector)
@@ -868,9 +825,6 @@ def main():
             handle_music_bitrate_changer)
     )
 
-    #######################
-    # Tag Editor Handlers #
-    #######################
     add_handler(MessageHandler(
         (Filters.regex('^(🗣 Artist)$') | Filters.regex('^(🗣 خواننده)$')),
         prepare_for_artist)
@@ -904,9 +858,6 @@ def main():
         prepare_for_tracknumber)
     )
 
-    #####################
-    # Catch-all Handler #
-    #####################
     add_handler(MessageHandler(Filters.text, handle_responses))
     add_handler(MessageHandler((Filters.video | Filters.document | Filters.contact), ignore_file))
 
