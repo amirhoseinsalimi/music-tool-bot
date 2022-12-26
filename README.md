@@ -32,6 +32,8 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 3. **Install dependencies:**<br />
    Run `pipenv install`
 
+   Make sure that you have followed the instructions mentioned on https://github.com/PyMySQL/mysqlclient#install
+
 4. **Setup environment variables:**<br />
    Run `cp .env.example .env`. Then put your credentials there:
    | Field           | Description                                                                                                                      |
