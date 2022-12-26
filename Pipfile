@@ -17,16 +17,12 @@ t = "pipenv run test"
 
 [packages]
 python-telegram-bot = "~=13.15"
+music-tag = "~=0.4.3"
 python-dotenv = "~=0.21.0"
-music-tag = "*"
-orator = "*"
-mysqlclient = "*"
-psutil = "*"
-persiantools = "*"
+orator = "~=0.9.9"
+psutil = "~=5.9.4"
+persiantools = "~=3.0.1"
 
 [dev-packages]
-pylint = "*"
-autopep8 = "*"
-
-[requires]
-python_version = "3.8"
+pylint = "~=2.15.9"
+autopep8 = "~=2.0.1"
