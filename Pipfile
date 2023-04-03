@@ -25,5 +25,5 @@ persiantools = "~=3.0.1"
 mysqlclient = "~=2.1.1"
 
 [dev-packages]
-pylint = "~=2.17.0"
+pylint = "~=2.17.2"
 autopep8 = "~=2.0.2"
