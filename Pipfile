@@ -22,7 +22,7 @@ python-dotenv = "~=0.21.1"
 orator = "~=0.9.9"
 psutil = "~=5.9.5"
 persiantools = "~=3.0.1"
-mysqlclient = "~=2.1.1"
+mysqlclient = "~=2.2.0"
 
 [dev-packages]
 pylint = "~=2.17.4"
