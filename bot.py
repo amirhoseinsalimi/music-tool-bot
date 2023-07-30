@@ -9,7 +9,6 @@ from datetime import datetime
 
 import psutil
 import music_tag
-from orator import Model
 from persiantools import digits
 from telegram.error import TelegramError
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, ReplyKeyboardRemove
@@ -27,13 +26,10 @@ from utils import download_file, create_user_directory, convert_seconds_to_human
 
 from models.admin import Admin
 from models.user import User
-from dbconfig import db
-
-Model.set_connection_resolver(db)
 
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-BOT_USERNAME = os.getenv("BOT_USERNAME")
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_USERNAME = os.getenv('BOT_USERNAME')
 
 
 now = datetime.now()
@@ -64,14 +60,14 @@ def command_start(update: Update, context: CallbackContext) -> None:
     show_language_keyboard(update, context)
 
     if not user:
-        new_user = User()
-        new_user.user_id = user_id
-        new_user.username = username
-        new_user.number_of_files_sent = 0
+        User.create({
+            'user_id': user_id,
+            'username': username,
+            'language': 'en',
+            'number_of_files_sent': 0,
+        })
 
-        new_user.save()
-
-        logger.info("A user with id %s has been started to use the bot.", user_id)
+        logger.info('A user with id %s has been started to use the bot.', user_id)
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
@@ -198,8 +194,10 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     increment_usage_counter_for_user(user_id=user_id)
 
     user = User.where('user_id', '=', user_id).first()
-    user.username = update.effective_user.username
-    user.push()
+
+    user.update({
+        'username': update.effective_user.username,
+    })
 
     delete_file(old_music_path)
     delete_file(old_art_path)
@@ -757,8 +755,8 @@ def set_language(update: Update, context: CallbackContext) -> None:
     )
 
     user = User.where('user_id', '=', user_id).first()
-    user.language = user_data['language']
-    user.push()
+
+    user.update({"language": user_data['language']})
 
 
 def ignore_file(update: Update, context: CallbackContext) -> None:

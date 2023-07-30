@@ -1,6 +1,6 @@
 # pylint: disable=invalid-name
 
-from orator.migrations import Migration
+from masoniteorm.migrations import Migration
 
 
 class CreateAdminsTable(Migration):
