@@ -39,14 +39,15 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    | Field           | Description                                                                                                                      |
    | --------------  | -------------------------------------------------------------------------------------------------------------------------------  |
    | OWNER_USER_ID   | The user ID of the owner of the bot (YOU). This user can add other admins and delete them. It should be something like 12345678. |
-   | BOT_NAME        | The name of the bot                                                                                                              |
-   | BOT_USERNAME    | The username of the bot. This username is sent as signature in captions                                                          |
-   | BOT_TOKEN       | The bot token you grabbed from @BotFather                                                                                        |
-   | DB_HOST         | Database host                                                                                                                    |
-   | DB_PORT         | Database port                                                                                                                    |
-   | DB_USERNAME     | Database username                                                                                                                |
-   | DB_PASSWORD     | Database password                                                                                                                |
-   | DB_NAME         | Database name. Read the next step for more information.                                                                          |
+   | BOT_NAME        | The name of the bot |
+   | BOT_USERNAME    | The username of the bot. This username is sent as signature in captions |
+   | BOT_TOKEN       | The bot token you grabbed from @BotFather |
+   | DB_CONFIG_PATH  | Database config file (Read Masonite ORM docs for more info) |
+   | DB_HOST         | Database host |
+   | DB_PORT         | Database port |
+   | DB_USERNAME     | Database username |
+   | DB_PASSWORD     | Database password |
+   | DB_NAME         | Database name. Read the next step for more information. |
    
 5. **Setup the database:**<br />
    This bot persists the IDs of users and admins in a MySQL database. So you need to create a database followed by 

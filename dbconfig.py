@@ -1,5 +1,5 @@
 import os
-from orator import DatabaseManager
+from masoniteorm.connections import ConnectionResolver
 
 from dotenv import load_dotenv
 
@@ -24,4 +24,4 @@ DATABASES = {
     }
 }
 
-db = DatabaseManager(DATABASES)
+DB = ConnectionResolver().set_connection_details(DATABASES)

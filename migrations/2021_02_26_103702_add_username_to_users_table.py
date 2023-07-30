@@ -1,12 +1,12 @@
 # pylint: disable=invalid-name
 
-from orator.migrations import Migration
+from masoniteorm.migrations import Migration
 
 
 class AddUsernameToUsersTable(Migration):
     def up(self):
         with self.schema.table('users') as table:
-            table.string('username').after('user_id').default('').nullable()
+            table.string('username').after('user_id').default(None).nullable()
 
     def down(self):
         with self.schema.table('users') as table:
