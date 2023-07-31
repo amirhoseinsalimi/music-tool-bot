@@ -2,11 +2,13 @@
 
 from masoniteorm.migrations import Migration
 
+TABLE_NAME = 'users'
+
 
 class CreateUsersTable(Migration):
 
     def up(self):
-        with self.schema.create('users') as table:
+        with self.schema.create(TABLE_NAME) as table:
             table.increments('id')
             table.integer('user_id').unique()
             table.string('language').default('en')
@@ -15,4 +17,4 @@ class CreateUsersTable(Migration):
             table.timestamps()
 
     def down(self):
-        self.schema.drop('users')
+        self.schema.drop(TABLE_NAME)
