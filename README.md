@@ -64,6 +64,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 See below for all possible commands:
 | Command `pipenv run <command>`   | Description                                                                                |
 | ------------------------------   | ------------------------------------------------------------------------------------------ |
+| `dev`                            | Start the bot for development with hot reload thanks to `jurigged`                         |
 | `start`                          | Start the bot for production using `pm2` module. Creates a process called `music-tool-bot` |
 | `restart`                        | Restarts the bot process with the name `music-tool-bot`                                    |
 | `stop`                           | Stops the bot process with the name `music-tool-bot`                                       |
