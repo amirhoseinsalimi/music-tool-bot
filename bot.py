@@ -67,7 +67,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
             'number_of_files_sent': 0,
         })
 
-        logger.info('A user with id %s has been started to use the bot.', user_id)
+        logger.info('A user with id %s has started using the bot.', user_id)
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
