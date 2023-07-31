@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [scripts]
+dev = "jurigged -v bot.py"
 start = "pm2 start --name music-tool-bot bot.py --time --interpreter python"
 restart = "pm2 restart music-tool-bot"
 stop = "pm2 stop music-tool-bot"
@@ -28,3 +29,4 @@ pymysql = "~=1.1.0"
 [dev-packages]
 pylint = "~=2.17.4"
 autopep8 = "~=2.0.2"
+jurigged = "~=0.5.3"
