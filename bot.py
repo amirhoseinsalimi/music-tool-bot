@@ -16,13 +16,15 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
     Defaults, PicklePersistence
 
 
-import utils.lang as lp  # Language Pack
+import utils.i18n.lang as lp  # Language Pack
 from utils import download_file, create_user_directory, convert_seconds_to_human_readable_form, \
-    generate_music_info, is_user_owner, is_user_admin, reset_user_data_context, \
-    save_text_into_tag, increment_usage_counter_for_user, translate_key_to, delete_file, \
-    generate_back_button_keyboard, generate_start_over_keyboard, \
-    generate_module_selector_keyboard, generate_tag_editor_keyboard, save_tags_to_file, \
-    parse_cutting_range, pretty_print_size, get_dir_size_in_bytes
+    is_user_admin, increment_file_counter_for_user, translate_key_to, delete_file, \
+    pretty_print_size, get_dir_size_in_bytes, is_admin_owner
+from utils.misc import reset_user_data_context
+from utils.keyboard import generate_tag_editor_keyboard, generate_back_button_keyboard, generate_start_over_keyboard, \
+    generate_module_selector_keyboard
+from utils.modules.tag_editor import save_text_into_tag, save_tags_to_file, generate_music_info
+from utils.modules.cutter import parse_cutting_range
 
 from models.admin import Admin
 from models.user import User
@@ -67,7 +69,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
             'number_of_files_sent': 0,
         })
 
-        logger.info('A user with id %s has been started to use the bot.', user_id)
+        logger.info('A user with id %s has started using the bot.', user_id)
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
@@ -191,7 +193,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     show_module_selector(update, context)
 
-    increment_usage_counter_for_user(user_id=user_id)
+    increment_file_counter_for_user(user_id=user_id)
 
     user = User.where('user_id', '=', user_id).first()
 
@@ -208,7 +210,7 @@ def add_admin(update: Update, _context: CallbackContext) -> None:
     user_id = update.message.text.partition(' ')[2]
     user_id = int(user_id)
 
-    if is_user_owner(update.effective_user.id):
+    if is_admin_owner(update.effective_user.id):
         admin = Admin()
         admin.admin_user_id = user_id
 
@@ -222,7 +224,7 @@ def del_admin(update: Update, _context: CallbackContext) -> None:
     # TODO: Check if the value is of type `int`
     user_id = int(user_id)
 
-    if is_user_owner(update.effective_user.id):
+    if is_admin_owner(update.effective_user.id):
         if is_user_admin(user_id):
             Admin.where('admin_user_id', '=', user_id).delete()
 
