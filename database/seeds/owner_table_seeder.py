@@ -2,7 +2,7 @@ import os
 import sys
 from masoniteorm.seeds import Seeder
 from dotenv import load_dotenv
-from models.admin import Admin
+from database.models.admin import Admin
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

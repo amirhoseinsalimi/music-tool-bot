@@ -42,7 +42,6 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    | BOT_NAME        | The name of the bot |
    | BOT_USERNAME    | The username of the bot. This username is sent as signature in captions |
    | BOT_TOKEN       | The bot token you grabbed from @BotFather |
-   | DB_CONFIG_PATH  | Database config file (Read Masonite ORM docs for more info) |
    | DB_HOST         | Database host |
    | DB_PORT         | Database port |
    | DB_USERNAME     | Database username |
