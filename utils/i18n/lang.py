@@ -48,6 +48,7 @@ BTN_TRACK_NUMBER = "BTN_TRACK_NUMBER"
 BTN_BACK = "BTN_BACK"
 BTN_NEW_FILE = "BTN_NEW_FILE"
 MUSIC_CUTTER_HELP = "MUSIC_CUTTER_HELP"
+BITRATE_CHANGER_HELP = "BITRATE_CHANGER_HELP"
 DONE = "DONE"
 OR = "OR"
 
@@ -276,6 +277,12 @@ keys = {
               "- صفرهای ابتدایی دل بخواه هستن\n"
               "- فاصله های اضافی در نظر گرفته نمیشن\n"
               "- تنها اعداد انگلیسی مجاز هستند",
+    },
+    BITRATE_CHANGER_HELP: {
+        "en": "\n\nNow tell me at which bitrate you would like to have your file.\n"
+              "You can select your desired bitrate from the menu below.\n\n",
+        "fa": "\n\nحالا بهم بگو فایلت رو به چه بیت ریتی تغییر بدم؟\n"
+              "از منوی زیر می‌تونی بیت ریت مورد نظرت رو انتخاب کنی.\n"
     },
     DONE: {
         "en": "Done!",

@@ -17,6 +17,7 @@ def reset_user_data_context(context: CallbackContext) -> None:
 
     new_user_data = {
         'tag_editor': {},
+        'bitrate_changer': {},
         'music_path': '',
         'music_duration': 0,
         'art_path': '',
