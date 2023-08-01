@@ -26,8 +26,8 @@ from utils.keyboard import generate_tag_editor_keyboard, generate_back_button_ke
 from utils.modules.tag_editor import save_text_into_tag, save_tags_to_file, generate_music_info
 from utils.modules.cutter import parse_cutting_range
 
-from models.admin import Admin
-from models.user import User
+from database.models.admin import Admin
+from database.models.user import User
 
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')

@@ -1,4 +1,4 @@
-from models.admin import Admin
+from database.models.admin import Admin
 
 
 def is_admin_owner(user_id: int) -> bool:

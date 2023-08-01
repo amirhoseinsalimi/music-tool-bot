@@ -1,4 +1,4 @@
-from models.user import User
+from database.models.user import User
 
 
 def increment_file_counter_for_user(user_id: int) -> int:
