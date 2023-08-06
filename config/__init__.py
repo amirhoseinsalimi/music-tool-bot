@@ -1,1 +1,1 @@
-from .dbconfig import *
+from .database import *
