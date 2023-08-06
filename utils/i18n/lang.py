@@ -69,8 +69,11 @@ keys = {
         "fa": "یه موزیک برام بفرست تا ببینی چقدر خفنم!",
     },
     HELP_MESSAGE: {
-        "en": "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁",
-        "fa": "ساده س! یه فایل صوتی، یه MP3 یا یه موزیک برام بفرست. منتظرم... 😁",
+        "en": "It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁\n\n"
+              "By the way, if you're having problem processing your file, please enter /new command "
+              "to start over.",
+        "fa": "ساده س! یه فایل صوتی، یه MP3 یا یه موزیک برام بفرست. منتظرم... 😁\n\n"
+              "راستی اگر مشکلی با پردازش فایلت داری، لطفا کامند /new رو بزن تا از اول شروع کنی.",
     },
     ABOUT_MESSAGE: {
         "en": "This bot is created by @amirhoseinsalimii in Python language.\n"
