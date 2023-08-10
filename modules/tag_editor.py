@@ -1,28 +1,16 @@
-import logging
 import music_tag
-import os
-
-from config.telegram import add_handler
 from persiantools import digits
-
+from telegram import ChatAction, ReplyKeyboardRemove, Update
 from telegram.error import TelegramError
-from telegram import Update, ChatAction, ReplyKeyboardRemove
-from telegram.ext import CommandHandler, CallbackContext, Filters, MessageHandler
+from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler
 
 import utils.i18n as lp
-from utils import download_file, create_user_directory, \
-    increment_file_counter_for_user, translate_key_to, delete_file
-
-from utils.misc import reset_user_data_context
-from utils.keyboard import generate_tag_editor_keyboard, generate_start_over_keyboard, \
-    generate_module_selector_keyboard
-
+from config.envs import BOT_USERNAME
+from config.telegram_bot import add_handler
 from database.models import User
-
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-BOT_USERNAME = os.getenv('BOT_USERNAME')
-
-logger = logging.getLogger()
+from utils import create_user_directory, delete_file, download_file, generate_module_selector_keyboard, \
+    generate_start_over_keyboard, generate_tag_editor_keyboard, increment_file_counter_for_user, logger, \
+    reset_user_data_context, translate_key_to
 
 
 def save_text_into_tag(

@@ -1,14 +1,12 @@
 import os
+
 import psutil
-
 from telegram import Update
-from telegram.ext import CommandHandler, CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 
-from config.telegram import add_handler
-
+from config.telegram_bot import add_handler
 from database.models import Admin, User
-
-from utils import is_user_admin, pretty_print_size, get_dir_size_in_bytes, is_admin_owner
+from utils import get_dir_size_in_bytes, is_admin_owner, is_user_admin, pretty_print_size
 
 
 def add_admin_if_user_is_owner(update: Update, _context: CallbackContext):

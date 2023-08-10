@@ -2,12 +2,11 @@ import os
 import sys
 
 from masoniteorm.seeds import Seeder
+
+from config.envs import OWNER_USER_ID_INT
 from database.models import Admin
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-
 
 
 class OwnerTableSeeder(Seeder):

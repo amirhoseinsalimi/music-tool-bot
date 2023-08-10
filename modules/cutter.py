@@ -1,22 +1,17 @@
 import os
 import re
-import logging
 
 from persiantools import digits
 from telegram import Update
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, Filters, MessageHandler
 
-from config.telegram import add_handler
-from config.envs import BOT_USERNAME
-
 import utils.i18n as lp
-from utils import convert_seconds_to_human_readable_form, translate_key_to, delete_file, reset_user_data_context, \
-    generate_start_over_keyboard, generate_back_button_keyboard
-
+from config.envs import BOT_USERNAME
+from config.telegram_bot import add_handler
 from modules.tag_editor import save_tags_to_file
-
-logger = logging.getLogger()
+from utils import convert_seconds_to_human_readable_form, delete_file, generate_back_button_keyboard, \
+    generate_start_over_keyboard, logger, reset_user_data_context, translate_key_to
 
 
 def handle_cutter(update: Update, context: CallbackContext):

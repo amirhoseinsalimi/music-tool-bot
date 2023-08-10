@@ -2,7 +2,6 @@
 
 from masoniteorm.migrations import Migration
 
-
 TABLE_NAME = 'users'
 COLUMN_NAME = 'username'
 

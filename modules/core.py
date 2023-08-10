@@ -1,21 +1,13 @@
-import logging
-
-from telegram import Update, ReplyKeyboardRemove, ReplyKeyboardMarkup
-from telegram.ext import CallbackContext, Filters, MessageHandler, CommandHandler
-
-from config.telegram import add_handler
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler
 
 import utils.i18n as lp
-from utils import translate_key_to, reset_user_data_context, generate_back_button_keyboard, \
-    generate_module_selector_keyboard
-
+from config.telegram_bot import add_handler
+from database.models import User
 from modules.cutter import handle_cutter, is_current_module_music_cutter
 from modules.tag_editor import handle_tag_editor, is_current_module_tag_editor
-
-from database.models import User
-
-logger = logging.getLogger()
-
+from utils import generate_back_button_keyboard, generate_module_selector_keyboard, reset_user_data_context, \
+    translate_key_to, logger
 
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
@@ -78,6 +70,8 @@ def show_language_keyboard(update: Update, _context: CallbackContext) -> None:
 
 
 def show_module_selector(update: Update, context: CallbackContext) -> None:
+    print('show_module_selector')
+
     user_data = context.user_data
     context.user_data['current_active_module'] = ''
     lang = user_data['language']
@@ -129,7 +123,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     music_path = user_data['music_path']
     lang = user_data['language']
 
-    logging.info(
+    logger.info(
         "%s:%s:%s",
         update.effective_user.id,
         update.effective_user.username,

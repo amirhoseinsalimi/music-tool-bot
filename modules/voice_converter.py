@@ -1,17 +1,13 @@
-import logging
 import os
-from config.telegram import add_handler
 
+from telegram import ChatAction, Update
 from telegram.error import TelegramError
-from telegram import Update, ChatAction
 from telegram.ext import CallbackContext, Filters, MessageHandler
 
-from config.envs import BOT_USERNAME
-
 import utils.i18n as lp
-from utils import translate_key_to, delete_file, generate_start_over_keyboard, reset_user_data_context
-
-logger = logging.getLogger()
+from config.envs import BOT_USERNAME
+from config.telegram_bot import add_handler
+from utils import delete_file, generate_start_over_keyboard, logger, reset_user_data_context, translate_key_to
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:

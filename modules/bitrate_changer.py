@@ -1,19 +1,15 @@
 import os
 import re
-import logging
 
 from telegram import Update
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, Filters, MessageHandler
 
-from config.telegram import add_handler
-from config.envs import BOT_USERNAME
-
 import utils.i18n as lp
-from utils import translate_key_to, delete_file, generate_start_over_keyboard, \
-    generate_bitrate_selector_keyboard, reset_user_data_context
-
-logger = logging.getLogger()
+from config.envs import BOT_USERNAME
+from config.telegram_bot import add_handler
+from utils import delete_file, generate_bitrate_selector_keyboard, generate_start_over_keyboard, logger, \
+    reset_user_data_context, translate_key_to
 
 
 def change_bitrate(update: Update, context: CallbackContext) -> None:
