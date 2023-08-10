@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long
 
 
-def translate_key_to(key: str, destination_lang: str) -> str:
+def t(key: str, destination_lang: str) -> str:
     """Find the specified key in the `keys` dictionary and returns the corresponding
     value for the given language
 

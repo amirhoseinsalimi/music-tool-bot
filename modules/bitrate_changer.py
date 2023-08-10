@@ -9,7 +9,7 @@ import utils.i18n as lp
 from config.envs import BOT_USERNAME
 from config.telegram_bot import add_handler
 from utils import delete_file, generate_bitrate_selector_keyboard, generate_start_over_keyboard, logger, \
-    reset_user_data_context, translate_key_to
+    reset_user_data_context, t
 
 
 def change_bitrate(update: Update, context: CallbackContext) -> None:
@@ -22,7 +22,7 @@ def change_bitrate(update: Update, context: CallbackContext) -> None:
     bitrate_output = parse_bitrate_number(message.text)
 
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
 
         update.message.reply_text(message_text)
     else:
@@ -44,7 +44,7 @@ def change_bitrate(update: Update, context: CallbackContext) -> None:
                 )
         except (TelegramError, BaseException) as error:
             message.reply_text(
-                translate_key_to(lp.ERR_ON_UPLOADING, lang),
+                t(lp.ERR_ON_UPLOADING, lang),
                 reply_markup=start_over_button_keyboard
             )
             logger.exception("Telegram error: %s", error)
@@ -73,7 +73,7 @@ def handle_music_bitrate_changer(update: Update, context: CallbackContext) -> No
     bitrate_selector_keyboard = generate_bitrate_selector_keyboard(lang)
 
     update.message.reply_text(
-        f"{translate_key_to(lp.BITRATE_CHANGER_HELP, lang)}\n",
+        f"{t(lp.BITRATE_CHANGER_HELP, lang)}\n",
         reply_markup=bitrate_selector_keyboard
     )
 

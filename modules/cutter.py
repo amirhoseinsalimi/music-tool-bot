@@ -11,7 +11,7 @@ from config.envs import BOT_USERNAME
 from config.telegram_bot import add_handler
 from modules.tag_editor import save_tags_to_file
 from utils import convert_seconds_to_human_readable_form, delete_file, generate_back_button_keyboard, \
-    generate_start_over_keyboard, logger, reset_user_data_context, translate_key_to
+    generate_start_over_keyboard, logger, reset_user_data_context, t
 
 
 def handle_cutter(update: Update, context: CallbackContext):
@@ -29,8 +29,8 @@ def handle_cutter(update: Update, context: CallbackContext):
     try:
         beginning_sec, ending_sec = parse_cutting_range(message_text)
     except (ValueError, BaseException):
-        reply_message = translate_key_to(lp.ERR_MALFORMED_RANGE, lang).format(
-            translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
+        reply_message = t(lp.ERR_MALFORMED_RANGE, lang).format(
+            t(lp.MUSIC_CUTTER_HELP, lang),
         )
         message.reply_text(reply_message, reply_markup=back_button_keyboard)
         return
@@ -38,18 +38,18 @@ def handle_cutter(update: Update, context: CallbackContext):
     music_duration = user_data['music_duration']
 
     if beginning_sec > music_duration or ending_sec > music_duration:
-        reply_message = translate_key_to(lp.ERR_OUT_OF_RANGE, lang).format(
+        reply_message = t(lp.ERR_OUT_OF_RANGE, lang).format(
             convert_seconds_to_human_readable_form(music_duration))
         message.reply_text(reply_message)
         message.reply_text(
-            translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
+            t(lp.MUSIC_CUTTER_HELP, lang),
             reply_markup=back_button_keyboard
         )
     elif beginning_sec >= ending_sec:
-        reply_message = translate_key_to(lp.ERR_BEGINNING_POINT_IS_GREATER, lang)
+        reply_message = t(lp.ERR_BEGINNING_POINT_IS_GREATER, lang)
         message.reply_text(reply_message)
         message.reply_text(
-            translate_key_to(lp.MUSIC_CUTTER_HELP, lang),
+            t(lp.MUSIC_CUTTER_HELP, lang),
             reply_markup=back_button_keyboard
         )
     else:
@@ -67,7 +67,7 @@ def handle_cutter(update: Update, context: CallbackContext):
                 new_art_path=art_path if art_path else ''
             )
         except (OSError, BaseException):
-            update.message.reply_text(translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang))
+            update.message.reply_text(t(lp.ERR_ON_UPDATING_TAGS, lang))
             logger.error(
                 "Error on updating tags for file %s's file.",
                 music_path_cut,
@@ -89,7 +89,7 @@ def handle_cutter(update: Update, context: CallbackContext):
                 )
         except (TelegramError, BaseException) as error:
             message.reply_text(
-                translate_key_to(lp.ERR_ON_UPLOADING, lang),
+                t(lp.ERR_ON_UPLOADING, lang),
                 reply_markup=start_over_button_keyboard
             )
             logger.exception("Telegram error: %s", error)
@@ -138,7 +138,7 @@ def handle_music_cutter(update: Update, context: CallbackContext) -> None:
 
     # TODO: Send back the length of the music
     update.message.reply_text(
-        f"{translate_key_to(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
+        f"{t(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
         reply_markup=back_button_keyboard
     )
 

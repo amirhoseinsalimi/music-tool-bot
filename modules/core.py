@@ -7,7 +7,7 @@ from database.models import User
 from modules.cutter import handle_cutter, is_current_module_music_cutter
 from modules.tag_editor import handle_tag_editor, is_current_module_tag_editor
 from utils import generate_back_button_keyboard, generate_module_selector_keyboard, reset_user_data_context, \
-    translate_key_to, logger
+    t, logger
 
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
@@ -18,7 +18,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
     user = User.where('user_id', '=', user_id).first()
 
     update.message.reply_text(
-        translate_key_to(lp.START_MESSAGE, context.user_data['language']),
+        t(lp.START_MESSAGE, context.user_data['language']),
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -39,18 +39,18 @@ def start_over(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(context)
 
     update.message.reply_text(
-        translate_key_to(lp.START_OVER_MESSAGE, context.user_data['language']),
+        t(lp.START_OVER_MESSAGE, context.user_data['language']),
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=ReplyKeyboardRemove()
     )
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(translate_key_to(lp.ABOUT_MESSAGE, context.user_data['language']))
+    update.message.reply_text(t(lp.ABOUT_MESSAGE, context.user_data['language']))
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(translate_key_to(lp.HELP_MESSAGE, context.user_data['language']))
+    update.message.reply_text(t(lp.HELP_MESSAGE, context.user_data['language']))
 
 
 def show_language_keyboard(update: Update, _context: CallbackContext) -> None:
@@ -79,7 +79,7 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     module_selector_keyboard = generate_module_selector_keyboard(lang)
 
     update.message.reply_text(
-        translate_key_to(lp.ASK_WHICH_MODULE, lang),
+        t(lp.ASK_WHICH_MODULE, lang),
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
@@ -95,9 +95,9 @@ def set_language(update: Update, context: CallbackContext) -> None:
     elif "فارسی" in lang:
         user_data['language'] = 'fa'
 
-    update.message.reply_text(translate_key_to(lp.LANGUAGE_CHANGED, user_data['language']))
+    update.message.reply_text(t(lp.LANGUAGE_CHANGED, user_data['language']))
     update.message.reply_text(
-        translate_key_to(lp.START_OVER_MESSAGE, user_data['language']),
+        t(lp.START_OVER_MESSAGE, user_data['language']),
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -112,7 +112,7 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
     back_button_keyboard = generate_back_button_keyboard(lang)
 
     update.message.reply_text(
-        translate_key_to(lp.ERR_NOT_IMPLEMENTED, lang),
+        t(lp.ERR_NOT_IMPLEMENTED, lang),
         reply_markup=back_button_keyboard
     )
 
@@ -142,11 +142,11 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
         if music_path:
             if user_data['current_active_module']:
                 message.reply_text(
-                    translate_key_to(lp.ASK_WHICH_MODULE, lang),
+                    t(lp.ASK_WHICH_MODULE, lang),
                     reply_markup=module_selector_keyboard
                 )
         elif not music_path:
-            message.reply_text(translate_key_to(lp.START_OVER_MESSAGE, lang))
+            message.reply_text(t(lp.START_OVER_MESSAGE, lang))
         else:
             throw_not_implemented(update, context)
 
@@ -154,7 +154,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 def ignore_file(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(context)
     update.message.reply_text(
-        translate_key_to(lp.START_OVER_MESSAGE, context.user_data['language']),
+        t(lp.START_OVER_MESSAGE, context.user_data['language']),
         reply_markup=ReplyKeyboardRemove()
     )
 

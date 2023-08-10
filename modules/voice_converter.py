@@ -7,7 +7,7 @@ from telegram.ext import CallbackContext, Filters, MessageHandler
 import utils.i18n as lp
 from config.envs import BOT_USERNAME
 from config.telegram_bot import add_handler
-from utils import delete_file, generate_start_over_keyboard, logger, reset_user_data_context, translate_key_to
+from utils import delete_file, generate_start_over_keyboard, logger, reset_user_data_context, t
 
 
 def handle_music_to_voice_converter(update: Update, context: CallbackContext) -> None:
@@ -48,7 +48,7 @@ def handle_music_to_voice_converter(update: Update, context: CallbackContext) ->
             )
     except TelegramError as error:
         message.reply_text(
-            translate_key_to(lp.ERR_ON_UPLOADING, lang),
+            t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
         logger.exception("Telegram error: %s", error)

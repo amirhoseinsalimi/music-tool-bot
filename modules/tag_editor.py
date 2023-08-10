@@ -10,7 +10,7 @@ from config.telegram_bot import add_handler
 from database.models import User
 from utils import create_user_directory, delete_file, download_file, generate_module_selector_keyboard, \
     generate_start_over_keyboard, generate_tag_editor_keyboard, increment_file_counter_for_user, logger, \
-    reset_user_data_context, translate_key_to
+    reset_user_data_context, t
 
 
 def save_text_into_tag(
@@ -101,7 +101,7 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     module_selector_keyboard = generate_module_selector_keyboard(lang)
 
     update.message.reply_text(
-        translate_key_to(lp.ASK_WHICH_MODULE, lang),
+        t(lp.ASK_WHICH_MODULE, lang),
         reply_to_message_id=update.effective_message.message_id,
         reply_markup=module_selector_keyboard
     )
@@ -109,60 +109,60 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 
 def prepare_for_album(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'album'
-        message_text = translate_key_to(lp.ASK_FOR_ALBUM, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_ALBUM, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_genre(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'genre'
-        message_text = translate_key_to(lp.ASK_FOR_GENRE, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_GENRE, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_year(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'year'
-        message_text = translate_key_to(lp.ASK_FOR_YEAR, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_YEAR, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_album_art(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'album_art'
-        message_text = translate_key_to(lp.ASK_FOR_ALBUM_ART, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_ALBUM_ART, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_disknumber(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'disknumber'
-        message_text = translate_key_to(lp.ASK_FOR_DISK_NUMBER, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_DISK_NUMBER, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_tracknumber(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'tracknumber'
-        message_text = translate_key_to(lp.ASK_FOR_TRACK_NUMBER, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_TRACK_NUMBER, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -180,7 +180,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
     if music_duration >= 3600 and music_file_size > 48000000:
         message.reply_text(
-            translate_key_to(lp.ERR_TOO_LARGE_FILE, language),
+            t(lp.ERR_TOO_LARGE_FILE, language),
             reply_markup=generate_start_over_keyboard(language)
         )
         return
@@ -193,7 +193,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     try:
         create_user_directory(user_id)
     except OSError:
-        message.reply_text(translate_key_to(lp.ERR_CREATING_USER_FOLDER, language))
+        message.reply_text(t(lp.ERR_CREATING_USER_FOLDER, language))
         logger.error("Couldn't create directory for user %s", user_id, exc_info=True)
         return
 
@@ -206,7 +206,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         )
     except ValueError:
         message.reply_text(
-            translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, language),
+            t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, language),
             reply_markup=generate_start_over_keyboard(language)
         )
         logger.error("Error on downloading %s's file. File type: Audio", user_id, exc_info=True)
@@ -216,7 +216,7 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
         message.reply_text(
-            translate_key_to(lp.ERR_ON_READING_TAGS, language),
+            t(lp.ERR_ON_READING_TAGS, language),
             reply_markup=generate_start_over_keyboard(language)
         )
         logger.error(
@@ -289,10 +289,10 @@ def handle_tag_editor(update: Update, context: CallbackContext):
     tag_editor_keyboard = generate_tag_editor_keyboard(lang)
 
     if not current_tag:
-        reply_message = translate_key_to(lp.ASK_WHICH_TAG, lang)
+        reply_message = t(lp.ASK_WHICH_TAG, lang)
         message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     elif current_tag == 'album_art':
-        reply_message = translate_key_to(lp.ASK_FOR_ALBUM_ART, lang)
+        reply_message = t(lp.ASK_FOR_ALBUM_ART, lang)
         message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     else:
         save_text_into_tag(
@@ -301,10 +301,10 @@ def handle_tag_editor(update: Update, context: CallbackContext):
             context=context,
             is_number=current_tag in ('year', 'disknumber', 'tracknumber')
         )
-        reply_message = f"{translate_key_to(lp.DONE, lang)} " \
-                        f"{translate_key_to(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
-                        f"{translate_key_to(lp.OR, lang).upper()}" \
-                        f" {translate_key_to(lp.CLICK_DONE_MESSAGE, lang).lower()}"
+        reply_message = f"{t(lp.DONE, lang)} " \
+                        f"{t(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
+                        f"{t(lp.OR, lang).upper()}" \
+                        f" {t(lp.CLICK_DONE_MESSAGE, lang).lower()}"
         message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
 
 
@@ -352,7 +352,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
     if music_path:
         if current_active_module == 'tag_editor':
             if not current_tag or current_tag != 'album_art':
-                reply_message = translate_key_to(lp.ASK_WHICH_TAG, lang)
+                reply_message = t(lp.ASK_WHICH_TAG, lang)
                 message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
             else:
                 try:
@@ -362,14 +362,14 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                         file_type='photo',
                         context=context
                     )
-                    reply_message = f"{translate_key_to(lp.ALBUM_ART_CHANGED, lang)} " \
-                                    f"{translate_key_to(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
-                                    f"{translate_key_to(lp.OR, lang).upper()} " \
-                                    f"{translate_key_to(lp.CLICK_DONE_MESSAGE, lang).lower()}"
+                    reply_message = f"{t(lp.ALBUM_ART_CHANGED, lang)} " \
+                                    f"{t(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
+                                    f"{t(lp.OR, lang).upper()} " \
+                                    f"{t(lp.CLICK_DONE_MESSAGE, lang).lower()}"
                     user_data['new_art_path'] = file_download_path
                     message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
                 except (ValueError, BaseException):
-                    message.reply_text(translate_key_to(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
+                    message.reply_text(t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
                     logger.error(
                         "Error on downloading %s's file. File type: Photo",
                         user_id,
@@ -377,26 +377,26 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                     )
                     return
     else:
-        reply_message = translate_key_to(lp.DEFAULT_MESSAGE, lang)
+        reply_message = t(lp.DEFAULT_MESSAGE, lang)
         message.reply_text(reply_message, reply_markup=ReplyKeyboardRemove())
 
 
 def prepare_for_artist(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'artist'
-        message_text = translate_key_to(lp.ASK_FOR_ARTIST, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_ARTIST, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
 
 def prepare_for_title(update: Update, context: CallbackContext) -> None:
     if len(context.user_data) == 0:
-        message_text = translate_key_to(lp.DEFAULT_MESSAGE, context.user_data['language'])
+        message_text = t(lp.DEFAULT_MESSAGE, context.user_data['language'])
     else:
         context.user_data['tag_editor']['current_tag'] = 'title'
-        message_text = translate_key_to(lp.ASK_FOR_TITLE, context.user_data['language'])
+        message_text = t(lp.ASK_FOR_TITLE, context.user_data['language'])
 
     update.message.reply_text(message_text)
 
@@ -425,7 +425,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         )
     except (OSError, BaseException):
         message.reply_text(
-            translate_key_to(lp.ERR_ON_UPDATING_TAGS, lang),
+            t(lp.ERR_ON_UPDATING_TAGS, lang),
             reply_markup=start_over_button_keyboard
         )
         logger.error("Error on updating tags for file %s's file.", music_path, exc_info=True)
@@ -443,7 +443,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             )
     except (TelegramError, BaseException) as error:
         message.reply_text(
-            translate_key_to(lp.ERR_ON_UPLOADING, lang),
+            t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
         logger.exception("Telegram error: %s", error)
@@ -464,14 +464,14 @@ def display_preview(update: Update, context: CallbackContext) -> None:
             message.reply_photo(
                 photo=art_file,
                 caption=f"{generate_music_info(tag_editor_context).format('')}"
-                        f"{translate_key_to(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
+                        f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
                         f"🆔 {BOT_USERNAME}",
                 reply_to_message_id=update.effective_message.message_id,
             )
     else:
         message.reply_text(
             f"{generate_music_info(tag_editor_context).format('')}"
-            f"{translate_key_to(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
+            f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
             f"🆔 {BOT_USERNAME}",
             reply_to_message_id=update.effective_message.message_id,
         )
