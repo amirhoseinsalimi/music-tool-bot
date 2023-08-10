@@ -1,5 +1,6 @@
 from telegram.ext import CallbackContext
-from utils.fs.delete_file import delete_file
+
+from .fs import delete_file
 
 
 def reset_user_data_context(context: CallbackContext) -> None:

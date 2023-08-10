@@ -6,8 +6,7 @@ from telegram.ext import CommandHandler, CallbackContext
 
 from config.telegram import add_handler
 
-from database.models import Admin
-from database.models import User
+from database.models import Admin, User
 
 from utils import is_user_admin, pretty_print_size, get_dir_size_in_bytes, is_admin_owner
 
