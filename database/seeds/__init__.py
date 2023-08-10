@@ -1,1 +1,0 @@
-from .owner_table_seeder import OwnerTableSeeder
