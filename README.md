@@ -27,7 +27,9 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    Run `git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot && cd music-tool-bot`
 
 2. **Fire up your venv shell:**<br />
-   Run `python3 -m venv venv`, then install pipenv: `pip install pipenv`
+   - Run `python3 -m venv venv` to create a virtual environment
+   - Run `source venv/bin/activate` to activate the virtual environment
+   - Run `pip install pipenv` to install pipenv 
 
 3. **Install dependencies:**<br />
    Run `pipenv install`
@@ -48,7 +50,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    | DB_PASSWORD     | Database password |
    | DB_NAME         | Database name. Read the next step for more information. |
    
-5. **Setup the database:**<br />
+5. **Set up the database:**<br />
    This bot persists the IDs of users and admins in a MySQL database. So you need to create a database followed by 
    running migrations:<br />
    `pipenv run db:migrate`.<br />
@@ -58,7 +60,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 
 6. **Run the bot**<br />
    a. Start the bot `pipenv run start`<br />
-   b. restart `pipenv run restart`<br /><br />
+   b. Restart the bot `pipenv run restart`<br /><br />
    
 See below for all possible commands:
 | Command `pipenv run <command>`   | Description                                                                                |
