@@ -283,7 +283,6 @@ def handle_tag_editor(update: Update, context: CallbackContext):
     message = update.message
     lang = user_data['language']
     message_text = digits.ar_to_fa(digits.fa_to_en(message.text))
-    user_data = context.user_data
     current_tag = music_tags.get('current_tag')
 
     tag_editor_keyboard = generate_tag_editor_keyboard(lang)
@@ -478,7 +477,8 @@ def display_preview(update: Update, context: CallbackContext) -> None:
 
 
 class TagEditorModule:
-    def register(self):
+    @staticmethod
+    def register():
         add_handler(CommandHandler('done', finish_editing_tags))
         add_handler(CommandHandler('preview', display_preview))
 

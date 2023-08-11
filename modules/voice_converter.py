@@ -63,8 +63,8 @@ class VoiceConverterModule:
     def register():
         add_handler(MessageHandler(
             (
-                    Filters.regex('^(🗣 Music to Voice Converter)$')
-                    | Filters.regex('^(🗣 تبدیل به پیام صوتی)$')
+                Filters.regex('^(🗣 Music to Voice Converter)$')
+                | Filters.regex('^(🗣 تبدیل به پیام صوتی)$')
             ),
             handle_music_to_voice_converter)
         )
