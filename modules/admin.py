@@ -8,6 +8,8 @@ from config.telegram_bot import add_handler
 from database.models import Admin, User
 from utils import get_dir_size_in_bytes, is_admin_owner, is_user_admin, pretty_print_size
 
+DOWNLOADS_DIT_PATH = 'downloads'
+
 
 def add_admin_if_user_is_owner(update: Update, _context: CallbackContext):
     if not is_admin_owner(update.effective_user.id):
@@ -56,8 +58,6 @@ def show_stats_if_user_is_admin(update: Update, _context: CallbackContext):
 
 
 def show_stats(update: Update):
-    DOWNLOADS_DIT_PATH = 'downloads'
-
     persian_users = User.all().where('language', 'fa')
     english_users = User.all().where('language', 'en')
 

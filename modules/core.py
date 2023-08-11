@@ -9,6 +9,7 @@ from modules.tag_editor import handle_tag_editor, is_current_module_tag_editor
 from utils import generate_back_button_keyboard, generate_module_selector_keyboard, reset_user_data_context, \
     t, logger
 
+
 def command_start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
     username = update.effective_user.username
