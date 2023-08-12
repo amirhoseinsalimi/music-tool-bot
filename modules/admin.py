@@ -6,52 +6,55 @@ from telegram.ext import CallbackContext, CommandHandler
 
 from config.telegram_bot import add_handler
 from database.models import Admin, User
-from utils import get_dir_size_in_bytes, is_admin_owner, is_user_admin, pretty_print_size
+from utils import get_dir_size_in_bytes, get_effective_user_id, get_message_text, is_admin_owner, is_user_admin, \
+    pretty_print_size
 
 DOWNLOADS_DIT_PATH = 'downloads'
 
 
+def parse_and_normalize_user_id(message: str) -> int:
+    return int(message.partition(' ')[2])
+
+
 def add_admin_if_user_is_owner(update: Update, _context: CallbackContext):
-    if not is_admin_owner(update.effective_user.id):
+    if not is_admin_owner(get_effective_user_id(update)):
         return
 
     add_admin(update)
 
 
 def add_admin(update: Update):
-    user_id = update.message.text.partition(' ')[2]
-    user_id = int(user_id)
+    admin_id_to_add = parse_and_normalize_user_id(get_message_text(update))
 
     admin = Admin()
-    admin.admin_user_id = user_id
+    admin.admin_user_id = admin_id_to_add
 
     admin.save()
 
-    update.message.reply_text(f"User {user_id} has been added as admins.")
+    update.message.reply_text(f"User {admin_id_to_add} has been added as admins.")
 
 
 def del_admin_if_user_is_owner(update: Update, _context: CallbackContext):
-    if not is_admin_owner(update.effective_user.id):
+    if not is_admin_owner(get_effective_user_id(update)):
         return
 
     del_admin(update)
 
 
 def del_admin(update: Update):
-    user_id = update.message.text.partition(' ')[2]
     # TODO: Check if the value is of type `int`
-    user_id = int(user_id)
+    admin_id_to_delete = parse_and_normalize_user_id(get_message_text(update))
 
-    if is_user_admin(user_id):
-        Admin.where('admin_user_id', '=', user_id).delete()
+    if is_user_admin(admin_id_to_delete):
+        Admin.where('admin_user_id', '=', admin_id_to_delete).delete()
 
-        update.message.reply_text(f"User {user_id} is no longer an admin")
+        update.message.reply_text(f"User {admin_id_to_delete} is no longer an admin")
     else:
-        update.message.reply_text(f"User {user_id} is not admin")
+        update.message.reply_text(f"User {admin_id_to_delete} is not admin")
 
 
 def show_stats_if_user_is_admin(update: Update, _context: CallbackContext):
-    if not is_user_admin(update.effective_user.id):
+    if not is_user_admin(get_effective_user_id(update)):
         return
 
     show_stats(update)
@@ -82,7 +85,7 @@ def show_stats(update: Update):
 
 
 def list_users_if_user_is_admin(update: Update, _context: CallbackContext):
-    if not is_user_admin(update.effective_user.id):
+    if not is_user_admin(get_effective_user_id(update)):
         return
 
     list_users(update)
