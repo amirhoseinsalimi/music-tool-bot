@@ -187,7 +187,7 @@ def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> None:
 def read_and_store_music_tags(update: Update, user_data: UD) -> None:
     user_id = get_effective_user_id(update)
     file_download_path = user_data['music_path']
-    lang = user_data['language']
+    lang = get_user_language_or_fallback(user_data)
 
     try:
         music = music_tag.load_file(file_download_path)
