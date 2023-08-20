@@ -281,7 +281,7 @@ def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
     set_current_module(user_data, Module.TAG_EDITOR)
 
     tag_editor_context = user_data['tag_editor']
-    art_path = tag_editor_context['art_path']
+    art_path = tag_editor_context.get('art_path')
     tag_editor_context['current_tag'] = ''
 
     tag_editor_keyboard = generate_tag_editor_keyboard(lang)
@@ -362,7 +362,7 @@ def display_preview(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
     user_data = get_user_data(context)
     tag_editor_context = user_data['tag_editor']
-    art_path = tag_editor_context['art_path']
+    art_path = tag_editor_context.get('art_path')
     new_art_path = tag_editor_context.get('new_art_path')
     lang = get_user_language_or_fallback(user_data)
 
