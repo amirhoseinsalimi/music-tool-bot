@@ -24,8 +24,10 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
     user_data = get_user_data(context)
 
+    reset_user_data_context(get_effective_user_id(update), user_data)
+
     update.message.reply_text(
-        t(lp.START_MESSAGE, user_data['language']),
+        t(lp.START_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -44,8 +46,6 @@ def command_start(update: Update, context: CallbackContext) -> None:
         'number_of_files_sent': 0,
     })
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
-
     logger.info('A user with id %s has started using the bot.', user_id)
 
 
@@ -55,18 +55,18 @@ def start_over(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
     update.message.reply_text(
-        t(lp.START_OVER_MESSAGE, user_data['language']),
+        t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_to_message_id=get_effective_message_id(update),
         reply_markup=ReplyKeyboardRemove()
     )
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(t(lp.ABOUT_MESSAGE, get_user_data(context)['language']))
+    update.message.reply_text(t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(t(lp.HELP_MESSAGE, get_user_data(context)['language']))
+    update.message.reply_text(t(lp.HELP_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
 
 
 def show_language_selector(update: Update, _context: CallbackContext) -> None:
@@ -101,28 +101,30 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 
 
 def set_language(update: Update, context: CallbackContext) -> None:
-    lang = get_message_text(update).lower()
+    new_lang = get_message_text(update).lower()
     user_data = get_user_data(context)
     user_id = get_effective_user_id(update)
 
-    if "english" in lang:
+    if "english" in new_lang:
         user_data['language'] = 'en'
-    elif "فارسی" in lang:
+    elif "فارسی" in new_lang:
         user_data['language'] = 'fa'
 
-    update.message.reply_text(t(lp.LANGUAGE_CHANGED, user_data['language']))
+    lang = get_user_language_or_fallback(user_data)
+
+    update.message.reply_text(t(lp.LANGUAGE_CHANGED, lang))
     update.message.reply_text(
-        t(lp.START_OVER_MESSAGE, user_data['language']),
+        t(lp.START_OVER_MESSAGE, lang),
         reply_markup=ReplyKeyboardRemove()
     )
 
     user = User.where('user_id', '=', user_id).first()
 
-    user.update({"language": user_data['language']})
+    user.update({"language": lang})
 
 
 def throw_not_implemented(update: Update, context: CallbackContext) -> None:
-    lang = get_user_data(context)['language']
+    lang = get_user_language_or_fallback(get_user_data(context))
 
     back_button_keyboard = generate_back_button_keyboard(lang)
 
@@ -245,7 +247,7 @@ def ignore_file(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
     update.message.reply_text(
-        t(lp.START_OVER_MESSAGE, user_data['language']),
+        t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_markup=ReplyKeyboardRemove()
     )
 
