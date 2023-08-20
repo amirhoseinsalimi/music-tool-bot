@@ -11,6 +11,7 @@ class CreateUsersTable(Migration):
         with self.schema.create(TABLE_NAME) as table:
             table.increments('id')
             table.integer('user_id').unique()
+            table.string('username').default(None).nullable()
             table.string('language').default('en')
             table.integer('number_of_files_sent').default(0)
 

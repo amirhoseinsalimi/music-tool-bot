@@ -1,5 +1,5 @@
 from telegram import ParseMode
-from telegram.ext import Updater, Defaults, PicklePersistence
+from telegram.ext import Defaults, PicklePersistence, Updater
 
 from config.envs import BOT_TOKEN
 

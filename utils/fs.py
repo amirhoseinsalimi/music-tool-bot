@@ -23,14 +23,25 @@ def create_user_directory(user_id: int) -> str:
     return user_download_dir
 
 
+def delete_all_user_files(user_id: int):
+    with os.scandir(f"downloads/{user_id}") as entries:
+        for entry in entries:
+            if not entry.is_file():
+                continue
+
+            os.unlink(entry.path)
+
+
 def delete_file(file_path: str) -> None:
     """Deletes a file from the filesystem. Simply ignores the files that don't exist.
 
     **Keyword arguments:**
      - file_path (str) -- The file path of the file to delete
     """
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    if not os.path.exists(file_path):
+        return
+
+    os.remove(file_path)
 
 
 def download_file(user_id: int, file_to_download, file_type: str, context: CallbackContext) -> str:

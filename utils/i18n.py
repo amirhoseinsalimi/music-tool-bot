@@ -264,7 +264,7 @@ keys = {
     },
     BTN_DISK_NUMBER: {
         "en": "💿 Disk Number",
-        "fa": "💿  شماره دیسک",
+        "fa": "💿 شماره دیسک",
     },
     BTN_TRACK_NUMBER: {
         "en": "▶️ Track Number",
