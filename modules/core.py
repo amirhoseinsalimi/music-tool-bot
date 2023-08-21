@@ -255,11 +255,11 @@ def ignore_file(update: Update, context: CallbackContext) -> None:
 class CoreModule:
     @staticmethod
     def register():
-        add_handler(CommandHandler('new', start_over))
-        add_handler(CommandHandler('help', command_help))
         add_handler(CommandHandler('start', command_start))
-        add_handler(CommandHandler('about', command_about))
+        add_handler(CommandHandler('new', start_over))
         add_handler(CommandHandler('language', show_language_selector))
+        add_handler(CommandHandler('help', command_help))
+        add_handler(CommandHandler('about', command_about))
 
         add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$'), set_language))
         add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$'), set_language))

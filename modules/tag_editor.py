@@ -296,7 +296,6 @@ def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
                 parse_mode='Markdown'
             )
     else:
-        print('bbb')
         message.reply_text(
             generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
             reply_to_message_id=get_effective_message_id(update),
