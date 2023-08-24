@@ -6,9 +6,3 @@ readme = "README.md"
 authors = [{ name = "Amir Hosein Salimi", email = "ahosein.salimi2@gmail.com" }]
 license = { file = "LICENSE" }
 keywords = ["python", "music", "telegram-bot", "python-telegram-bot", "tag-editor"]
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["*"]
-exclude = []
-namespaces = false
