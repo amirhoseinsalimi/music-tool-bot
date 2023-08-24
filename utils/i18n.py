@@ -346,7 +346,7 @@ keys = {
               f"```{TRX_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_FA}."
     },
     "DONATE_MESSAGE_TETHER": {
-        "en": f"Here's my USDT wallets.\n\n"
+        "en": f"Here are my USDT wallets.\n\n"
               f"TRC20:\n```{USDT_TRC20_WALLET_ADDRESS}```\n\n"
               f"ERC20:\n```{USDT_ERC20_WALLET_ADDRESS}```\n\n"
               f"{THANK_YOU_IN_ADVANCE_EN}.",
@@ -356,7 +356,7 @@ keys = {
               f"{THANK_YOU_IN_ADVANCE_FA}.",
     },
     "DONATE_MESSAGE_SHIBA": {
-        "en": f"Here's my SHIB wallet.\n\n"
+        "en": f"Here are my SHIB wallets.\n\n"
               f"BEP20:\n```{SHIBA_BEP20_WALLET_ADDRESS}```\n\n"
               f"ERC20:\n```{SHIBA_ERC20_WALLET_ADDRESS}```\n\n"
               f"{THANK_YOU_IN_ADVANCE_EN}.",
