@@ -38,8 +38,8 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 
 4. **Setup environment variables:**<br />
    Run `cp .env.example .env`. Then put your credentials there:
-   | Field                      | Type  | Description                                                                  |
-   | ---------------------------------------------------------------------------------------------------------------- |
+   | Field                      | Type  | Description                                                                 |
+   | ---------------------------| ----- |---------------------------------------------------------------------------- |
    | OWNER_USER_ID              | `int` | The user ID of the owner of the bot (YOU). This user can add/delete admins. |
    | BOT_NAME                   | `str` | The name of the bot                                                         |
    | BOT_USERNAME               | `str` | The username of the bot. This username is sent as signature in captions.    |
