@@ -138,3 +138,37 @@ def generate_tag_editor_keyboard(language: str) -> ReplyKeyboardMarkup:
             resize_keyboard=True,
         )
     )
+
+
+def generate_donation_keyboard(language: str) -> ReplyKeyboardMarkup:
+    """Create and return an instance of `donation_keyboard`
+
+
+    **Keyword arguments:**
+     - language (str) -- The desired language to generate labels
+
+    **Returns:**
+     ReplyKeyboardMarkup instance
+    """
+    return (
+        ReplyKeyboardMarkup(
+            [
+                [
+                    'Bitcoin (BTC)',
+                    'Ethereum (ETH)',
+                ],
+                [
+                    'TRON (TRX)',
+                    'Tether (USDT)',
+                ],
+                [
+                    'Shiba (SHIB)',
+                    'Dogecoin (DOGE)',
+                ],
+                [
+                    'ZarinPal'
+                ]
+            ],
+            resize_keyboard=True,
+        )
+    )

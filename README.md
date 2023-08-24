@@ -38,17 +38,26 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 
 4. **Setup environment variables:**<br />
    Run `cp .env.example .env`. Then put your credentials there:
-   | Field           | Description                                                                                                                      |
-   | --------------  | -------------------------------------------------------------------------------------------------------------------------------  |
-   | OWNER_USER_ID   | The user ID of the owner of the bot (YOU). This user can add other admins and delete them. It should be something like 12345678. |
-   | BOT_NAME        | The name of the bot |
-   | BOT_USERNAME    | The username of the bot. This username is sent as signature in captions |
-   | BOT_TOKEN       | The bot token you grabbed from @BotFather |
-   | DB_HOST         | Database host |
-   | DB_PORT         | Database port |
-   | DB_USERNAME     | Database username |
-   | DB_PASSWORD     | Database password |
-   | DB_NAME         | Database name. Read the next step for more information. |
+   | Field                      | Type  | Description                                                                  |
+   | ---------------------------------------------------------------------------------------------------------------- |
+   | OWNER_USER_ID              | `int` | The user ID of the owner of the bot (YOU). This user can add/delete admins. |
+   | BOT_NAME                   | `str` | The name of the bot                                                         |
+   | BOT_USERNAME               | `str` | The username of the bot. This username is sent as signature in captions.    |
+   | BOT_TOKEN                  | `str` | The bot token you grabbed from @BotFather                                   |
+   | DB_HOST                    | `str` | Database host                                                               |
+   | DB_PORT                    | `int` | Database port                                                               |
+   | DB_USERNAME                | `str` | Database username                                                           |
+   | DB_PASSWORD                | `str` | Database password                                                           |
+   | DB_NAME                    | `str` | Database name. Read the next step for more information.                     |
+   | BTC_WALLET_ADDRESS         | `str` | BTC wallet address to receive donations.                                    |
+   | ETH_WALLET_ADDRESS         | `str` | ETH wallet address to receive donations.                                    |
+   | TRX_WALLET_ADDRESS         | `str` | TRX wallet address to receive donations.                                    |
+   | USDT_TRC20_WALLET_ADDRESS  | `str` | USDT (TRC20) wallet address to receive donations.                           |
+   | USDT_ERC20_WALLET_ADDRESS  | `str` | USDT (ERC20) wallet address to receive donations.                           |
+   | SHIBA_BEP20_WALLET_ADDRESS | `str` | SHIBA (BEP20) wallet address to receive donations.                          |
+   | SHIBA_ERC20_WALLET_ADDRESS | `str` | SHIBA (ERC20) wallet address to receive donations.                          |
+   | DOGE_WALLET_ADDRESS        | `str` | DOGE wallet address to receive donations.                                   |
+   | ZARIN_LINK_ADDRESS         | `str` | ZarinLink address to receive donations.                                     |
    
 5. **Set up the database:**<br />
    This bot persists the IDs of users and admins in a MySQL database. So you need to create a database followed by 

@@ -5,7 +5,8 @@ import sys
 from datetime import datetime
 
 from config.telegram_bot import updater
-from modules import AdminModule, BitrateChangerModule, CoreModule, CutterModule, TagEditorModule, VoiceConverterModule
+from modules import AdminModule, BitrateChangerModule, CoreModule, CutterModule, DonationModule, TagEditorModule, \
+    VoiceConverterModule
 from utils import logger, logging
 
 
@@ -29,6 +30,7 @@ if __name__ == '__main__':
     TagEditorModule().register()
     CutterModule().register()
 
+    DonationModule().register()
     AdminModule().register()
     CoreModule().register()
 

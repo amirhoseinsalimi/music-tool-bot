@@ -1,4 +1,6 @@
 # pylint: disable=line-too-long
+from config.envs import BTC_WALLET_ADDRESS, DOGE_WALLET_ADDRESS, ETH_WALLET_ADDRESS, SHIBA_BEP20_WALLET_ADDRESS, \
+    TRX_WALLET_ADDRESS, USDT_ERC20_WALLET_ADDRESS, USDT_TRC20_WALLET_ADDRESS, ZARIN_LINK_ADDRESS, SHIBA_ERC20_WALLET_ADDRESS
 
 
 def t(key: str, destination_lang: str) -> str:
@@ -66,9 +68,19 @@ BTN_BACK = "BTN_BACK"
 BTN_NEW_FILE = "BTN_NEW_FILE"
 MUSIC_CUTTER_HELP = "MUSIC_CUTTER_HELP"
 BITRATE_CHANGER_HELP = "BITRATE_CHANGER_HELP"
+DONATION_MESSAGE = "DONATION_MESSAGE"
+THANK_YOU_IN_ADVANCE_EN = "Thank you in advance for your support"
+THANK_YOU_IN_ADVANCE_FA = "پیشاپیش از حمایتت ممنونم"
+DONATE_MESSAGE_BITCOIN = "DONATE_MESSAGE_BITCOIN"
+DONATE_MESSAGE_ETHEREUM = "DONATE_MESSAGE_ETHEREUM"
+DONATE_MESSAGE_TRON = "DONATE_MESSAGE_TRON"
+DONATE_MESSAGE_TETHER = "DONATE_MESSAGE_TETHER"
+DONATE_MESSAGE_SHIBA = "DONATE_MESSAGE_SHIBA"
+DONATE_MESSAGE_DOGECOIN = "DONATE_MESSAGE_DOGECOIN"
+DONATE_MESSAGE_ZARINPAL = "DONATE_MESSAGE_ZARINPAL"
+ZARIN_PAL_IRANIAN_USERS = "ZarinPal"
 DONE = "DONE"
 OR = "OR"
-
 REPORT_BUG_MESSAGE_EN = "That's my fault! Please send a bug report here: @amirhoseinsalimii"
 REPORT_BUG_MESSAGE_FA = "این اشتباه منه! لطفا این باگ رو از اینجا گزارش کنید: @amirhoseinsalimii"
 EG_EN = "e.g."
@@ -303,6 +315,72 @@ keys = {
               "You can select your desired bitrate from the menu below.\n\n",
         "fa": "\n\nحالا بهم بگو فایلت رو به چه بیت ریتی تغییر بدم؟\n"
               "از منوی زیر می‌تونی بیت ریت مورد نظرت رو انتخاب کنی.\n"
+    },
+    "DONATION_MESSAGE": {
+        "en": f"Thank you for your interest in supporting my work. I am a "
+              f"developer and I run this Telegram bot as a hobby. \nYour "
+              f"donation will help me to continue developing and improving this "
+              f"bot. If you would like to donate, you can use the following "
+              f"methods. {THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": "از این‌که مایل به دونیت هستی ممنونم. من این ربات رو در "
+              "اوقات فراغتم توسعه می‌دم. دونیت شما به من کمک می‌کنه تا به "
+              "توسعه و بهبود این ربات ادامه بدم. اگر مایل به دونیت هستی، "
+              f"از روش‌های زیر می‌تونی استفاده کنی. {THANK_YOU_IN_ADVANCE_FA}."
+    },
+    "DONATE_MESSAGE_BITCOIN": {
+        "en": f"Here's my BTC wallet.\n\n"
+              f"```{BTC_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": "این آدرس بیت‌کوین منه:\n\n"
+              f"```{BTC_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_FA}.",
+    },
+    "DONATE_MESSAGE_ETHEREUM": {
+        "en": f"Here's my ETH wallet.\n\n"
+              f"```{ETH_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": "این آدرس اتریوم منه:\n\n"
+              f"```{ETH_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_FA}."
+    },
+    "DONATE_MESSAGE_TRON": {
+        "en": f"Here's my TRX wallet.\n\n"
+              f"```{TRX_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": "این آدرس ترون منه:\n\n"
+              f"```{TRX_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_FA}."
+    },
+    "DONATE_MESSAGE_TETHER": {
+        "en": f"Here's my USDT wallets.\n\n"
+              f"TRC20:\n```{USDT_TRC20_WALLET_ADDRESS}```\n\n"
+              f"ERC20:\n```{USDT_ERC20_WALLET_ADDRESS}```\n\n"
+              f"{THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": f"این آدرس‌های تتر منه:\n\n"
+              f"TRC20:\n```{USDT_TRC20_WALLET_ADDRESS}```\n\n"
+              f"ERC20:\n```{USDT_ERC20_WALLET_ADDRESS}```\n\n"
+              f"{THANK_YOU_IN_ADVANCE_FA}.",
+    },
+    "DONATE_MESSAGE_SHIBA": {
+        "en": f"Here's my SHIB wallet.\n\n"
+              f"BEP20:\n```{SHIBA_BEP20_WALLET_ADDRESS}```\n\n"
+              f"ERC20:\n```{SHIBA_ERC20_WALLET_ADDRESS}```\n\n"
+              f"{THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": f"این آدرس شیبای منه.\n\n"
+              f"BEP20:\n```{SHIBA_BEP20_WALLET_ADDRESS}```\n\n"
+              f"ERC20:\n```{SHIBA_ERC20_WALLET_ADDRESS}```\n\n"
+              f"{THANK_YOU_IN_ADVANCE_FA}.",
+    },
+    "DONATE_MESSAGE_DOGECOIN": {
+        "en": f"Here's my DOGE wallet.\n\n"
+              f"```{DOGE_WALLET_ADDRESS}```n\n{THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": "این آدرس دوج کوین منه:\n\n"
+              f"```{DOGE_WALLET_ADDRESS}```\n\n{THANK_YOU_IN_ADVANCE_FA}."
+    },
+    "DONATE_MESSAGE_ZARINPAL": {
+        "en": f"This is meant to be for Iranian users only. If you're outside "
+              f"the country and want to donate, you can choose crypto options"
+              f".\n\nHere's my ZarinLink: [ZarinLink]({ZARIN_LINK_ADDRESS})\n\n"
+              f"{THANK_YOU_IN_ADVANCE_EN}.",
+        "fa": f"این گزینه برای کاربران ایرانی تعبیه شده. اگر خارج از ایران "
+              f"هستی و مایل هستی دونیت کنی، می‌تونی از روش‌های رمزارز استفاده "
+              f"کنی.\n\nاین زرین لینک من هستش: "
+              f"[زرین لینک]({ZARIN_LINK_ADDRESS})\n\n"
+              f"{THANK_YOU_IN_ADVANCE_FA}.",
     },
     DONE: {
         "en": "Done!",
