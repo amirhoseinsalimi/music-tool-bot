@@ -396,7 +396,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
     music_path = user_data['music_path']
     music_tags = user_data['tag_editor']
-    new_art_path = music_tags['new_art_path']
+    new_art_path = music_tags.get('new_art_path')
     lang = get_user_language_or_fallback(user_data)
 
     start_over_button_keyboard = generate_start_over_keyboard(lang)
