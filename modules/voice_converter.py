@@ -12,13 +12,11 @@ from utils import delete_file, generate_start_over_keyboard, get_chat_id, get_ef
     get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t
 
 
-def convert_to_voice(input_path: str, output_path: str):
-    os.system(
-        f"ffmpeg -i -y {input_path} -ac 1 -map 0:a -codec:a opus -b:a 128k -vbr off \
-             {input_path}"
-    )
-
-    os.system(f"ffmpeg -i {input_path} -c:a libvorbis -q:a 4 {output_path}")
+def convert_to_voice(input_path: str, output_path: str) -> int:
+    return os.system(
+        f"ffmpeg -i {input_path} -c:a libopus -b:a 32k -vbr on "
+        f"-compression_level 10 -frame_duration 60 -application voip"
+        f" {output_path}")
 
 
 def send_file_as_voice(update: Update, context: CallbackContext) -> None:
@@ -31,7 +29,7 @@ def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     )
 
     input_path = user_data['music_path']
-    output_path = f"{user_data['music_path']}.ogg"
+    output_path = f"{input_path}.opus"
 
     convert_to_voice(input_path, output_path)
 
@@ -49,6 +47,7 @@ def send_file_as_voice(update: Update, context: CallbackContext) -> None:
         with open(output_path, 'rb') as voice_file:
             context.bot.send_voice(
                 voice=voice_file,
+                filename=output_path,
                 duration=user_data['music_duration'],
                 chat_id=get_chat_id(update),
                 caption=f"🆔 {BOT_USERNAME}",
