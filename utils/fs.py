@@ -24,17 +24,15 @@ def create_user_directory(user_id: int) -> str:
 
 
 def delete_all_user_files(user_id: int):
-    user_path = f"downloads/{user_id}"
+    absolute_path = os.getcwd()
+    user_path = f"downloads/{user_id}/"
+    full_path = os.path.join(absolute_path, user_path)
 
-    if not os.path.isdir(user_path):
+    if not os.path.isdir(full_path):
         return
 
-    with os.scandir() as entries:
-        for entry in entries:
-            if not entry.is_file():
-                continue
-
-            os.unlink(entry.path)
+    for f in os.listdir(full_path):
+        delete_file(os.path.join(full_path, f))
 
 
 def delete_file(file_path: str) -> None:
