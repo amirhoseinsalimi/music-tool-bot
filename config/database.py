@@ -1,17 +1,12 @@
 from masoniteorm.connections import ConnectionResolver
 
-from config.envs import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USERNAME
+from config.envs import DB_NAME
 
 DATABASES = {
-    'default': 'mysql',
-    'mysql': {
-        'driver': 'mysql',
-        'host': DB_HOST,
-        'port': DB_PORT,
-        'user': DB_USERNAME,
-        'password': DB_PASSWORD,
+    'default': 'sqlite',
+    'sqlite': {
+        'driver': 'sqlite',
         'database': DB_NAME,
-        'prefix': ''
     }
 }
 
