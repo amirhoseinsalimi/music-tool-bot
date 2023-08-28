@@ -14,10 +14,18 @@ from utils import delete_file, generate_bitrate_selector_keyboard, generate_star
     reply_default_message, reset_user_data_context, set_current_module, t
 
 
-def parse_bitrate_number(input_string: str) -> int | None:
+def parse_bitrate_number(message: str) -> int | None:
+    """
+    Parses, converts and returns a bitrate in a text.
+
+    The ``message`` is expected to look like `320 kb/s`.
+
+    :param message: str: A message text containing a bitrate
+    :return: int | None: The extracted bitrate
+    """
     number_pattern = r'^\d+'
 
-    matches = re.findall(number_pattern, input_string)
+    matches = re.findall(number_pattern, message)
 
     if matches:
         return int(matches[0])
@@ -25,14 +33,51 @@ def parse_bitrate_number(input_string: str) -> int | None:
         return None
 
 
-def convert_bitrate(input_path: str, output_bitrate: int, output_path: str):
+def convert_bitrate(input_path: str, output_bitrate: int, output_path: str) -> None:
+    """
+    Creates a new audio file with a specified bitrate.
+
+    :param input_path: str: The path of the input file
+    :param output_bitrate: int: The bitrate of the output file
+    :param output_path: str: The output path of the converted file
+    """
     os.system(
         f"ffmpeg -v debug -i \"{input_path}\" -c:a libmp3lame \
                             -b:a {output_bitrate}k -ac 2 -ar 44100 -vn \"{output_path}\""
     )
 
 
+def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
+    """
+    sets the current module to `Module.BITRATE_CHANGER`, and displays a keyboard with buttons for each bitrate option.
+
+    :param update: Update: The `update` object
+    :param context: CallbackContext: The `context` object
+    """
+    user_data = get_user_data(context)
+
+    lang = get_user_language_or_fallback(user_data)
+    bitrate_selector_keyboard = generate_bitrate_selector_keyboard(lang)
+
+    set_current_module(user_data, Module.BITRATE_CHANGER)
+
+    update.message.reply_text(
+        f"{t(lp.BITRATE_CHANGER_HELP, lang)}\n",
+        reply_markup=bitrate_selector_keyboard
+    )
+
+
 def change_bitrate(update: Update, context: CallbackContext) -> None:
+    """
+    Handles the change bitrate functionality.
+
+    This is the main function of the ``bitrate_changer`` module that accepts the desired bitrate, generates a new file,
+    and sends it to the user. It sends a default message if user has not started the bot.
+
+    :param update: Update: The ``update`` object
+    :param update: Update: The ``context`` object
+    :raises TelegramError | BaseException
+    """
     user_data = get_user_data(context)
     message = get_message(update)
     lang = get_user_language_or_fallback(user_data)
@@ -73,23 +118,13 @@ def change_bitrate(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
 
-def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
-    user_data = get_user_data(context)
-
-    lang = get_user_language_or_fallback(user_data)
-    bitrate_selector_keyboard = generate_bitrate_selector_keyboard(lang)
-
-    set_current_module(user_data, Module.BITRATE_CHANGER)
-
-    update.message.reply_text(
-        f"{t(lp.BITRATE_CHANGER_HELP, lang)}\n",
-        reply_markup=bitrate_selector_keyboard
-    )
-
-
 class BitrateChangerModule:
     @staticmethod
     def register():
+        """
+        Registers all the handlers that are defined in ``BitrateChanger`` module, so that they can be used to respond to
+        messages sent to the bot.
+        """
         add_handler(MessageHandler(
             Filters.regex(r'^(\d{3}\s{1}kb/s)$'),
             change_bitrate)

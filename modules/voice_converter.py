@@ -12,14 +12,29 @@ from utils import delete_file, generate_start_over_keyboard, get_chat_id, get_ef
     get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t
 
 
-def convert_to_voice(input_path: str, output_path: str) -> int:
-    return os.system(
+def convert_to_voice(input_path: str, output_path: str) -> None:
+    """
+    Creates a new file with `opus` format using `libopus` plugin. The new file can be recognized as a voice message by
+    Telegram.
+
+    :param input_path: str: The path of the input file
+    :param output_path: str: The output path of the converted file
+    """
+    os.system(
         f"ffmpeg -i {input_path} -c:a libopus -b:a 32k -vbr on "
         f"-compression_level 10 -frame_duration 60 -application voip"
         f" {output_path}")
 
 
 def send_file_as_voice(update: Update, context: CallbackContext) -> None:
+    """
+    Handles the voice conversion functionality. This is the main function of the ``voice_converter`` module that
+    generates a voice message out of the current file and sends it to the user.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    :raises TelegramError | BaseException
+    """
     message = get_message(update)
     user_data = get_user_data(context)
 
@@ -69,6 +84,10 @@ def send_file_as_voice(update: Update, context: CallbackContext) -> None:
 class VoiceConverterModule:
     @staticmethod
     def register():
+        """
+        Registers all the handlers that are defined in ``VoiceConverter`` module, so that they can be used to respond
+        to messages sent to the bot.
+        """
         add_handler(MessageHandler(
             (
                 Filters.regex('^(🗣 Music to Voice Converter)$') |

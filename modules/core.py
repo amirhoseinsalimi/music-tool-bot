@@ -14,10 +14,25 @@ from utils import create_user_directory, download_file, generate_back_button_key
 
 
 def does_user_have_music_file(music_path: str) -> bool:
+    """
+    Checks if a user has a music file.
+
+    :param music_path: str: The user's current music_path
+    :return: bool: Whether the user has a music path
+    """
     return bool(music_path)
 
 
 def command_start(update: Update, context: CallbackContext) -> None:
+    """
+    The first function that gets called when a user starts using the bot.
+
+    This function initialized a ``user_data`` for the user, welcomes the user, and then asks them to select a language.
+    Then it creates a new ``User`` in the database if it doesn't exist yet.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     user_id = get_effective_user_id(update)
     username = get_effective_user_username(update)
     chat_id = get_chat_id(update)
@@ -50,6 +65,12 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
 
 def start_over(update: Update, context: CallbackContext) -> None:
+    """
+    Resets all the user's data to initial values and asks them to send an audio file.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     user_data = get_user_data(context)
 
     reset_user_data_context(get_effective_user_id(update), user_data)
@@ -62,14 +83,32 @@ def start_over(update: Update, context: CallbackContext) -> None:
 
 
 def command_about(update: Update, context: CallbackContext) -> None:
+    """
+    Handles the ``/about`` command. Replies to the user with a message containing information about the bot.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     update.message.reply_text(t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
 
 
 def command_help(update: Update, context: CallbackContext) -> None:
+    """
+    Handles the ``/help`` command. Replies to the user with a guide on how to use the bot.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     update.message.reply_text(t(lp.HELP_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
 
 
 def show_language_selector(update: Update, _context: CallbackContext) -> None:
+    """
+    Handles the ``/language`` command. Asks the user to select a language.
+
+    :param update: Update: The ``update`` object
+    :param _context: CallbackContext: The ``context`` object
+    """
     language_button_keyboard = ReplyKeyboardMarkup(
         [
             ['🇬🇧 English', '🇮🇷 فارسی'],
@@ -85,7 +124,43 @@ def show_language_selector(update: Update, _context: CallbackContext) -> None:
     )
 
 
+def set_language(update: Update, context: CallbackContext) -> None:
+    """
+    Sets a language for a user. It reads the language from the user's message.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
+    new_lang = get_message_text(update).lower()
+    user_data = get_user_data(context)
+    user_id = get_effective_user_id(update)
+
+    if "english" in new_lang:
+        user_data['language'] = 'en'
+    elif "فارسی" in new_lang:
+        user_data['language'] = 'fa'
+
+    lang = get_user_language_or_fallback(user_data)
+
+    update.message.reply_text(t(lp.LANGUAGE_CHANGED, lang))
+
+    update.message.reply_text(
+        t(lp.START_OVER_MESSAGE, lang),
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    user = User.where('user_id', '=', user_id).first()
+
+    user.update({"language": lang})
+
+
 def show_module_selector(update: Update, context: CallbackContext) -> None:
+    """
+    Displays a keyboard with all the available modules and asks the user to select one.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     user_data = get_user_data(context)
     lang = get_user_language_or_fallback(user_data)
 
@@ -100,30 +175,14 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
     unset_current_module(user_data)
 
 
-def set_language(update: Update, context: CallbackContext) -> None:
-    new_lang = get_message_text(update).lower()
-    user_data = get_user_data(context)
-    user_id = get_effective_user_id(update)
-
-    if "english" in new_lang:
-        user_data['language'] = 'en'
-    elif "فارسی" in new_lang:
-        user_data['language'] = 'fa'
-
-    lang = get_user_language_or_fallback(user_data)
-
-    update.message.reply_text(t(lp.LANGUAGE_CHANGED, lang))
-    update.message.reply_text(
-        t(lp.START_OVER_MESSAGE, lang),
-        reply_markup=ReplyKeyboardRemove()
-    )
-
-    user = User.where('user_id', '=', user_id).first()
-
-    user.update({"language": lang})
-
-
 def throw_not_implemented(update: Update, context: CallbackContext) -> None:
+    """
+    Displays an error message and offers the user to go back. It is called when the user tries to access a feature that
+    has not been implemented yet.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     lang = get_user_language_or_fallback(get_user_data(context))
 
     back_button_keyboard = generate_back_button_keyboard(lang)
@@ -135,6 +194,13 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
 
 
 def handle_music_message(update: Update, context: CallbackContext) -> None:
+    """
+    Checks if the audio file is too large, and if it isn't, downloads it and saves its path in the user's data context.
+    Then, shows the module selector keyboard to let the user choose what they want to do with their audio.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     message = get_message(update)
     user_id = get_effective_user_id(update)
     user_data = get_user_data(context)
@@ -193,6 +259,17 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
 
 
 def handle_responses(update: Update, context: CallbackContext) -> None:
+    """
+    Handles all other the responses from users and decides what to do with them.
+
+    Some modules like ``cutter`` or ``tag_editor`` take a direct input of the user, so these inputs should be accepted
+    by a single function like this and then passed to dedicated functions. This function accepts all other inputs that
+    are uncaught by other handlers. Then reads ``user_data`` to check what is the user is doing and delegates rest of
+    the work to appropriate functions. It sends a default message if user has not started the bot.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     message = get_message(update)
     user_data = get_user_data(context)
     lang = get_user_language_or_fallback(user_data)
@@ -242,8 +319,13 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
 
 
 def ignore_file(update: Update, context: CallbackContext) -> None:
-    user_data = get_user_data(context)
+    """
+    Sends a message to tell users to start over when they send a file format that the bot is not interested in.
 
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
+    user_data = get_user_data(context)
     reset_user_data_context(get_effective_user_id(update), user_data)
 
     update.message.reply_text(
@@ -255,6 +337,10 @@ def ignore_file(update: Update, context: CallbackContext) -> None:
 class CoreModule:
     @staticmethod
     def register():
+        """
+        Registers all the handlers that are defined in ``Core`` module, so that they can be used to respond to messages
+        sent to the bot.
+        """
         add_handler(CommandHandler('start', command_start))
         add_handler(CommandHandler('new', start_over))
         add_handler(CommandHandler('language', show_language_selector))
