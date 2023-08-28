@@ -8,9 +8,10 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 ### Requirements to run this bot
 
 1. Python 3.8 (Preferably)
-2. ffmpeg
-3. `venv` and `pipenv`
-4. Optionally you can install `pm2` (globally) which is a Node.js module to manage processes. Since `pm2` can also
+2. SQLite
+3. `ffmpeg`
+4. `venv` and `pipenv`
+5. Optionally you can install `pm2` (globally) which is a Node.js module to manage processes. Since `pm2` can also
    manage Python processes, I use it to run the bot in production. No Node.js/JavaScript knowledge is required. Just
    install `pm2` and run convenient script runners using pipenv. If you want to run the bot using other process
    managers, that's fine.
@@ -41,10 +42,6 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    | BOT_NAME                   | `str` | The name of the bot                                                         |
    | BOT_USERNAME               | `str` | The username of the bot. This username is sent as signature in captions.    |
    | BOT_TOKEN                  | `str` | The bot token you grabbed from @BotFather                                   |
-   | DB_HOST                    | `str` | Database host                                                               |
-   | DB_PORT                    | `int` | Database port                                                               |
-   | DB_USERNAME                | `str` | Database username                                                           |
-   | DB_PASSWORD                | `str` | Database password                                                           |
    | DB_NAME                    | `str` | Database name. Read the next step for more information.                     |
    | BTC_WALLET_ADDRESS         | `str` | BTC wallet address to receive donations.                                    |
    | ETH_WALLET_ADDRESS         | `str` | ETH wallet address to receive donations.                                    |
