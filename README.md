@@ -8,10 +8,9 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 ### Requirements to run this bot
 
 1. Python 3.8 (Preferably)
-2. MySQL Server
-3. ffmpeg
-4. `venv` and `pipenv`
-5. Optionally you can install `pm2` (globally) which is a Node.js module to manage processes. Since `pm2` can also
+2. ffmpeg
+3. `venv` and `pipenv`
+4. Optionally you can install `pm2` (globally) which is a Node.js module to manage processes. Since `pm2` can also
    manage Python processes, I use it to run the bot in production. No Node.js/JavaScript knowledge is required. Just
    install `pm2` and run convenient script runners using pipenv. If you want to run the bot using other process
    managers, that's fine.
@@ -33,8 +32,6 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 
 3. **Install dependencies:**<br />
    Run `pipenv install`
-
-   Make sure that you have followed the instructions mentioned on https://github.com/PyMySQL/mysqlclient#install
 
 4. **Setup environment variables:**<br />
    Run `cp .env.example .env`. Then put your credentials there:
@@ -60,7 +57,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    | ZARIN_LINK_ADDRESS         | `str` | ZarinLink address to receive donations.                                     |
    
 5. **Set up the database:**<br />
-   This bot persists the IDs of users and admins in a MySQL database. So you need to create a database followed by 
+   This bot persists the IDs of users and admins in a SQLite database. So you need to create a database followed by 
    running migrations:<br />
    `pipenv run db:migrate`.<br />
    Then run seeds to populate the `admins` table with an owner-level 
