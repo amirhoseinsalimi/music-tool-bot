@@ -153,7 +153,8 @@ def list_users(update: Update) -> None:
     reply_message = ''
 
     for user in users:
-        reply_message += f"{user.user_id}: {f'@{user.username}' if user.username else '-'}\n"
+        reply_message += (f"{user.user_id}: {f'@{user.username}' if user.username else '-'}"
+                          f": {user.number_of_files_sent}\n")
 
     update.message.reply_text(
         f"👥 List of all users ({len(users)} in total):\n\n"
