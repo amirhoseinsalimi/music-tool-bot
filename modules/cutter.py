@@ -53,7 +53,7 @@ def is_range_malformed(beginning_sec: int, end_sec: int) -> bool:
     :param end_sec: int: End of the range
     :return: bool: Whether the range is malformed
     """
-    return beginning_sec < end_sec
+    return beginning_sec >= end_sec
 
 
 def is_current_module_music_cutter(current_module: str) -> bool:
