@@ -3,15 +3,14 @@ from config.envs import BTC_WALLET_ADDRESS, DOGE_WALLET_ADDRESS, ETH_WALLET_ADDR
     TRX_WALLET_ADDRESS, USDT_ERC20_WALLET_ADDRESS, USDT_TRC20_WALLET_ADDRESS, ZARIN_LINK_ADDRESS, SHIBA_ERC20_WALLET_ADDRESS
 
 
-def t(key: str, destination_lang: str) -> str:
-    """Find the specified key in the `keys` dictionary and returns the corresponding
-    value for the given language
+def t(key: str, destination_lang: str) -> str | None:
+    """
+    Finds a specified key in the ``keys`` dictionary and returns the corresponding value for the given language.
 
-    **Keyword arguments:**
-     - file_path (str) -- The file path of the file to delete
-
-    **Returns:**
-     - The value of the requested key in the dictionary
+    :param key: str: Specify the key in the dictionary
+    :param destination_lang: str: The language to translate to
+    :raises KeyError: str: Specified ``key`` doesn't exist
+    :return: The translation of the ``key``
     """
     if key not in keys:
         raise KeyError("Specified key doesn't exist")

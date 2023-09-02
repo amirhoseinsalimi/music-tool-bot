@@ -17,20 +17,43 @@ from utils import download_file, generate_module_selector_keyboard, generate_sta
     reset_user_data_context, set_current_module, t, unset_current_module
 
 
-def unset_current_tag(user_data: UD):
-    user_data['tag_editor']['current_tag'] = ''
+def is_current_module_tag_editor(current_module: str) -> bool:
+    """
+    Checks if the current module is "tag_editor".
+
+    :param current_module: str: Current module name stored in user's ``user_data``
+    :return: bool: Whether the current module is "tag_editor"
+    """
+    return current_module == 'tag_editor'
 
 
 def did_user_select_a_tag(current_tag: str) -> bool:
+    """
+    Checks if a user has selected a tag.
+
+    :param current_tag: str: The current tag stored in user's ``user_data``
+    :return: bool: Whether if a user has selected a tag
+    """
     return bool(current_tag)
 
 
 def is_current_tag_album_art(current_tag: str) -> bool:
+    """
+    Checks if the current tag is "album_art".
+
+    :param current_tag: str: The current tag stored in user's ``user_data``
+    :return: bool: Whether if a user's current tag is "album_art"
+    """
     return current_tag == 'album_art'
 
 
-def is_current_module_tag_editor(current_module: str):
-    return current_module == 'tag_editor'
+def unset_current_tag(user_data: UD) -> None:
+    """
+    Sets the current tag to an empty string so the user has to select a tag again.
+
+    :param user_data: UD: The ``user_data`` object
+    """
+    user_data['tag_editor']['current_tag'] = ''
 
 
 def save_text_into_tag(
@@ -39,12 +62,14 @@ def save_text_into_tag(
         user_data: UD,
         is_number: bool = False
 ) -> None:
-    """Store a value of the given tag in the corresponding context.
+    """
+    Sets a value in the user's ``user_data`` as their current tag. Sets it to `0` if the value should be ``int`` but
+    it's not.
 
-    **Keyword arguments:**
-     - value (str) -- The value to be stored as the value of `current_tag`
-     - current_tag (str) -- The key to store the value into
-     - context (CallbackContext) -- The context of a user to store the key:value pair into
+    :param value: str: The value to set as current tag
+    :param current_tag: str: The current tag stored in user's ``user_data``
+    :param user_data: UD: The ``user_data`` object
+    :param is_number: bool: Whether the value should be treated as an ``int``
     """
     if is_number:
         if isinstance(int(value), int):
@@ -55,16 +80,14 @@ def save_text_into_tag(
         user_data['tag_editor'][current_tag] = value
 
 
-def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> str:
-    """Create and return an instance of `tag_editor_keyboard`
+def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> None:
+    """
+    Saves the tags in a file. If there is an optional new artwork path it will set that as well.
 
-    **Keyword arguments:**
-     - file (str) -- The path of the file
-     - tags (str) -- The dictionary containing the tags and their values
-     - new_art_path (str) -- The new album art to set
-
-    **Returns:**
-     The path of the file
+    :param file: str: The path of the file
+    :param tags: dict: The tags to be saved in the file
+    :param new_art_path: str (optional): The album art to be saved
+    :raises LookupError: No Such a user in the database
     """
     music = music_tag.load_file(file)
 
@@ -85,18 +108,13 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> str:
 
     music.save()
 
-    return file
-
 
 def generate_music_info(tag_editor_context: dict) -> str:
-    """Generate the details of the music based on the values in `tag_editor_context`
-    dictionary
+    """
+    Returns the metadata of a music as a formatted string.
 
-    **Keyword arguments:**
-     - tag_editor_context (dict) -- The context object of the user
-
-    **Returns:**
-     `str`
+    :param tag_editor_context: dict: A dictionary representing the metadata of a music
+    :return: str: The metadata of a music.
     """
     ctx = tag_editor_context
 
@@ -112,23 +130,14 @@ def generate_music_info(tag_editor_context: dict) -> str:
     )
 
 
-def show_module_selector(update: Update, context: CallbackContext) -> None:
-    user_data = get_user_data(context)
-
-    lang = get_user_language_or_fallback(user_data)
-
-    module_selector_keyboard = generate_module_selector_keyboard(lang)
-
-    unset_current_module(user_data)
-
-    update.message.reply_text(
-        t(lp.ASK_WHICH_MODULE, lang),
-        reply_to_message_id=get_effective_message_id(update),
-        reply_markup=module_selector_keyboard
-    )
-
-
 def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for an artist name to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'artist'
     message_text = t(lp.ASK_FOR_ARTIST, language)
 
@@ -136,6 +145,13 @@ def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
 
 
 def ask_for_title(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for a title to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'title'
     message_text = t(lp.ASK_FOR_TITLE, language)
 
@@ -143,6 +159,13 @@ def ask_for_title(update: Update, user_data: UD, language: str) -> None:
 
 
 def ask_for_album(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for an album name to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'album'
     message_text = t(lp.ASK_FOR_ALBUM, language)
 
@@ -150,6 +173,13 @@ def ask_for_album(update: Update, user_data: UD, language: str) -> None:
 
 
 def ask_for_genre(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for a genre to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'genre'
     message_text = t(lp.ASK_FOR_GENRE, language)
 
@@ -157,6 +187,13 @@ def ask_for_genre(update: Update, user_data: UD, language: str) -> None:
 
 
 def ask_for_year(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for a year to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'year'
     message_text = t(lp.ASK_FOR_YEAR, language)
 
@@ -164,6 +201,13 @@ def ask_for_year(update: Update, user_data: UD, language: str) -> None:
 
 
 def ask_for_album_art(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for an album art to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'album_art'
     message_text = t(lp.ASK_FOR_ALBUM_ART, language)
 
@@ -171,6 +215,13 @@ def ask_for_album_art(update: Update, user_data: UD, language: str) -> None:
 
 
 def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for a disknumber to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'disknumber'
     message_text = t(lp.ASK_FOR_DISK_NUMBER, language)
 
@@ -178,6 +229,13 @@ def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
 
 
 def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> None:
+    """
+    Asks the user for a track number to save into their file.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
     user_data['tag_editor']['current_tag'] = 'tracknumber'
     message_text = t(lp.ASK_FOR_TRACK_NUMBER, language)
 
@@ -185,6 +243,12 @@ def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> None:
 
 
 def read_and_store_music_tags(update: Update, user_data: UD) -> None:
+    """
+    Reads the tags of a music file and stores them in the user's ``user_data`` dictionary.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    """
     user_id = get_effective_user_id(update)
     file_download_path = user_data['music_path']
     lang = get_user_language_or_fallback(user_data)
@@ -231,7 +295,16 @@ def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             art_file.write(art.first.data)
 
 
-def handle_tag_editor(update: Update, context: CallbackContext):
+def handle_tag_editor(update: Update, context: CallbackContext) -> None:
+    """
+    This function is responsible for handling the user's input when they are editing a tag. It first checks if the user
+    has selected a tag to edit, and if not, it asks them to do so. If the current tag is album art, then it asks them
+    for an image file (which will be handled by :func:`handle_photo_message`). Otherwise, it saves their text into the
+    selected tag and sends back a message saying that everything went well.
+
+    :param update: Update: The `update` object
+    :param context: CallbackContext: The `context` object
+    """
     user_data = get_user_data(context)
     music_tags = user_data['tag_editor']
     message = get_message(update)
@@ -271,39 +344,13 @@ def handle_tag_editor(update: Update, context: CallbackContext):
     unset_current_tag(user_data)
 
 
-def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
-    user_data = get_user_data(context)
-    message = get_message(update)
-    lang = get_user_language_or_fallback(user_data)
-
-    read_and_store_music_tags(update, user_data)
-
-    set_current_module(user_data, Module.TAG_EDITOR)
-
-    tag_editor_context = user_data['tag_editor']
-    art_path = tag_editor_context.get('art_path')
-    tag_editor_context['current_tag'] = ''
-
-    tag_editor_keyboard = generate_tag_editor_keyboard(lang)
-
-    if art_path:
-        with open(art_path, 'rb') as art_file:
-            message.reply_photo(
-                photo=art_file,
-                caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
-                reply_to_message_id=get_effective_message_id(update),
-                reply_markup=tag_editor_keyboard,
-                parse_mode='Markdown'
-            )
-    else:
-        message.reply_text(
-            generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
-            reply_to_message_id=get_effective_message_id(update),
-            reply_markup=tag_editor_keyboard
-        )
-
-
 def handle_photo_message(update: Update, context: CallbackContext) -> None:
+    """
+    This function is responsible for handling the album arts that the user wants to be saved in their file.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     user_data = get_user_data(context)
     lang = get_user_language_or_fallback(user_data)
 
@@ -357,7 +404,53 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
         return
 
 
+def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
+    """
+    This function is called when the user has selected the `Module.TAG_EDITOR module`.
+    It displays the current tags of that music file and asks which tag should be edited next.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
+    user_data = get_user_data(context)
+    message = get_message(update)
+    lang = get_user_language_or_fallback(user_data)
+
+    read_and_store_music_tags(update, user_data)
+
+    set_current_module(user_data, Module.TAG_EDITOR)
+
+    tag_editor_context = user_data['tag_editor']
+    art_path = tag_editor_context.get('art_path')
+    tag_editor_context['current_tag'] = ''
+
+    tag_editor_keyboard = generate_tag_editor_keyboard(lang)
+
+    if art_path:
+        with open(art_path, 'rb') as art_file:
+            message.reply_photo(
+                photo=art_file,
+                caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
+                reply_to_message_id=get_effective_message_id(update),
+                reply_markup=tag_editor_keyboard,
+                parse_mode='Markdown'
+            )
+    else:
+        message.reply_text(
+            generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
+            reply_to_message_id=get_effective_message_id(update),
+            reply_markup=tag_editor_keyboard
+        )
+
+
 def display_preview(update: Update, context: CallbackContext) -> None:
+    """
+    Handles ``/preview`` command. Displays a caption with all the information about the music file, and if there's
+    an album art, it also displays that.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     message = get_message(update)
     user_data = get_user_data(context)
     tag_editor_context = user_data['tag_editor']
@@ -386,6 +479,15 @@ def display_preview(update: Update, context: CallbackContext) -> None:
 
 
 def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+    """
+    Handles ``/finish`` command.
+
+    This function saves the tags to the music file and uploads it with a caption containing its metadata, and updates
+    the chat action to indicate that the bot uploading an audio file. It also resets all the user's data.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     message = get_message(update)
     user_data = get_user_data(context)
 
@@ -435,7 +537,16 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
 
-def ask_for_tag(update: Update, context: CallbackContext):
+def ask_for_tag(update: Update, context: CallbackContext) -> None:
+    """
+    Asks the user to input a value based on the tag that they just selected.
+
+    It first checks if the user has started the bot, and if so, it asks for a value; otherwise, it sends the default
+    message.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     user_data = get_user_data(context)
     lang = get_user_language_or_fallback(user_data)
 
@@ -490,6 +601,10 @@ def ask_for_tag(update: Update, context: CallbackContext):
 class TagEditorModule:
     @staticmethod
     def register():
+        """
+        Registers all the handlers that are defined in ``TagEditor`` module, so that they can be used to respond to
+        messages sent to the bot.
+        """
         add_handler(CommandHandler('done', finish_editing_tags))
         add_handler(CommandHandler('preview', display_preview))
 

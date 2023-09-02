@@ -1,12 +1,9 @@
 def pretty_print_size(number_of_bytes: float) -> str:
-    """Pretty print file sizes
+    """
+    Pretty print file sizes
 
-
-    **Keyword arguments:**
-     - number_of_bytes (float) -- Number of bytes to convert
-
-    **Returns:**
-     A human-readable file size
+    :param number_of_bytes: float: Number of bytes to convert
+    :return: str: Human-readable file size
     """
     units = [
         (1 << 50, ' PB'),
@@ -35,13 +32,11 @@ def pretty_print_size(number_of_bytes: float) -> str:
 
 
 def convert_seconds_to_human_readable_form(seconds: int) -> str:
-    """Convert seconds to human-readable time format, e.g. 02:30
+    """
+    Converts seconds to a human-readable time format, e.g. 02:30
 
-    **Keyword arguments:**
-     - seconds (int) -- Seconds to convert
-
-    **Returns:**
-     Formatted string
+    :param seconds: int: Seconds to format
+    :return: str: Formatted string
     """
     if seconds <= 0:
         return "00:00"

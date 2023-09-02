@@ -8,11 +8,17 @@ from config.telegram_bot import add_handler
 from utils import generate_donation_keyboard, get_message_text, get_user_data, get_user_language_or_fallback, t
 
 
-def show_donation_methods(update: Update, context: CallbackContext):
+def show_donation_methods(update: Update, context: CallbackContext) -> None:
+    """
+    Displays a keyboard with all available donation methods and sends it to the user.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     user_data = get_user_data(context)
 
     lang = get_user_language_or_fallback(user_data)
-    donation_keyboard = generate_donation_keyboard(lang)
+    donation_keyboard = generate_donation_keyboard()
 
     update.message.reply_text(
         f"{t(lp.DONATION_MESSAGE, lang)}\n",
@@ -20,7 +26,13 @@ def show_donation_methods(update: Update, context: CallbackContext):
     )
 
 
-def show_wallet_addresses(update: Update, context: CallbackContext):
+def show_addresses(update: Update, context: CallbackContext) -> None:
+    """
+    Displays the corresponding addresses of the selected donation methods.
+
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
+    """
     user_data = get_user_data(context)
     lang = get_user_language_or_fallback(user_data)
 
@@ -55,6 +67,10 @@ def show_wallet_addresses(update: Update, context: CallbackContext):
 class DonationModule:
     @staticmethod
     def register():
+        """
+        Registers all the handlers that are defined in ``Donation`` module, so that they can be used to respond to
+        messages sent to the bot.
+        """
         add_handler(CommandHandler('donate', show_donation_methods))
 
         add_handler(MessageHandler(
@@ -64,5 +80,5 @@ class DonationModule:
                     Filters.regex(r'^(Shiba \(SHIB\))$') | Filters.regex(r'^(Dogecoin \(DOGE\))$') |
                     Filters.regex(r'^(ZarinPal)$') | Filters.regex(r'^(زرین پال)$')
             ),
-            show_wallet_addresses)
+            show_addresses)
         )
