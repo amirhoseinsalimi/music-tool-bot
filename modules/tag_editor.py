@@ -72,7 +72,7 @@ def save_text_into_tag(
     :param is_number: bool: Whether the value should be treated as an ``int``
     """
     if is_number:
-        if isinstance(int(value), int):
+        if value.isdigit():
             user_data['tag_editor'][current_tag] = value
         else:
             user_data['tag_editor'][current_tag] = 0
@@ -302,8 +302,8 @@ def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     for an image file (which will be handled by :func:`handle_photo_message`). Otherwise, it saves their text into the
     selected tag and sends back a message saying that everything went well.
 
-    :param update: Update: The `update` object
-    :param context: CallbackContext: The `context` object
+    :param update: Update: The ``update`` object
+    :param context: CallbackContext: The ``context`` object
     """
     user_data = get_user_data(context)
     music_tags = user_data['tag_editor']
