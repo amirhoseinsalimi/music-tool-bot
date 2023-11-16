@@ -11,10 +11,10 @@ import utils.i18n as lp
 from config.envs import BOT_USERNAME
 from config.modules import Module
 from config.telegram_bot import add_handler
-from utils import download_file, generate_module_selector_keyboard, generate_start_over_keyboard, \
+from utils import download_file, generate_start_over_keyboard, \
     generate_tag_editor_keyboard, get_chat_id, get_effective_message_id, get_effective_user_id, get_message, \
     get_message_text, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, reply_default_message, \
-    reset_user_data_context, set_current_module, t, unset_current_module
+    reset_user_data_context, set_current_module, t
 
 
 def is_current_module_tag_editor(current_module: str) -> bool:
@@ -102,9 +102,9 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> None:
     music['title'] = tags['title'] if tags['title'] else ''
     music['album'] = tags['album'] if tags['album'] else ''
     music['genre'] = tags['genre'] if tags['genre'] else ''
-    music['year'] = int(tags['year']) if tags['year'] else 0
-    music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] else 0
-    music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] else 0
+    music['year'] = int(tags['year']) if tags['year'] and tags['year'].isdigit() else 0
+    music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] and tags['disknumber'].isdigit() else 0
+    music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] and tags['tracknumber'].isdigit() else 0
 
     music.save()
 
