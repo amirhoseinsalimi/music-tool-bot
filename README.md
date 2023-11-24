@@ -12,7 +12,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
 3. `venv`
 4. Optionally you can install `pm2` (globally) which is a Node.js module to manage processes. Since `pm2` can also
    manage Python processes, I use it to run the bot in production. No Node.js/JavaScript knowledge is required. Just
-   install `pm2` and run convenient script runners using pipenv. If you want to run the bot using other process
+   install `pm2` and run convenient script runners using `pipenv`. If you want to run the bot using other process
    managers, that's fine.
 
 ---
@@ -82,15 +82,15 @@ See below for all possible commands:
 
 # Contribution
 
-At the beginning I had written this bot in JavaScript, but due to lack of quality packages, it was full of bugs. Then I
+In the beginning, I had written this bot in JavaScript, but due to a lack of quality packages, it was full of bugs. Then I
 decided to learn Python and thought: **Why not re-write @MusicToolBot in Python?** And then I began to revive the
 project. <br />
 
 This tiny bot is my first practical Python project. I tried to learn Python along with coding, so I could better wrap my
 head around the syntax and the built-in functionality of the language. However, as a novice Python developer, I know
-this bot can be written in a more smart way with better code structure. So, if you know Python, I will really appreciate
+this bot can be written in a more smart way with better code structure. So, if you know Python, I would really appreciate
 any help to make this kid better. My main concern is the application structure, but please feel free to create PRs, open
-discussions and make small fixes (like typos). In addition, I got some plans and features for this bot, you can find 
-them [in TODOS file](https://github.com/amirhoseinsalimi/music-tool-bot/blob/master/TODOS) or the 
+discussions and make small fixes (like typos). In addition, I have some plans and features for this bot, you can find 
+them on the 
 [issue board](https://github.com/amirhoseinsalimi/music-tool-bot/issues). Also, I'd be very appreciated if you can 
 translate the bot to your language.
