@@ -1,4 +1,6 @@
 import os
+import re
+from typing import Optional
 
 import psutil
 from telegram import Update
@@ -10,6 +12,19 @@ from utils import get_dir_size_in_bytes, get_effective_user_id, get_message_text
     pretty_print_size
 
 DOWNLOADS_DIT_PATH = 'downloads'
+
+
+def get_list_limit(message: str) -> int | None:
+    number_pattern = r'\d+'
+
+    limit = re.findall(number_pattern, message)
+
+    if len(limit):
+        limit = int(limit[0])
+    else:
+        limit = None
+
+    return limit
 
 
 def parse_and_normalize_user_id(message: str) -> int:
@@ -139,16 +154,20 @@ def list_users_if_user_is_admin(update: Update, _context: CallbackContext) -> No
     if not is_user_admin(get_effective_user_id(update)):
         return
 
-    list_users(update)
+    list_users(update, get_list_limit(message=get_message_text((update))))
 
 
-def list_users(update: Update) -> None:
+def list_users(update: Update, limit: Optional[int] = None) -> None:
     """
-    Displays a list of all users in the form of ``user_id:username``.
+    Displays a list of all or specified last users in the form of ``user_id:username``.
 
     :param update: Update: The ``update`` object
+    :param limit: Update: Number of last users to return
     """
-    users = User.all()
+    if limit:
+        users = User.all().take(-limit)
+    else:
+        users = User.all()
 
     reply_message = ''
 
