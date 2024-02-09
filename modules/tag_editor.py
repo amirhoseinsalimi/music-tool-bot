@@ -519,17 +519,22 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         return
 
     try:
-        with open(new_art_path if new_art_path else art_path, "rb") as art_file:
-            with open(music_path, 'rb') as music_file:
-                context.bot.send_audio(
-                    audio=music_file,
-                    thumb=art_file.read(),
-                    duration=user_data['music_duration'],
-                    chat_id=get_chat_id(update),
-                    caption=f"🆔 {BOT_USERNAME}",
-                    reply_markup=start_over_button_keyboard,
-                    reply_to_message_id=user_data['music_message_id']
-                )
+        possible_art = None
+
+        if new_art_path or art_path:
+            with open(new_art_path if new_art_path else art_path, "rb") as art:
+                possible_art = art.read()
+
+        with open(music_path, 'rb') as music_file:
+            context.bot.send_audio(
+                audio=music_file,
+                thumb=possible_art,
+                duration=user_data['music_duration'],
+                chat_id=get_chat_id(update),
+                caption=f"🆔 {BOT_USERNAME}",
+                reply_markup=start_over_button_keyboard,
+                reply_to_message_id=user_data['music_message_id']
+            )
     except (TelegramError, BaseException) as error:
         message.reply_text(
             t(lp.ERR_ON_UPLOADING, lang),
