@@ -52,7 +52,7 @@ def delete_file(file_path: str) -> None:
     os.remove(file_path)
 
 
-def download_file(
+async def download_file(
         user_id: int,
         file_to_download: Audio | PhotoSize,
         file_type: str,
@@ -69,21 +69,20 @@ def download_file(
     :return: The path of the downloaded file if the operation succeeds; ``None`` otherwise
     """
     user_download_dir = f"downloads/{user_id}"
-    file_id = ''
     file_extension = ''
 
+    file_id = await context.bot.get_file(file_to_download.file_id)
+
     if file_type == 'audio':
-        file_id = context.bot.get_file(file_to_download.file_id)
         file_name = file_to_download.file_name
         file_extension = file_name.split(".")[-1]
     elif file_type == 'photo':
-        file_id = context.bot.get_file(file_to_download.file_id)
         file_extension = 'jpg'
 
     file_download_path = f"{user_download_dir}/{file_id.file_id}.{file_extension}"
 
     try:
-        file_id.download(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
+        await file_id.download_to_drive(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
 
         return file_download_path
     except ValueError as error:

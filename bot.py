@@ -4,7 +4,7 @@ import re
 import sys
 from datetime import datetime
 
-from config.telegram_bot import updater
+from config.telegram_bot import app
 from modules import AdminModule, BitrateChangerModule, CoreModule, CutterModule, DonationModule, TagEditorModule, \
     VoiceConverterModule
 from utils import logger, logging
@@ -20,8 +20,8 @@ def main():
     logger.addHandler(output_file_handler)
     logger.addHandler(stdout_handler)
 
-    updater.start_polling()
-    updater.idle()
+    app.run_polling()
+    app.idle()
 
 
 if __name__ == '__main__':

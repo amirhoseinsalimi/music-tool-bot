@@ -1,14 +1,14 @@
 import re
 
 from telegram import ReplyKeyboardRemove, Update
-from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler
+from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 
 import utils.i18n as lp
 from config.telegram_bot import add_handler
 from utils import generate_donation_keyboard, get_message_text, get_user_data, get_user_language_or_fallback, t
 
 
-def show_donation_methods(update: Update, context: CallbackContext) -> None:
+async def show_donation_methods(update: Update, context: CallbackContext) -> None:
     """
     Displays a keyboard with all available donation methods and sends it to the user.
 
@@ -20,13 +20,13 @@ def show_donation_methods(update: Update, context: CallbackContext) -> None:
     lang = get_user_language_or_fallback(user_data)
     donation_keyboard = generate_donation_keyboard()
 
-    update.message.reply_text(
+    await update.message.reply_text(
         f"{t(lp.DONATION_MESSAGE, lang)}\n",
         reply_markup=donation_keyboard
     )
 
 
-def show_addresses(update: Update, context: CallbackContext) -> None:
+async def show_addresses(update: Update, context: CallbackContext) -> None:
     """
     Displays the corresponding addresses of the selected donation methods.
 
@@ -61,7 +61,7 @@ def show_addresses(update: Update, context: CallbackContext) -> None:
     elif re.match(r'^(ZarinPal)$', message_text):
         reply_text = f"{t(lp.DONATE_MESSAGE_ZARINPAL, lang)}"
 
-    update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove())
 
 
 class DonationModule:
@@ -75,10 +75,9 @@ class DonationModule:
 
         add_handler(MessageHandler(
             (
-                    Filters.regex(r'^(Bitcoin \(BTC\))$') | Filters.regex(r'^(Ethereum \(ETH\))$') |
-                    Filters.regex(r'^(TRON \(TRX\))$') | Filters.regex(r'^(Tether \(USDT\))$') |
-                    Filters.regex(r'^(Shiba \(SHIB\))$') | Filters.regex(r'^(Dogecoin \(DOGE\))$') |
-                    Filters.regex(r'^(ZarinPal)$') | Filters.regex(r'^(زرین پال)$')
-            ),
+                    filters.Regex(r'^(Bitcoin \(BTC\))$') | filters.Regex(r'^(Ethereum \(ETH\))$') |
+                    filters.Regex(r'^(TRON \(TRX\))$') | filters.Regex(r'^(Tether \(USDT\))$') |
+                    filters.Regex(r'^(Shiba \(SHIB\))$') | filters.Regex(r'^(Dogecoin \(DOGE\))$') |
+                    filters.Regex(r'^(ZarinPal)$') | filters.Regex(r'^(زرین پال)$')),
             show_addresses)
         )

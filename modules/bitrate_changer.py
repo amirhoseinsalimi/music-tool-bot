@@ -3,7 +3,7 @@ import re
 
 from telegram import Update
 from telegram.error import TelegramError
-from telegram.ext import CallbackContext, Filters, MessageHandler
+from telegram.ext import CallbackContext, filters, MessageHandler
 
 import utils.i18n as lp
 from config.envs import BOT_USERNAME
@@ -47,7 +47,7 @@ def convert_bitrate(input_path: str, output_bitrate: int, output_path: str) -> N
     )
 
 
-def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
+async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
     """
     sets the current module to `Module.BITRATE_CHANGER`, and displays a keyboard with buttons for each bitrate option.
 
@@ -61,13 +61,13 @@ def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> N
 
     set_current_module(user_data, Module.BITRATE_CHANGER)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         f"{t(lp.BITRATE_CHANGER_HELP, lang)}\n",
         reply_markup=bitrate_selector_keyboard
     )
 
 
-def change_bitrate(update: Update, context: CallbackContext) -> None:
+async def change_bitrate(update: Update, context: CallbackContext) -> None:
     """
     Handles the change bitrate functionality.
 
@@ -75,7 +75,7 @@ def change_bitrate(update: Update, context: CallbackContext) -> None:
     and sends it to the user. It sends a default message if user has not started the bot.
 
     :param update: Update: The ``update`` object
-    :param update: Update: The ``context`` object
+    :param context: Update: The ``context`` object
     :raises TelegramError | BaseException
     """
     user_data = get_user_data(context)
@@ -83,7 +83,7 @@ def change_bitrate(update: Update, context: CallbackContext) -> None:
     lang = get_user_language_or_fallback(user_data)
 
     if is_user_data_empty(user_data):
-        reply_default_message(update, lang)
+        await reply_default_message(update, lang)
 
         return
 
@@ -97,7 +97,7 @@ def change_bitrate(update: Update, context: CallbackContext) -> None:
         convert_bitrate(input_path, output_bitrate, output_path)
 
         with open(output_path, 'rb') as music_file:
-            context.bot.send_audio(
+            await context.bot.send_audio(
                 audio=music_file,
                 chat_id=get_chat_id(update),
                 caption=f"🆔 {BOT_USERNAME}",
@@ -106,7 +106,7 @@ def change_bitrate(update: Update, context: CallbackContext) -> None:
             )
 
     except (TelegramError, BaseException) as error:
-        message.reply_text(
+        await message.reply_text(
             t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
@@ -126,11 +126,11 @@ class BitrateChangerModule:
         messages sent to the bot.
         """
         add_handler(MessageHandler(
-            Filters.regex(r'^(\d{3}\s{1}kb/s)$'),
+            filters.Regex(r'^(\d{3}\s{1}kb/s)$'),
             change_bitrate)
         )
 
         add_handler(MessageHandler(
-            (Filters.regex('^(🎙 Bitrate Changer)$') | Filters.regex('^(🎙 تغییر بیت ریت)$')),
+            (filters.Regex('^(🎙 Bitrate Changer)$') | filters.Regex('^(🎙 تغییر بیت ریت)$')),
             show_bitrate_changer_keyboard)
         )

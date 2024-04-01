@@ -39,7 +39,7 @@ def parse_and_normalize_user_id(message: str) -> int:
     return int(message.partition(' ')[2])
 
 
-def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
+async def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, calls :func:`add_admin`.
 
@@ -49,10 +49,10 @@ def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> Non
     if not is_admin_owner(get_effective_user_id(update)):
         return
 
-    add_admin(update)
+    await add_admin(update)
 
 
-def add_admin(update: Update) -> None:
+async def add_admin(update: Update) -> None:
     """
     Adds a user ``id`` to the ``admins`` table. If succeeds, sends a success message.
 
@@ -65,10 +65,10 @@ def add_admin(update: Update) -> None:
 
     admin.save()
 
-    update.message.reply_text(f"User {admin_id_to_add} has been added as admins.")
+    await update.message.reply_text(f"User {admin_id_to_add} has been added as admins.")
 
 
-def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
+async def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, call :func:`del_admin`.
 
@@ -78,10 +78,10 @@ def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> Non
     if not is_admin_owner(get_effective_user_id(update)):
         return
 
-    del_admin(update)
+    await del_admin(update)
 
 
-def del_admin(update: Update) -> None:
+async def del_admin(update: Update) -> None:
     """
     Deletes a user ``id`` from the ``admins`` table. Then sends a message accordingly.
 
@@ -93,12 +93,12 @@ def del_admin(update: Update) -> None:
     if is_user_admin(admin_id_to_delete):
         Admin.where('admin_user_id', '=', admin_id_to_delete).delete()
 
-        update.message.reply_text(f"User {admin_id_to_delete} is no longer an admin")
+        await update.message.reply_text(f"User {admin_id_to_delete} is no longer an admin")
     else:
-        update.message.reply_text(f"User {admin_id_to_delete} is not an admin")
+        await update.message.reply_text(f"User {admin_id_to_delete} is not an admin")
 
 
-def show_stats_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
+async def show_stats_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user is an admin. If they are, it calls :func:`show_stats` to display the stats of the bot.
 
@@ -108,10 +108,10 @@ def show_stats_if_user_is_admin(update: Update, _context: CallbackContext) -> No
     if not is_user_admin(get_effective_user_id(update)):
         return
 
-    show_stats(update)
+    await show_stats(update)
 
 
-def show_stats(update: Update) -> None:
+async def show_stats(update: Update) -> None:
     """
     Displays a summary about how the bot is being used:
      - The number of users using this bot
@@ -129,7 +129,7 @@ def show_stats(update: Update) -> None:
     occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = \
         psutil.disk_usage('/')[-3:]
 
-    update.message.reply_text(
+    await update.message.reply_text(
         f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
         f"🇬🇧 English users: {len(english_users)}\n"
         f"🇮🇷 Persian users: {len(persian_users)}\n\n"
@@ -144,7 +144,7 @@ def show_stats(update: Update) -> None:
     )
 
 
-def list_users_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
+async def list_users_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, calls :func:`list_users`.
 
@@ -154,10 +154,10 @@ def list_users_if_user_is_admin(update: Update, _context: CallbackContext) -> No
     if not is_user_admin(get_effective_user_id(update)):
         return
 
-    list_users(update, get_list_limit(message=get_message_text((update))))
+    await list_users(update, get_list_limit(message=get_message_text(update)))
 
 
-def list_users(update: Update, limit: Optional[int] = None) -> None:
+async def list_users(update: Update, limit: Optional[int] = None) -> None:
     """
     Displays a list of all or specified last users in the form of ``user_id:username``.
 
@@ -175,14 +175,14 @@ def list_users(update: Update, limit: Optional[int] = None) -> None:
         reply_message += (f"{user.user_id}: {f'@{user.username}' if user.username else '-'}"
                           f": {user.number_of_files_sent}\n")
 
-    update.message.reply_text(
+    await update.message.reply_text(
         f"👥 List of all users ({len(users)} in total):\n\n"
         f"{reply_message}",
         parse_mode='',
     )
 
 
-def send_to_all():
+async def send_to_all():
     pass
 
 

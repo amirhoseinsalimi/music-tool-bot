@@ -1,10 +1,7 @@
-from telegram import ParseMode
-from telegram.ext import Defaults, PicklePersistence, Updater
+from telegram.ext import Application
 
 from config.envs import BOT_TOKEN
 
-defaults = Defaults(parse_mode=ParseMode.MARKDOWN, timeout=120)
-persistence = PicklePersistence('persistence_storage')
+app = Application.builder().token(BOT_TOKEN).build()
 
-updater = Updater(BOT_TOKEN, persistence=persistence, defaults=defaults)
-add_handler = updater.dispatcher.add_handler
+add_handler = app.add_handler
