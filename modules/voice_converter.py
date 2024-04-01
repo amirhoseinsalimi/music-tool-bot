@@ -1,8 +1,9 @@
 import os
 
-from telegram import ChatAction, Update
+from telegram import Update
+from telegram.constants import ChatAction
 from telegram.error import TelegramError
-from telegram.ext import CallbackContext, Filters, MessageHandler
+from telegram.ext import CallbackContext, filters, MessageHandler
 
 import utils.i18n as lp
 from config.envs import BOT_USERNAME
@@ -26,7 +27,7 @@ def convert_to_voice(input_path: str, output_path: str) -> None:
         f" {output_path}")
 
 
-def send_file_as_voice(update: Update, context: CallbackContext) -> None:
+async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     """
     Handles the voice conversion functionality. This is the main function of the ``voice_converter`` module that
     generates a voice message out of the current file and sends it to the user.
@@ -38,9 +39,9 @@ def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
     user_data = get_user_data(context)
 
-    context.bot.send_chat_action(
+    await context.bot.send_chat_action(
         chat_id=get_chat_id(update),
-        action=ChatAction.RECORD_AUDIO
+        action=ChatAction.RECORD_VOICE
     )
 
     input_path = user_data['music_path']
@@ -51,16 +52,16 @@ def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     lang = get_user_language_or_fallback(user_data)
     set_current_module(user_data, Module.VOICE_CONVERTER)
 
-    context.bot.send_chat_action(
+    await context.bot.send_chat_action(
         chat_id=get_chat_id(update),
-        action=ChatAction.UPLOAD_AUDIO
+        action=ChatAction.UPLOAD_VOICE
     )
 
     start_over_button_keyboard = generate_start_over_keyboard(lang)
 
     try:
         with open(output_path, 'rb') as voice_file:
-            context.bot.send_voice(
+            await context.bot.send_voice(
                 voice=voice_file,
                 filename=output_path,
                 duration=user_data['music_duration'],
@@ -70,7 +71,7 @@ def send_file_as_voice(update: Update, context: CallbackContext) -> None:
                 reply_to_message_id=user_data['music_message_id']
             )
     except TelegramError as error:
-        message.reply_text(
+        await message.reply_text(
             t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
@@ -90,8 +91,8 @@ class VoiceConverterModule:
         """
         add_handler(MessageHandler(
             (
-                Filters.regex('^(🗣 Music to Voice Converter)$') |
-                Filters.regex('^(🗣 تبدیل به پیام صوتی)$')
+                filters.Regex('^(🗣 Music to Voice Converter)$') |
+                filters.Regex('^(🗣 تبدیل به پیام صوتی)$')
             ),
             send_file_as_voice)
         )

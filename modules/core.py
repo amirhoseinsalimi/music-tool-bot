@@ -1,5 +1,6 @@
-from telegram import ChatAction, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram.constants import ChatAction
+from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 
 import utils.i18n as lp
 from config.telegram_bot import add_handler
@@ -23,7 +24,7 @@ def does_user_have_music_file(music_path: str) -> bool:
     return bool(music_path)
 
 
-def command_start(update: Update, context: CallbackContext) -> None:
+async def command_start(update: Update, context: CallbackContext) -> None:
     """
     The first function that gets called when a user starts using the bot.
 
@@ -41,12 +42,12 @@ def command_start(update: Update, context: CallbackContext) -> None:
 
     reset_user_data_context(get_effective_user_id(update), user_data)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         t(lp.START_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_markup=ReplyKeyboardRemove()
     )
 
-    show_language_selector(update, context)
+    await show_language_selector(update, context)
 
     user = User.where('user_id', '=', user_id).first()
 
@@ -64,7 +65,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
     logger.info('A user with id %s has started using the bot.', user_id)
 
 
-def start_over(update: Update, context: CallbackContext) -> None:
+async def start_over(update: Update, context: CallbackContext) -> None:
     """
     Resets all the user's data to initial values and asks them to send an audio file.
 
@@ -75,34 +76,34 @@ def start_over(update: Update, context: CallbackContext) -> None:
 
     reset_user_data_context(get_effective_user_id(update), user_data)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_to_message_id=get_effective_message_id(update),
         reply_markup=ReplyKeyboardRemove()
     )
 
 
-def command_about(update: Update, context: CallbackContext) -> None:
+async def command_about(update: Update, context: CallbackContext) -> None:
     """
     Handles the ``/about`` command. Replies to the user with a message containing information about the bot.
 
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    update.message.reply_text(t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
+    await update.message.reply_text(t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
 
 
-def command_help(update: Update, context: CallbackContext) -> None:
+async def command_help(update: Update, context: CallbackContext) -> None:
     """
     Handles the ``/help`` command. Replies to the user with a guide on how to use the bot.
 
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    update.message.reply_text(t(lp.HELP_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
+    await update.message.reply_text(t(lp.HELP_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
 
 
-def show_language_selector(update: Update, _context: CallbackContext) -> None:
+async def show_language_selector(update: Update, _context: CallbackContext) -> None:
     """
     Handles the ``/language`` command. Asks the user to select a language.
 
@@ -117,14 +118,14 @@ def show_language_selector(update: Update, _context: CallbackContext) -> None:
         one_time_keyboard=True,
     )
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "Please choose a language:\n\n"
         "لطفا زبان را انتخاب کنید:",
         reply_markup=language_button_keyboard,
     )
 
 
-def set_language(update: Update, context: CallbackContext) -> None:
+async def set_language(update: Update, context: CallbackContext) -> None:
     """
     Sets a language for a user. It reads the language from the user's message.
 
@@ -142,9 +143,9 @@ def set_language(update: Update, context: CallbackContext) -> None:
 
     lang = get_user_language_or_fallback(user_data)
 
-    update.message.reply_text(t(lp.LANGUAGE_CHANGED, lang))
+    await update.message.reply_text(t(lp.LANGUAGE_CHANGED, lang))
 
-    update.message.reply_text(
+    await update.message.reply_text(
         t(lp.START_OVER_MESSAGE, lang),
         reply_markup=ReplyKeyboardRemove()
     )
@@ -154,7 +155,7 @@ def set_language(update: Update, context: CallbackContext) -> None:
     user.update({"language": lang})
 
 
-def show_module_selector(update: Update, context: CallbackContext) -> None:
+async def show_module_selector(update: Update, context: CallbackContext) -> None:
     """
     Displays a keyboard with all the available modules and asks the user to select one.
 
@@ -166,7 +167,7 @@ def show_module_selector(update: Update, context: CallbackContext) -> None:
 
     module_selector_keyboard = generate_module_selector_keyboard(lang)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         t(lp.ASK_WHICH_MODULE, lang),
         reply_to_message_id=get_effective_message_id(update),
         reply_markup=module_selector_keyboard
@@ -193,7 +194,7 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
     )
 
 
-def handle_music_message(update: Update, context: CallbackContext) -> None:
+async def handle_music_message(update: Update, context: CallbackContext) -> None:
     """
     Checks if the audio file is too large, and if it isn't, downloads it and saves its path in the user's data context.
     Then, shows the module selector keyboard to let the user choose what they want to do with their audio.
@@ -214,14 +215,14 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     lang = get_user_language_or_fallback(user_data)
 
     if music_duration >= 3600 and music_file_size > 48000000:
-        message.reply_text(
+        await message.reply_text(
             t(lp.ERR_TOO_LARGE_FILE, lang),
             reply_markup=generate_start_over_keyboard(lang)
         )
 
         return
 
-    context.bot.send_chat_action(
+    await context.bot.send_chat_action(
         chat_id=get_chat_id(update),
         action=ChatAction.TYPING
     )
@@ -229,19 +230,19 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     try:
         create_user_directory(user_id)
     except OSError:
-        message.reply_text(t(lp.ERR_CREATING_USER_FOLDER, lang))
+        await message.reply_text(t(lp.ERR_CREATING_USER_FOLDER, lang))
         logger.error("Couldn't create directory for user %s", user_id, exc_info=True)
         return
 
     try:
-        file_download_path = download_file(
+        file_download_path = await download_file(
             user_id=user_id,
             file_to_download=message.audio,
             file_type='audio',
             context=context
         )
     except ValueError:
-        message.reply_text(
+        await message.reply_text(
             t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang),
             reply_markup=generate_start_over_keyboard(lang)
         )
@@ -253,12 +254,12 @@ def handle_music_message(update: Update, context: CallbackContext) -> None:
     user_data['music_message_id'] = message.message_id
     user_data['music_duration'] = message.audio.duration
 
-    show_module_selector(update, context)
+    await show_module_selector(update, context)
 
     update_user_username_if_updated(user_id, get_effective_user_username(update))
 
 
-def handle_responses(update: Update, context: CallbackContext) -> None:
+async def handle_responses(update: Update, context: CallbackContext) -> None:
     """
     Handles all other the responses from users and decides what to do with them.
 
@@ -275,7 +276,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     lang = get_user_language_or_fallback(user_data)
 
     if is_user_data_empty(user_data):
-        reply_default_message(update, lang)
+        await reply_default_message(update, lang)
 
         return
 
@@ -291,24 +292,24 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     current_module = user_data['current_module']
 
     if is_current_module_tag_editor(current_module):
-        handle_tag_editor(update, context)
+        await handle_tag_editor(update, context)
 
         return
 
     if is_current_module_music_cutter(current_module):
-        handle_cutter(update, context)
+        await handle_cutter(update, context)
 
         return
 
     if not does_user_have_music_file(music_path):
-        message.reply_text(t(lp.START_OVER_MESSAGE, lang))
+        await message.reply_text(t(lp.START_OVER_MESSAGE, lang))
 
         return
 
     if does_user_have_music_file(music_path):
         module_selector_keyboard = generate_module_selector_keyboard(lang)
 
-        message.reply_text(
+        await message.reply_text(
             t(lp.ASK_WHICH_MODULE, lang),
             reply_markup=module_selector_keyboard
         )
@@ -318,7 +319,7 @@ def handle_responses(update: Update, context: CallbackContext) -> None:
     throw_not_implemented(update, context)
 
 
-def ignore_file(update: Update, context: CallbackContext) -> None:
+async def ignore_file(update: Update, context: CallbackContext) -> None:
     """
     Sends a message to tell users to start over when they send a file format that the bot is not interested in.
 
@@ -328,7 +329,7 @@ def ignore_file(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     reset_user_data_context(get_effective_user_id(update), user_data)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_markup=ReplyKeyboardRemove()
     )
@@ -347,19 +348,22 @@ class CoreModule:
         add_handler(CommandHandler('help', command_help))
         add_handler(CommandHandler('about', command_about))
 
-        add_handler(MessageHandler(Filters.regex('^(🇬🇧 English)$'), set_language))
-        add_handler(MessageHandler(Filters.regex('^(🇮🇷 فارسی)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇬🇧 English)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇮🇷 فارسی)$'), set_language))
 
         add_handler(MessageHandler(
-            (Filters.regex('^(🔙 Back)$') | Filters.regex('^(🔙 بازگشت)$')),
+            (filters.Regex('^(🔙 Back)$') | filters.Regex('^(🔙 بازگشت)$')),
             show_module_selector)
         )
         add_handler(MessageHandler(
-            (Filters.regex('^(🆕 New File)$') | Filters.regex('^(🆕 فایل جدید)$')),
+            (filters.Regex('^(🆕 New File)$') | filters.Regex('^(🆕 فایل جدید)$')),
             start_over)
         )
 
-        add_handler(MessageHandler(Filters.audio, handle_music_message))
+        add_handler(MessageHandler(filters.AUDIO, handle_music_message))
 
-        add_handler(MessageHandler(Filters.text, handle_responses))
-        add_handler(MessageHandler((Filters.video | Filters.document | Filters.contact), ignore_file))
+        add_handler(MessageHandler(filters.TEXT, handle_responses))
+        add_handler(MessageHandler(
+            (filters.VIDEO | filters.Document.ALL | filters.CONTACT & (
+                    ~filters.AUDIO | ~filters.PHOTO | ~filters.Document.IMAGE | ~filters.Document.JPG | ~filters.Document.MP3)),
+            ignore_file))

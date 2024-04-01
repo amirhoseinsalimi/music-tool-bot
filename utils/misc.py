@@ -1,6 +1,6 @@
 from telegram import Message, Update
 from telegram.ext import CallbackContext
-from telegram.ext.utils.types import UD
+from telegram.ext._utils.types import UD
 
 import utils.i18n as lp
 from config.modules import Module
@@ -154,7 +154,7 @@ def reset_user_data_context(user_id: int, user_data: UD) -> None:
     user_data.update(new_user_data)
 
 
-def reply_default_message(update: Update, language: str) -> None:
+async def reply_default_message(update: Update, language: str) -> None:
     """
     Reply the default message.
 
@@ -162,4 +162,4 @@ def reply_default_message(update: Update, language: str) -> None:
     :param language: str: The language of the message
     """
     message_text = t(lp.DEFAULT_MESSAGE, language)
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)

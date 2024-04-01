@@ -2,10 +2,11 @@ import re
 
 import music_tag
 from persiantools import digits
-from telegram import ChatAction, ReplyKeyboardRemove, Update
+from telegram import ReplyKeyboardRemove, Update
+from telegram.constants import ChatAction, ParseMode
 from telegram.error import TelegramError
-from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler
-from telegram.ext.utils.types import UD
+from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
+from telegram.ext._utils.types import UD
 
 import utils.i18n as lp
 from config.envs import BOT_USERNAME
@@ -119,18 +120,18 @@ def generate_music_info(tag_editor_context: dict) -> str:
     ctx = tag_editor_context
 
     return (
-        f"*🗣 Artist:* {ctx['artist'] if ctx['artist'] else '-'}\n"
-        f"*🎵 Title:* {ctx['title'] if ctx['title'] else '-'}\n"
-        f"*🎼 Album:* {ctx['album'] if ctx['album'] else '-'}\n"
-        f"*🎹 Genre:* {ctx['genre'] if ctx['genre'] else '-'}\n"
-        f"*📅 Year:* {ctx['year'] if ctx['year'] else '-'}\n"
-        f"*💿 Disk Number:* {ctx['disknumber'] if ctx['disknumber'] else '-'}\n"
-        f"*▶️ Track Number:* {ctx['tracknumber'] if ctx['tracknumber'] else '-'}\n"
+        f"*🗣 Artist:* {ctx.get('artist') if ctx.get('artist') else '-'}\n"
+        f"*🎵 Title:* {ctx.get('title') if ctx.get('title') else '-'}\n"
+        f"*🎼 Album:* {ctx.get('album') if ctx.get('album') else '-'}\n"
+        f"*🎹 Genre:* {ctx.get('genre') if ctx.get('genre') else '-'}\n"
+        f"*📅 Year:* {ctx.get('year') if ctx.get('year') else '-'}\n"
+        f"*💿 Disk Number:* {ctx.get('disknumber') if ctx.get('disknumber') else '-'}\n"
+        f"*▶️ Track Number:* {ctx.get('tracknumber') if ctx.get('tracknumber') else '-'}\n"
         "{}\n"
     )
 
 
-def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for an artist name to save into their file.
 
@@ -141,10 +142,10 @@ def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'artist'
     message_text = t(lp.ASK_FOR_ARTIST, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def ask_for_title(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_title(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for a title to save into their file.
 
@@ -155,10 +156,10 @@ def ask_for_title(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'title'
     message_text = t(lp.ASK_FOR_TITLE, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def ask_for_album(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_album(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for an album name to save into their file.
 
@@ -169,10 +170,10 @@ def ask_for_album(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'album'
     message_text = t(lp.ASK_FOR_ALBUM, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def ask_for_genre(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_genre(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for a genre to save into their file.
 
@@ -183,10 +184,10 @@ def ask_for_genre(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'genre'
     message_text = t(lp.ASK_FOR_GENRE, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def ask_for_year(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_year(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for a year to save into their file.
 
@@ -197,10 +198,10 @@ def ask_for_year(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'year'
     message_text = t(lp.ASK_FOR_YEAR, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def ask_for_album_art(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_album_art(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for an album art to save into their file.
 
@@ -211,10 +212,10 @@ def ask_for_album_art(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'album_art'
     message_text = t(lp.ASK_FOR_ALBUM_ART, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for a disknumber to save into their file.
 
@@ -225,10 +226,10 @@ def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'disknumber'
     message_text = t(lp.ASK_FOR_DISK_NUMBER, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> None:
+async def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> None:
     """
     Asks the user for a track number to save into their file.
 
@@ -239,10 +240,10 @@ def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'tracknumber'
     message_text = t(lp.ASK_FOR_TRACK_NUMBER, language)
 
-    update.message.reply_text(message_text)
+    await update.message.reply_text(message_text)
 
 
-def read_and_store_music_tags(update: Update, user_data: UD) -> None:
+async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
     """
     Reads the tags of a music file and stores them in the user's ``user_data`` dictionary.
 
@@ -256,7 +257,7 @@ def read_and_store_music_tags(update: Update, user_data: UD) -> None:
     try:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
-        update.message.reply_text(
+        await update.message.reply_text(
             t(lp.ERR_ON_READING_TAGS, lang),
             reply_markup=generate_start_over_keyboard(lang)
         )
@@ -295,7 +296,7 @@ def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             art_file.write(art.first.data)
 
 
-def handle_tag_editor(update: Update, context: CallbackContext) -> None:
+async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the user's input when they are editing a tag. It first checks if the user
     has selected a tag to edit, and if not, it asks them to do so. If the current tag is album art, then it asks them
@@ -316,13 +317,13 @@ def handle_tag_editor(update: Update, context: CallbackContext) -> None:
 
     if not did_user_select_a_tag(current_tag):
         reply_message = t(lp.ASK_WHICH_TAG, lang)
-        message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
 
         return
 
     if is_current_tag_album_art(current_tag):
         reply_message = t(lp.ASK_FOR_ALBUM_ART, lang)
-        message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
 
         return
 
@@ -339,12 +340,12 @@ def handle_tag_editor(update: Update, context: CallbackContext) -> None:
                     f"{t(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
                     f"{t(lp.OR, lang).upper()}" \
                     f" {t(lp.CLICK_DONE_MESSAGE, lang).lower()}"
-    message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+    await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
 
     unset_current_tag(user_data)
 
 
-def handle_photo_message(update: Update, context: CallbackContext) -> None:
+async def handle_photo_message(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the album arts that the user wants to be saved in their file.
 
@@ -359,7 +360,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
 
     if not music_path:
         reply_message = t(lp.DEFAULT_MESSAGE, lang)
-        message.reply_text(reply_message, reply_markup=ReplyKeyboardRemove())
+        await message.reply_text(reply_message, reply_markup=ReplyKeyboardRemove())
 
         return
 
@@ -373,12 +374,12 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
 
     if not did_user_select_a_tag(current_tag) or not is_current_tag_album_art(current_tag):
         reply_message = t(lp.ASK_WHICH_TAG, lang)
-        message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
 
         return
 
     try:
-        file_download_path = download_file(
+        file_download_path = await download_file(
             user_id=user_id,
             file_to_download=message.photo[len(message.photo) - 1],
             file_type='photo',
@@ -391,9 +392,9 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
                         f"{t(lp.OR, lang).upper()} " \
                         f"{t(lp.CLICK_DONE_MESSAGE, lang).lower()}"
 
-        message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
     except (ValueError, BaseException):
-        message.reply_text(t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
+        await message.reply_text(t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
 
         logger.error(
             "Error on downloading %s's file. File type: Photo",
@@ -404,7 +405,7 @@ def handle_photo_message(update: Update, context: CallbackContext) -> None:
         return
 
 
-def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
+async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
     """
     This function is called when the user has selected the `Module.TAG_EDITOR module`.
     It displays the current tags of that music file and asks which tag should be edited next.
@@ -416,7 +417,7 @@ def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
     lang = get_user_language_or_fallback(user_data)
 
-    read_and_store_music_tags(update, user_data)
+    await read_and_store_music_tags(update, user_data)
 
     set_current_module(user_data, Module.TAG_EDITOR)
 
@@ -428,7 +429,7 @@ def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
 
     if art_path:
         with open(art_path, 'rb') as art_file:
-            message.reply_photo(
+            await message.reply_photo(
                 photo=art_file,
                 caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
                 reply_to_message_id=get_effective_message_id(update),
@@ -436,14 +437,14 @@ def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
                 parse_mode='Markdown'
             )
     else:
-        message.reply_text(
+        await message.reply_text(
             generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
             reply_to_message_id=get_effective_message_id(update),
             reply_markup=tag_editor_keyboard
         )
 
 
-def display_preview(update: Update, context: CallbackContext) -> None:
+async def display_preview(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/preview`` command. Displays a caption with all the information about the music file, and if there's
     an album art, it also displays that.
@@ -460,25 +461,27 @@ def display_preview(update: Update, context: CallbackContext) -> None:
 
     if art_path or new_art_path:
         with open(new_art_path if new_art_path else art_path, "rb") as art_file:
-            message.reply_photo(
+            await message.reply_photo(
                 photo=art_file,
                 caption=f"{generate_music_info(tag_editor_context).format('')}"
                         f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
                         f"🆔 {BOT_USERNAME}",
+                parse_mode=ParseMode.MARKDOWN,
                 reply_to_message_id=get_effective_message_id(update),
             )
 
         return
 
-    message.reply_text(
+    await message.reply_text(
         f"{generate_music_info(tag_editor_context).format('')}"
         f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
         f"🆔 {BOT_USERNAME}",
+        parse_mode=ParseMode.MARKDOWN,
         reply_to_message_id=get_effective_message_id(update),
     )
 
 
-def finish_editing_tags(update: Update, context: CallbackContext) -> None:
+async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/finish`` command.
 
@@ -491,9 +494,9 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
     user_data = get_user_data(context)
 
-    context.bot.send_chat_action(
+    await context.bot.send_chat_action(
         chat_id=get_chat_id(update),
-        action=ChatAction.UPLOAD_AUDIO
+        action=ChatAction.UPLOAD_VOICE
     )
 
     music_path = user_data['music_path']
@@ -511,7 +514,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             new_art_path=new_art_path
         )
     except (OSError, BaseException):
-        message.reply_text(
+        await message.reply_text(
             t(lp.ERR_ON_UPDATING_TAGS, lang),
             reply_markup=start_over_button_keyboard
         )
@@ -526,9 +529,9 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 possible_art = art.read()
 
         with open(music_path, 'rb') as music_file:
-            context.bot.send_audio(
+            await context.bot.send_audio(
                 audio=music_file,
-                thumb=possible_art,
+                thumbnail=possible_art,
                 duration=user_data['music_duration'],
                 chat_id=get_chat_id(update),
                 caption=f"🆔 {BOT_USERNAME}",
@@ -536,7 +539,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 reply_to_message_id=user_data['music_message_id']
             )
     except (TelegramError, BaseException) as error:
-        message.reply_text(
+        await message.reply_text(
             t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
@@ -545,7 +548,7 @@ def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
 
-def ask_for_tag(update: Update, context: CallbackContext) -> None:
+async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     """
     Asks the user to input a value based on the tag that they just selected.
 
@@ -559,49 +562,49 @@ def ask_for_tag(update: Update, context: CallbackContext) -> None:
     lang = get_user_language_or_fallback(user_data)
 
     if is_user_data_empty(user_data):
-        reply_default_message(update, lang)
+        await reply_default_message(update, lang)
 
         return
 
     message_text = get_message_text(update)
 
     if re.match('^(🎵 Title|🎵 عنوان)$', message_text):
-        ask_for_title(update, user_data, lang)
+        await ask_for_title(update, user_data, lang)
 
         return
 
     if re.match('^(🗣 Artist|🗣 خواننده)$', message_text):
-        ask_for_artist(update, user_data, lang)
+        await ask_for_artist(update, user_data, lang)
 
         return
 
     if re.match('^(🎼 Album|🎼 آلبوم)$', message_text):
-        ask_for_album(update, user_data, lang)
+        await ask_for_album(update, user_data, lang)
 
         return
 
     if re.match('(🖼 Album Art|🖼 عکس آلبوم)$', message_text):
-        ask_for_album_art(update, user_data, lang)
+        await ask_for_album_art(update, user_data, lang)
 
         return
 
     if re.match('^(🎹 Genre|🎹 ژانر)$', message_text):
-        ask_for_genre(update, user_data, lang)
+        await ask_for_genre(update, user_data, lang)
 
         return
 
     if re.match('^(📅 Year|📅 سال)$', message_text):
-        ask_for_year(update, user_data, lang)
+        await ask_for_year(update, user_data, lang)
 
         return
 
     if re.match('^(💿 Disk Number|💿 شماره دیسک)$', message_text):
-        ask_for_disknumber(update, user_data, lang)
+        await ask_for_disknumber(update, user_data, lang)
 
         return
 
     if re.match('^(▶️ Track Number|▶️ شماره ترک)$', message_text):
-        ask_for_tracknumber(update, user_data, lang)
+        await ask_for_tracknumber(update, user_data, lang)
 
         return
 
@@ -616,23 +619,22 @@ class TagEditorModule:
         add_handler(CommandHandler('done', finish_editing_tags))
         add_handler(CommandHandler('preview', display_preview))
 
-        add_handler(MessageHandler(Filters.photo, handle_photo_message))
+        add_handler(MessageHandler(filters.PHOTO, handle_photo_message))
 
         add_handler(MessageHandler(
-            (Filters.regex('^(🎵 Tag Editor)$') | Filters.regex('^(🎵 تغییر تگ ها)$')),
+            (filters.Regex('^(🎵 Tag Editor)$') | filters.Regex('^(🎵 تغییر تگ ها)$')),
             ask_which_tag_to_edit)
         )
 
         add_handler(MessageHandler(
             (
-                    Filters.regex('^(🎵 Title)$') | Filters.regex('^(🎵 عنوان)$') |
-                    Filters.regex('^(🗣 Artist)$') | Filters.regex('^(🗣 خواننده)$') |
-                    Filters.regex('^(🎼 Album)$') | Filters.regex('^(🎼 آلبوم)$') |
-                    Filters.regex('^(🖼 Album Art)$') | Filters.regex('^(🖼 عکس آلبوم)$') |
-                    Filters.regex('^(🎹 Genre)$') | Filters.regex('^(🎹 ژانر)$') |
-                    Filters.regex('^(📅 Year)$') | Filters.regex('^(📅 سال)$') |
-                    Filters.regex('^(💿 Disk Number)$') | Filters.regex('^(💿 شماره دیسک)$') |
-                    Filters.regex('^(▶️ Track Number)$') | Filters.regex('^(▶️ شماره ترک)$')
-            ),
+                    filters.Regex('^(🎵 Title)$') | filters.Regex('^(🎵 عنوان)$') |
+                    filters.Regex('^(🗣 Artist)$') | filters.Regex('^(🗣 خواننده)$') |
+                    filters.Regex('^(🎼 Album)$') | filters.Regex('^(🎼 آلبوم)$') |
+                    filters.Regex('^(🖼 Album Art)$') | filters.Regex('^(🖼 عکس آلبوم)$') |
+                    filters.Regex('^(🎹 Genre)$') | filters.Regex('^(🎹 ژانر)$') |
+                    filters.Regex('^(📅 Year)$') | filters.Regex('^(📅 سال)$') |
+                    filters.Regex('^(💿 Disk Number)$') | filters.Regex('^(💿 شماره دیسک)$') |
+                    filters.Regex('^(▶️ Track Number)$') | filters.Regex('^(▶️ شماره ترک)$')),
             ask_for_tag)
         )

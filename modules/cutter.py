@@ -3,9 +3,10 @@ import re
 
 from persiantools import digits
 from telegram import Message, Update
+from telegram.constants import ParseMode
 from telegram.error import TelegramError
-from telegram.ext import CallbackContext, Filters, MessageHandler
-from telegram.ext.utils.types import UD
+from telegram.ext import CallbackContext, filters, MessageHandler
+from telegram.ext._utils.types import UD
 
 import utils.i18n as lp
 from config.envs import BOT_USERNAME
@@ -92,7 +93,7 @@ def parse_cutting_range(text: str) -> (int, int):
     return beginning_sec, ending_sec
 
 
-def send_out_of_range_message(message: Message, user_data: UD) -> None:
+async def send_out_of_range_message(message: Message, user_data: UD) -> None:
     """
     Send a message to the user informing them that their input is out of range. It also sends a help message and the
     back button keyboard.
@@ -106,15 +107,15 @@ def send_out_of_range_message(message: Message, user_data: UD) -> None:
 
     reply_message = t(lp.ERR_OUT_OF_RANGE, lang).format(
         convert_seconds_to_human_readable_form(music_duration))
-    message.reply_text(reply_message)
+    await message.reply_text(reply_message)
 
-    message.reply_text(
+    await message.reply_text(
         t(lp.MUSIC_CUTTER_HELP, lang),
         reply_markup=back_button_keyboard
     )
 
 
-def send_beginning_is_greater_message(message: Message, user_data: UD)-> None:
+async def send_beginning_is_greater_message(message: Message, user_data: UD) -> None:
     """
     Send a message to the user informing them that the beginning point they entered is greater than the end point. It
     also sends a help message and the back button keyboard.
@@ -126,9 +127,9 @@ def send_beginning_is_greater_message(message: Message, user_data: UD)-> None:
     back_button_keyboard = generate_back_button_keyboard(lang)
 
     reply_message = t(lp.ERR_BEGINNING_POINT_IS_GREATER, lang)
-    message.reply_text(reply_message)
+    await message.reply_text(reply_message)
 
-    message.reply_text(
+    await message.reply_text(
         t(lp.MUSIC_CUTTER_HELP, lang),
         reply_markup=back_button_keyboard
     )
@@ -151,7 +152,7 @@ def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) ->
     )
 
 
-def handle_cutter(update: Update, context: CallbackContext) -> None:
+async def handle_cutter(update: Update, context: CallbackContext) -> None:
     """
     Handles the cut functionality. When a user enters a cutting range, this function parses it, and acts upon
     accordingly. If the range is valid, the new file with the selected range is sent to the user, otherwise an error
@@ -173,19 +174,19 @@ def handle_cutter(update: Update, context: CallbackContext) -> None:
         reply_message = t(lp.ERR_MALFORMED_RANGE, lang).format(
             t(lp.MUSIC_CUTTER_HELP, lang),
         )
-        message.reply_text(reply_message, reply_markup=back_button_keyboard)
+        await message.reply_text(reply_message, reply_markup=back_button_keyboard)
 
         return
 
     music_duration = user_data['music_duration']
 
     if is_out_of_range(music_duration, beginning_sec, ending_sec):
-        send_out_of_range_message(message, user_data)
+        await send_out_of_range_message(message, user_data)
 
         return
 
     if is_range_malformed(beginning_sec, ending_sec):
-        send_beginning_is_greater_message(message, user_data)
+        await send_beginning_is_greater_message(message, user_data)
 
         return
 
@@ -200,7 +201,7 @@ def handle_cutter(update: Update, context: CallbackContext) -> None:
     try:
         with open(output_path, 'rb') as music_file:
             # FIXME: After sending the file, the album art can't be read back
-            context.bot.send_audio(
+            await context.bot.send_audio(
                 audio=music_file,
                 chat_id=get_chat_id(update),
                 duration=diff_sec,
@@ -211,7 +212,7 @@ def handle_cutter(update: Update, context: CallbackContext) -> None:
                 reply_to_message_id=user_data['music_message_id']
             )
     except (TelegramError, BaseException) as error:
-        message.reply_text(
+        await message.reply_text(
             t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
@@ -222,7 +223,7 @@ def handle_cutter(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
 
-def show_cutter_help(update: Update, context: CallbackContext) -> None:
+async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """
     Displays the guide on how to use the cutter module, and set the current module to ``Module.CUTTER``.
 
@@ -240,8 +241,9 @@ def show_cutter_help(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
 
     # TODO: Send back the length of the music
-    message.reply_text(
+    await message.reply_text(
         f"{t(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
+        parse_mode=ParseMode.MARKDOWN,
         reply_markup=back_button_keyboard
     )
 
@@ -254,6 +256,6 @@ class CutterModule:
         messages sent to the bot.
         """
         add_handler(MessageHandler(
-            (Filters.regex('^(✂️ Music Cutter)$') | Filters.regex('^(✂️ بریدن آهنگ)$')),
+            (filters.Regex('^(✂️ Music Cutter)$') | filters.Regex('^(✂️ بریدن آهنگ)$')),
             show_cutter_help)
         )
