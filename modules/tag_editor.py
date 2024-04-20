@@ -117,16 +117,17 @@ def generate_music_info(tag_editor_context: dict) -> str:
     :param tag_editor_context: dict: A dictionary representing the metadata of a music
     :return: str: The metadata of a music.
     """
+    DEFAULT_VALUE = ' '
     ctx = tag_editor_context
 
     return (
-        f"*🗣 Artist:* {ctx.get('artist') if ctx.get('artist') else '-'}\n"
-        f"*🎵 Title:* {ctx.get('title') if ctx.get('title') else '-'}\n"
-        f"*🎼 Album:* {ctx.get('album') if ctx.get('album') else '-'}\n"
-        f"*🎹 Genre:* {ctx.get('genre') if ctx.get('genre') else '-'}\n"
-        f"*📅 Year:* {ctx.get('year') if ctx.get('year') else '-'}\n"
-        f"*💿 Disk Number:* {ctx.get('disknumber') if ctx.get('disknumber') else '-'}\n"
-        f"*▶️ Track Number:* {ctx.get('tracknumber') if ctx.get('tracknumber') else '-'}\n"
+        f"*🗣 Artist:* {ctx.get('artist') if ctx.get('artist') else DEFAULT_VALUE}\n"
+        f"*🎵 Title:* {ctx.get('title') if ctx.get('title') else DEFAULT_VALUE}\n"
+        f"*🎼 Album:* {ctx.get('album') if ctx.get('album') else DEFAULT_VALUE}\n"
+        f"*🎹 Genre:* {ctx.get('genre') if ctx.get('genre') else DEFAULT_VALUE}\n"
+        f"*📅 Year:* {ctx.get('year') if ctx.get('year') else DEFAULT_VALUE}\n"
+        f"*💿 Disk Number:* {ctx.get('disknumber') if ctx.get('disknumber') else DEFAULT_VALUE}\n"
+        f"*▶️ Track Number:* {ctx.get('tracknumber') if ctx.get('tracknumber') else DEFAULT_VALUE}\n"
         "{}\n"
     )
 
