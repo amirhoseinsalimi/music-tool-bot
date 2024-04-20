@@ -422,11 +422,17 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
     message = get_message(update)
     lang = get_user_language_or_fallback(user_data)
 
-    await read_and_store_music_tags(update, user_data)
+    try:
+        await read_and_store_music_tags(update, user_data)
+
+        tag_editor_context = user_data['tag_editor']
+    except KeyError:
+        await message.reply_text(t(lp.DEFAULT_MESSAGE, lang))
+
+        return
 
     set_current_module(user_data, Module.TAG_EDITOR)
 
-    tag_editor_context = user_data['tag_editor']
     art_path = tag_editor_context.get('art_path')
     tag_editor_context['current_tag'] = ''
 
