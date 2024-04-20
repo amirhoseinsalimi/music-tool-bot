@@ -3,7 +3,7 @@ import re
 import music_tag
 from persiantools import digits
 from telegram import ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction, ParseMode
+from telegram.constants import ChatAction
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 from telegram.ext._utils.types import UD
@@ -117,19 +117,23 @@ def generate_music_info(tag_editor_context: dict) -> str:
     :param tag_editor_context: dict: A dictionary representing the metadata of a music
     :return: str: The metadata of a music.
     """
-    DEFAULT_VALUE = ' '
+    default_value = ''
     ctx = tag_editor_context
 
-    return (
-        f"*🗣 Artist:* {ctx.get('artist') if ctx.get('artist') else DEFAULT_VALUE}\n"
-        f"*🎵 Title:* {ctx.get('title') if ctx.get('title') else DEFAULT_VALUE}\n"
-        f"*🎼 Album:* {ctx.get('album') if ctx.get('album') else DEFAULT_VALUE}\n"
-        f"*🎹 Genre:* {ctx.get('genre') if ctx.get('genre') else DEFAULT_VALUE}\n"
-        f"*📅 Year:* {ctx.get('year') if ctx.get('year') else DEFAULT_VALUE}\n"
-        f"*💿 Disk Number:* {ctx.get('disknumber') if ctx.get('disknumber') else DEFAULT_VALUE}\n"
-        f"*▶️ Track Number:* {ctx.get('tracknumber') if ctx.get('tracknumber') else DEFAULT_VALUE}\n"
+    music_info = (
+        f"*🗣 Artist:* {ctx.get('artist') if ctx.get('artist') else default_value}\n"
+        f"*🎵 Title:* {ctx.get('title') if ctx.get('title') else default_value}\n"
+        f"*🎼 Album:* {ctx.get('album') if ctx.get('album') else default_value}\n"
+        f"*🎹 Genre:* {ctx.get('genre') if ctx.get('genre') else default_value}\n"
+        f"*📅 Year:* {ctx.get('year') if ctx.get('year') else default_value}\n"
+        f"*💿 Disk Number:* {ctx.get('disknumber') if ctx.get('disknumber') else default_value}\n"
+        f"*▶️ Track Number:* {ctx.get('tracknumber') if ctx.get('tracknumber') else default_value}\n"
         "{}\n"
     )
+
+    escaped_music_info = re.sub(r'([-_])', r'\\\1', music_info)
+
+    return escaped_music_info
 
 
 async def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
