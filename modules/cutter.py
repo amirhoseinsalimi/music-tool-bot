@@ -243,7 +243,6 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     # TODO: Send back the length of the music
     await message.reply_text(
         f"{t(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
-        parse_mode=ParseMode.MARKDOWN,
         reply_markup=back_button_keyboard
     )
 
