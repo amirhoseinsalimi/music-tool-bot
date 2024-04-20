@@ -467,7 +467,6 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
                 caption=f"{generate_music_info(tag_editor_context).format('')}"
                         f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
                         f"🆔 {BOT_USERNAME}",
-                parse_mode=ParseMode.MARKDOWN,
                 reply_to_message_id=get_effective_message_id(update),
             )
 
@@ -477,7 +476,6 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
         f"{generate_music_info(tag_editor_context).format('')}"
         f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
         f"🆔 {BOT_USERNAME}",
-        parse_mode=ParseMode.MARKDOWN,
         reply_to_message_id=get_effective_message_id(update),
     )
 
