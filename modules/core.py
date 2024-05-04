@@ -1,5 +1,5 @@
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction
+from telegram.constants import ChatAction, ParseMode
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 
 import utils.i18n as lp
@@ -90,7 +90,10 @@ async def command_about(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    await update.message.reply_text(t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
+    await update.message.reply_text(
+        t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
 
 
 async def command_help(update: Update, context: CallbackContext) -> None:
