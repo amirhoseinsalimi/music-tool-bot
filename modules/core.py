@@ -92,7 +92,7 @@ async def command_about(update: Update, context: CallbackContext) -> None:
     """
     await update.message.reply_text(
         t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))),
-        parse_mode=ParseMode.MARKDOWN_V2
+        parse_mode=ParseMode.MARKDOWN
     )
 
 
