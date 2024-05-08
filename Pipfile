@@ -19,7 +19,7 @@ t = "pipenv run test"
 [packages]
 python-telegram-bot = "~=21.1.1"
 music-tag = "~=0.4.3"
-python-dotenv = "~=0.21.1"
+python-dotenv = "~=1.0.1"
 psutil = "~=5.9.8"
 persiantools = "~=4.0.0"
 masonite-orm = "~=2.22.0"
