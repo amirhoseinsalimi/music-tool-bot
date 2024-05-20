@@ -26,6 +26,6 @@ masonite-orm = "~=2.22.0"
 cryptography = "~=42.0.6"
 
 [dev-packages]
-pylint = "~=3.1.0"
+pylint = "~=3.2.2"
 autopep8 = "~=2.1.0"
 jurigged = "~=0.5.7"
