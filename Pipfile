@@ -27,5 +27,5 @@ cryptography = "~=42.0.6"
 
 [dev-packages]
 pylint = "~=3.1.0"
-autopep8 = "~=2.1.0"
+autopep8 = "~=2.1.1"
 jurigged = "~=0.5.7"
