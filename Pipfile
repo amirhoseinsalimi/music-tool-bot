@@ -17,7 +17,7 @@ test = "echo 'Not Implemented Yet'"
 t = "pipenv run test"
 
 [packages]
-python-telegram-bot = "~=21.1.1"
+python-telegram-bot = "~=21.2"
 music-tag = "~=0.4.3"
 python-dotenv = "~=1.0.1"
 psutil = "~=5.9.8"
