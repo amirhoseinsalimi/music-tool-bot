@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e33b60faeecd9b5a74ec93461b1fc887ae86b670219495c617578be619bc8f8e"
+            "sha256": "2facd49c799a9efff16f63462ff357fd0f61e8d25f529c19b27989a1926c8a9a"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -266,12 +266,12 @@
         },
         "persiantools": {
             "hashes": [
-                "sha256:24c1ef540aa738987731aa5f0e8753486bffed3fa2dc6d4a1bcb7f6e5435b1aa",
-                "sha256:c6569cebd72451a59bdf2c6e39263a40cd826e00ecfcd60593b4ad736c90e650"
+                "sha256:b5f07513e9a4f8d46e6f5aa1e04e10aa018392116534b5a51430fcaa77fa01d5",
+                "sha256:e31c2807ec9a89c117c459ae4d38badf077f3397760398775c5d6d189b641a2e"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==4.0.0"
+            "version": "==4.0.2"
         },
         "psutil": {
             "hashes": [

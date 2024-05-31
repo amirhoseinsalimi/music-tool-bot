@@ -21,7 +21,7 @@ python-telegram-bot = "~=21.2"
 music-tag = "~=0.4.3"
 python-dotenv = "~=1.0.1"
 psutil = "~=5.9.8"
-persiantools = "~=4.0.0"
+persiantools = "~=4.0.2"
 masonite-orm = "~=2.22.0"
 cryptography = "~=42.0.6"
 
