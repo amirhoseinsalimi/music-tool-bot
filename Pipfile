@@ -23,7 +23,7 @@ python-dotenv = "~=1.0.1"
 psutil = "~=5.9.8"
 persiantools = "~=4.0.2"
 masonite-orm = "~=2.22.0"
-cryptography = "~=42.0.7"
+cryptography = "~=42.0.8"
 
 [dev-packages]
 pylint = "~=3.2.2"
