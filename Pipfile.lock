@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "036d4e735df09801db6d60d68dcf921f85e78c8d91bce03560823b82c1289572"
+            "sha256": "43e870864ec17cddaef817d7e0918a72bab0077eacdccf9029d57c7b830bd4af"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -209,10 +209,10 @@
         },
         "masonite-orm": {
             "hashes": [
-                "sha256:268852d87eaabe8cd5bb844f345ff51ac111b9e603aa629a0b119f927eca79fd"
+                "sha256:b49bed04af67bdff4b791970a351f45d1890e19f7852c1974be18b48637bccb2"
             ],
             "index": "pypi",
-            "version": "==2.22.0"
+            "version": "==2.22.1"
         },
         "music-tag": {
             "hashes": [
