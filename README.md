@@ -31,7 +31,7 @@ Supports 2 languages for now: **English** and **Persian**. ([Add more if you wan
    - Run `pip install pipenv` to install pipenv 
 
 3. **Install dependencies:**<br />
-   Run `pipenv install`
+   Run `pipenv install -d`
 
 4. **Setup environment variables:**<br />
    Run `cp .env.example .env`. Then put your credentials there:
