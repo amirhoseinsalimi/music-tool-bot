@@ -386,7 +386,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     try:
         file_download_path = await download_file(
             user_id=user_id,
-            file_to_download=message.photo[len(message.photo) - 1],
+            file_to_download=message.photo[-1],
             file_type='photo',
             context=context
         )
