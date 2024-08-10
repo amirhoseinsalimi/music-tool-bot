@@ -131,7 +131,7 @@ def generate_music_info(tag_editor_context: dict) -> str:
         "{}\n"
     )
 
-    escaped_music_info = re.sub(r'([-_])', r'\\\1', music_info)
+    escaped_music_info = re.sub(r'([-_()!])', r'\\\1', music_info)
 
     return escaped_music_info
 
