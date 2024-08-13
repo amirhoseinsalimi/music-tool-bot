@@ -51,7 +51,7 @@ ERR_NOT_IMPLEMENTED = "ERR_NOT_IMPLEMENTED"
 ERR_OUT_OF_RANGE = "ERR_OUT_OF_RANGE"
 ERR_MALFORMED_RANGE = "ERR_MALFORMED_RANGE"
 ERR_BEGINNING_POINT_IS_GREATER = "ERR_BEGINNING_POINT_IS_GREATER"
-BTN_TAG_EDITOR = "BTN_TAG_EDITOR"
+BTN_TAG_AND_ART_EDITOR = "BTN_TAG_AND_ART_EDITOR"
 BTN_MUSIC_TO_VOICE_CONVERTER = "BTN_MUSIC_TO_VOICE_CONVERTER"
 BTN_MUSIC_CUTTER = "BTN_MUSIC_CUTTER"
 BTN_BITRATE_CHANGER = "BTN_BITRATE_CHANGER"
@@ -232,9 +232,9 @@ keys = {
         "en": "The ending point should be greater than starting point",
         "fa": "زمان پایان باید از زمان شروع بزرگتر باشد.",
     },
-    BTN_TAG_EDITOR: {
-        "en": "🎵 Tag Editor",
-        "fa": "🎵 تغییر تگ ها",
+    BTN_TAG_AND_ART_EDITOR: {
+        "en": "🎵 Tag/Art Editor",
+        "fa": "🎵 تغییر تگ/آرت",
     },
     BTN_MUSIC_TO_VOICE_CONVERTER: {
         "en": "🗣 Music to Voice Converter",

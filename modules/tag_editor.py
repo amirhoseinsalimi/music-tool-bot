@@ -633,7 +633,7 @@ class TagEditorModule:
         add_handler(MessageHandler(filters.PHOTO, handle_photo_message))
 
         add_handler(MessageHandler(
-            (filters.Regex('^(🎵 Tag Editor)$') | filters.Regex('^(🎵 تغییر تگ ها)$')),
+            (filters.Regex('^(🎵 Tag/Art Editor)$') | filters.Regex('^(🎵 تغییر تگ/آرت)$')),
             ask_which_tag_to_edit)
         )
 

@@ -50,7 +50,7 @@ def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
         ReplyKeyboardMarkup(
             [
                 [
-                    t('BTN_TAG_EDITOR', language),
+                    t('BTN_TAG_AND_ART_EDITOR', language),
                     t('BTN_MUSIC_TO_VOICE_CONVERTER', language)
                 ],
                 [
