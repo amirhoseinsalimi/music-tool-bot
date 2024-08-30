@@ -65,7 +65,7 @@ async def add_admin(update: Update) -> None:
 
     admin.save()
 
-    await update.message.reply_text(f"User {admin_id_to_add} has been added as admins.")
+    await update.message.reply_text(text=f"User `{admin_id_to_add}` has been added as admins.")
 
 
 async def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
@@ -93,9 +93,9 @@ async def del_admin(update: Update) -> None:
     if is_user_admin(admin_id_to_delete):
         Admin.where('admin_user_id', '=', admin_id_to_delete).delete()
 
-        await update.message.reply_text(f"User {admin_id_to_delete} is no longer an admin")
+        await update.message.reply_text(text=f"User `{admin_id_to_delete}` is no longer an admin")
     else:
-        await update.message.reply_text(f"User {admin_id_to_delete} is not an admin")
+        await update.message.reply_text(text=f"User `{admin_id_to_delete}` is not an admin")
 
 
 async def show_stats_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
@@ -130,7 +130,7 @@ async def show_stats(update: Update) -> None:
         psutil.disk_usage('/')[-3:]
 
     await update.message.reply_text(
-        f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
+        text=f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
         f"🇬🇧 English users: {len(english_users)}\n"
         f"🇮🇷 Persian users: {len(persian_users)}\n\n"
 
@@ -176,7 +176,7 @@ async def list_users(update: Update, limit: Optional[int] = None) -> None:
                           f": {user.number_of_files_sent}\n")
 
     await update.message.reply_text(
-        f"👥 List of all users ({len(users)} in total):\n\n"
+        text=f"👥 List of all users ({len(users)} in total):\n\n"
         f"{reply_message}",
         parse_mode='',
     )

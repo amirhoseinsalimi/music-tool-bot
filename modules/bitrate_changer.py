@@ -62,7 +62,7 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     set_current_module(user_data, Module.BITRATE_CHANGER)
 
     await update.message.reply_text(
-        f"{t(lp.BITRATE_CHANGER_HELP, lang)}\n",
+        text=f"{t(lp.BITRATE_CHANGER_HELP, lang)}\n",
         reply_markup=bitrate_selector_keyboard
     )
 
@@ -104,10 +104,9 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
-
     except (TelegramError, BaseException) as error:
         await message.reply_text(
-            t(lp.ERR_ON_UPLOADING, lang),
+            text=t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
 

@@ -147,7 +147,7 @@ async def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'artist'
     message_text = t(lp.ASK_FOR_ARTIST, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def ask_for_title(update: Update, user_data: UD, language: str) -> None:
@@ -161,7 +161,7 @@ async def ask_for_title(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'title'
     message_text = t(lp.ASK_FOR_TITLE, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def ask_for_album(update: Update, user_data: UD, language: str) -> None:
@@ -175,7 +175,7 @@ async def ask_for_album(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'album'
     message_text = t(lp.ASK_FOR_ALBUM, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def ask_for_genre(update: Update, user_data: UD, language: str) -> None:
@@ -189,7 +189,7 @@ async def ask_for_genre(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'genre'
     message_text = t(lp.ASK_FOR_GENRE, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def ask_for_year(update: Update, user_data: UD, language: str) -> None:
@@ -203,7 +203,7 @@ async def ask_for_year(update: Update, user_data: UD, language: str) -> None:
     user_data['tag_editor']['current_tag'] = 'year'
     message_text = t(lp.ASK_FOR_YEAR, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def ask_for_album_art(update: Update, user_data: UD, language: str) -> None:
@@ -217,7 +217,7 @@ async def ask_for_album_art(update: Update, user_data: UD, language: str) -> Non
     user_data['tag_editor']['current_tag'] = 'album_art'
     message_text = t(lp.ASK_FOR_ALBUM_ART, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
@@ -231,7 +231,7 @@ async def ask_for_disknumber(update: Update, user_data: UD, language: str) -> No
     user_data['tag_editor']['current_tag'] = 'disknumber'
     message_text = t(lp.ASK_FOR_DISK_NUMBER, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> None:
@@ -245,7 +245,7 @@ async def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> N
     user_data['tag_editor']['current_tag'] = 'tracknumber'
     message_text = t(lp.ASK_FOR_TRACK_NUMBER, language)
 
-    await update.message.reply_text(message_text)
+    await update.message.reply_text(text=message_text)
 
 
 async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
@@ -263,9 +263,10 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
         await update.message.reply_text(
-            t(lp.ERR_ON_READING_TAGS, lang),
+            text=t(lp.ERR_ON_READING_TAGS, lang),
             reply_markup=generate_start_over_keyboard(lang)
         )
+
         logger.error(
             "Error on reading the tags %s's file. File path: %s",
             user_id,
@@ -322,13 +323,15 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
 
     if not did_user_select_a_tag(current_tag):
         reply_message = t(lp.ASK_WHICH_TAG, lang)
-        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+
+        await message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
 
         return
 
     if is_current_tag_album_art(current_tag):
         reply_message = t(lp.ASK_FOR_ALBUM_ART, lang)
-        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+
+        await message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
 
         return
 
@@ -345,7 +348,8 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
                     f"{t(lp.CLICK_PREVIEW_MESSAGE, lang)} " \
                     f"{t(lp.OR, lang).upper()}" \
                     f" {t(lp.CLICK_DONE_MESSAGE, lang).lower()}"
-    await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+
+    await message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
 
     unset_current_tag(user_data)
 
@@ -365,7 +369,8 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
 
     if not music_path:
         reply_message = t(lp.DEFAULT_MESSAGE, lang)
-        await message.reply_text(reply_message, reply_markup=ReplyKeyboardRemove())
+
+        await message.reply_text(text=reply_message, reply_markup=ReplyKeyboardRemove())
 
         return
 
@@ -379,7 +384,8 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
 
     if not did_user_select_a_tag(current_tag) or not is_current_tag_album_art(current_tag):
         reply_message = t(lp.ASK_WHICH_TAG, lang)
-        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+
+        await message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
 
         return
 
@@ -397,9 +403,9 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
                         f"{t(lp.OR, lang).upper()} " \
                         f"{t(lp.CLICK_DONE_MESSAGE, lang).lower()}"
 
-        await message.reply_text(reply_message, reply_markup=tag_editor_keyboard)
+        await message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
     except (ValueError, BaseException):
-        await message.reply_text(t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
+        await message.reply_text(text=t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang))
 
         logger.error(
             "Error on downloading %s's file. File type: Photo",
@@ -427,7 +433,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
 
         tag_editor_context = user_data['tag_editor']
     except KeyError:
-        await message.reply_text(t(lp.DEFAULT_MESSAGE, lang))
+        await message.reply_text(text=t(lp.DEFAULT_MESSAGE, lang))
 
         return
 
@@ -449,7 +455,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
             )
     else:
         await message.reply_text(
-            generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
+            text=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
             reply_to_message_id=get_effective_message_id(update),
             reply_markup=tag_editor_keyboard
         )
@@ -484,7 +490,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
         return
 
     await message.reply_text(
-        f"{generate_music_info(tag_editor_context).format('')}"
+        text=f"{generate_music_info(tag_editor_context).format('')}"
         f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
         f"🆔 {BOT_USERNAME}",
         reply_to_message_id=get_effective_message_id(update),
@@ -525,10 +531,12 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         )
     except (OSError, BaseException):
         await message.reply_text(
-            t(lp.ERR_ON_UPDATING_TAGS, lang),
+            text=t(lp.ERR_ON_UPDATING_TAGS, lang),
             reply_markup=start_over_button_keyboard
         )
+
         logger.error("Error on updating tags for file %s's file.", music_path, exc_info=True)
+
         return
 
     try:
@@ -551,9 +559,10 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             )
     except (TelegramError, BaseException) as error:
         await message.reply_text(
-            t(lp.ERR_ON_UPLOADING, lang),
+            text=t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
+
         logger.exception("Telegram error: %s", error)
 
     reset_user_data_context(get_effective_user_id(update), user_data)

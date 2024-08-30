@@ -22,7 +22,7 @@ async def show_donation_methods(update: Update, context: CallbackContext) -> Non
     donation_keyboard = generate_donation_keyboard()
 
     await update.message.reply_text(
-        f"{t(lp.DONATION_MESSAGE, lang)}\n",
+        text=f"{t(lp.DONATION_MESSAGE, lang)}\n",
         reply_markup=donation_keyboard
     )
 
@@ -62,7 +62,7 @@ async def show_addresses(update: Update, context: CallbackContext) -> None:
     elif re.match(r'^(ZarinPal)$', message_text):
         reply_text = f"{t(lp.DONATE_MESSAGE_ZARINPAL, lang)}"
 
-    await update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove(), parse_mode=ParseMode.MARKDOWN)
+    await update.message.reply_text(text=reply_text, reply_markup=ReplyKeyboardRemove(), parse_mode=ParseMode.MARKDOWN)
 
 
 class DonationModule:

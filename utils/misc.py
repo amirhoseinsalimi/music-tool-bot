@@ -162,4 +162,5 @@ async def reply_default_message(update: Update, language: str) -> None:
     :param language: str: The language of the message
     """
     message_text = t(lp.DEFAULT_MESSAGE, language)
-    await update.message.reply_text(message_text)
+
+    await update.message.reply_text(text=message_text)

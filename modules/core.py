@@ -43,7 +43,7 @@ async def command_start(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
     await update.message.reply_text(
-        t(lp.START_MESSAGE, get_user_language_or_fallback(user_data)),
+        text=t(lp.START_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -77,7 +77,7 @@ async def start_over(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
     await update.message.reply_text(
-        t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
+        text=t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_to_message_id=get_effective_message_id(update),
         reply_markup=ReplyKeyboardRemove()
     )
@@ -91,7 +91,7 @@ async def command_about(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     """
     await update.message.reply_text(
-        t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))),
+        text=t(lp.ABOUT_MESSAGE, get_user_language_or_fallback(get_user_data(context))),
         parse_mode=ParseMode.MARKDOWN
     )
 
@@ -103,7 +103,7 @@ async def command_help(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    await update.message.reply_text(t(lp.HELP_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
+    await update.message.reply_text(text=t(lp.HELP_MESSAGE, get_user_language_or_fallback(get_user_data(context))))
 
 
 async def show_language_selector(update: Update, _context: CallbackContext) -> None:
@@ -114,7 +114,7 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
     :param _context: CallbackContext: The ``context`` object
     """
     language_button_keyboard = ReplyKeyboardMarkup(
-        [
+        keyboard=[
             ['🇬🇧 English', '🇮🇷 فارسی'],
         ],
         resize_keyboard=True,
@@ -122,7 +122,7 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
     )
 
     await update.message.reply_text(
-        "Please choose a language:\n\n"
+        text="Please choose a language:\n\n"
         "لطفا زبان را انتخاب کنید:",
         reply_markup=language_button_keyboard,
     )
@@ -146,10 +146,10 @@ async def set_language(update: Update, context: CallbackContext) -> None:
 
     lang = get_user_language_or_fallback(user_data)
 
-    await update.message.reply_text(t(lp.LANGUAGE_CHANGED, lang))
+    await update.message.reply_text(text=t(lp.LANGUAGE_CHANGED, lang))
 
     await update.message.reply_text(
-        t(lp.START_OVER_MESSAGE, lang),
+        text=t(lp.START_OVER_MESSAGE, lang),
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -171,7 +171,7 @@ async def show_module_selector(update: Update, context: CallbackContext) -> None
     module_selector_keyboard = generate_module_selector_keyboard(lang)
 
     await update.message.reply_text(
-        t(lp.ASK_WHICH_MODULE, lang),
+        text=t(lp.ASK_WHICH_MODULE, lang),
         reply_to_message_id=get_effective_message_id(update),
         reply_markup=module_selector_keyboard
     )
@@ -192,7 +192,7 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
     back_button_keyboard = generate_back_button_keyboard(lang)
 
     update.message.reply_text(
-        t(lp.ERR_NOT_IMPLEMENTED, lang),
+        text=t(lp.ERR_NOT_IMPLEMENTED, lang),
         reply_markup=back_button_keyboard
     )
 
@@ -219,7 +219,7 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     if music_duration >= 3600 and music_file_size > 48000000:
         await message.reply_text(
-            t(lp.ERR_TOO_LARGE_FILE, lang),
+            text=t(lp.ERR_TOO_LARGE_FILE, lang),
             reply_markup=generate_start_over_keyboard(lang)
         )
 
@@ -233,8 +233,10 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     try:
         create_user_directory(user_id)
     except OSError:
-        await message.reply_text(t(lp.ERR_CREATING_USER_FOLDER, lang))
+        await message.reply_text(text=t(lp.ERR_CREATING_USER_FOLDER, lang))
+
         logger.error("Couldn't create directory for user %s", user_id, exc_info=True)
+
         return
 
     try:
@@ -246,9 +248,10 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
         )
     except ValueError:
         await message.reply_text(
-            t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang),
+            text=t(lp.ERR_ON_DOWNLOAD_AUDIO_MESSAGE, lang),
             reply_markup=generate_start_over_keyboard(lang)
         )
+
         logger.error("Error on downloading %s's file. File type: Audio", user_id, exc_info=True)
 
         return
@@ -305,7 +308,7 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
         return
 
     if not does_user_have_music_file(music_path):
-        await message.reply_text(t(lp.START_OVER_MESSAGE, lang))
+        await message.reply_text(text=t(lp.START_OVER_MESSAGE, lang))
 
         return
 
@@ -313,7 +316,7 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
         module_selector_keyboard = generate_module_selector_keyboard(lang)
 
         await message.reply_text(
-            t(lp.ASK_WHICH_MODULE, lang),
+            text=t(lp.ASK_WHICH_MODULE, lang),
             reply_markup=module_selector_keyboard
         )
 
@@ -333,7 +336,7 @@ async def ignore_file(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(get_effective_user_id(update), user_data)
 
     await update.message.reply_text(
-        t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
+        text=t(lp.START_OVER_MESSAGE, get_user_language_or_fallback(user_data)),
         reply_markup=ReplyKeyboardRemove()
     )
 

@@ -71,7 +71,7 @@ async def download_file(
     user_download_dir = f"downloads/{user_id}"
     file_extension = ''
 
-    file_id = await context.bot.get_file(file_to_download.file_id)
+    file_id = await context.bot.get_file(file_id=file_to_download.file_id)
 
     if file_type == 'audio':
         file_name = file_to_download.file_name
