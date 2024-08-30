@@ -72,9 +72,10 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
             )
     except TelegramError as error:
         await message.reply_text(
-            t(lp.ERR_ON_UPLOADING, lang),
+            text=t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
+
         logger.exception("Telegram error: %s", error)
 
     delete_file(output_path)

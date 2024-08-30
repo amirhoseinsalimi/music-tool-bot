@@ -107,10 +107,11 @@ async def send_out_of_range_message(message: Message, user_data: UD) -> None:
 
     reply_message = t(lp.ERR_OUT_OF_RANGE, lang).format(
         convert_seconds_to_human_readable_form(music_duration))
-    await message.reply_text(reply_message)
+
+    await message.reply_text(text=reply_message)
 
     await message.reply_text(
-        t(lp.MUSIC_CUTTER_HELP, lang),
+        text=t(lp.MUSIC_CUTTER_HELP, lang),
         reply_markup=back_button_keyboard
     )
 
@@ -127,10 +128,11 @@ async def send_beginning_is_greater_message(message: Message, user_data: UD) -> 
     back_button_keyboard = generate_back_button_keyboard(lang)
 
     reply_message = t(lp.ERR_BEGINNING_POINT_IS_GREATER, lang)
-    await message.reply_text(reply_message)
+
+    await message.reply_text(text=reply_message)
 
     await message.reply_text(
-        t(lp.MUSIC_CUTTER_HELP, lang),
+        text=t(lp.MUSIC_CUTTER_HELP, lang),
         reply_markup=back_button_keyboard
     )
 
@@ -174,7 +176,8 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
         reply_message = t(lp.ERR_MALFORMED_RANGE, lang).format(
             t(lp.MUSIC_CUTTER_HELP, lang),
         )
-        await message.reply_text(reply_message, reply_markup=back_button_keyboard)
+
+        await message.reply_text(text=reply_message, reply_markup=back_button_keyboard)
 
         return
 
@@ -213,9 +216,10 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
             )
     except (TelegramError, BaseException) as error:
         await message.reply_text(
-            t(lp.ERR_ON_UPLOADING, lang),
+            text=t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
+
         logger.exception("Telegram error: %s", error)
 
     delete_file(output_path)
@@ -242,7 +246,7 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
 
     # TODO: Send back the length of the music
     await message.reply_text(
-        f"{t(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
+        text=f"{t(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
         reply_markup=back_button_keyboard
     )
 
