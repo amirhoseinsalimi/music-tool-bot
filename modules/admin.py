@@ -27,16 +27,16 @@ def get_list_limit(message: str) -> int | None:
     return limit
 
 
-def parse_and_normalize_user_id(message: str) -> int:
+def extract_user_id(message: str) -> str:
     """
-    Parses, converts and returns the user ``id`` of `/(add/del)admin` commands.
+    Extracts and returns the user ``id`` of `/{add/del}admin` commands.
 
     The `message` is expected to look like ``/addadmin <user_id>``.
 
-    :param message: str: The ``/(add/del)admin`` command containing a user ``id``
+    :param message: str: The ``/{add/del}admin`` command containing a user ``id``
     :return: int: The normalized user's ``id``
     """
-    return int(message.partition(' ')[2])
+    return message.partition(' ')[2]
 
 
 async def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
@@ -58,14 +58,19 @@ async def add_admin(update: Update) -> None:
 
     :param update: Update: The ``update`` object
     """
-    admin_id_to_add = parse_and_normalize_user_id(get_message_text(update))
+    admin_id_to_add = extract_user_id(get_message_text(update))
+
+    if not admin_id_to_add.isdigit():
+        await update.message.reply_text(f"The user ID {admin_id_to_add} is malformed")
+
+    admin_id_to_add_int = int(admin_id_to_add)
 
     admin = Admin()
-    admin.admin_user_id = admin_id_to_add
+    admin.admin_user_id = admin_id_to_add_int
 
     admin.save()
 
-    await update.message.reply_text(text=f"User `{admin_id_to_add}` has been added as admins.")
+    await update.message.reply_text(text=f"User {admin_id_to_add} has been added as admins.")
 
 
 async def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
@@ -87,15 +92,19 @@ async def del_admin(update: Update) -> None:
 
     :param update: Update: The ``update`` object
     """
-    # TODO: Check if the value is of type `int`
-    admin_id_to_delete = parse_and_normalize_user_id(get_message_text(update))
+    admin_id_to_delete = extract_user_id(get_message_text(update))
 
-    if is_user_admin(admin_id_to_delete):
+    if not admin_id_to_delete.isdigit():
+        await update.message.reply_text(f"The user ID `{admin_id_to_delete}` is malformed")
+
+    admin_id_to_delete_int = int(admin_id_to_delete)
+
+    if is_user_admin(admin_id_to_delete_int):
         Admin.where('admin_user_id', '=', admin_id_to_delete).delete()
 
-        await update.message.reply_text(text=f"User `{admin_id_to_delete}` is no longer an admin")
+        await update.message.reply_text(text=f"User {admin_id_to_delete} is no longer an admin")
     else:
-        await update.message.reply_text(text=f"User `{admin_id_to_delete}` is not an admin")
+        await update.message.reply_text(text=f"User {admin_id_to_delete} is not an admin")
 
 
 async def show_stats_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
