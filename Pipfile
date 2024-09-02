@@ -22,7 +22,7 @@ music-tag = "~=0.4.3"
 python-dotenv = "~=1.0.1"
 psutil = "~=6.0.0"
 persiantools = "~=4.2.0"
-masonite-orm = "~=2.22.1"
+masonite-orm = "~=2.22.3"
 cryptography = "~=43.0.0"
 
 [dev-packages]
