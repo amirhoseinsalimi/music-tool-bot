@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b75e1ccaa5ad01e27884cbdfca1e2063c7c2f35b585f275ff01b33bf0760eb15"
+            "sha256": "a8fbc9385717de663c1337a76c08336abfa6d20cab50ebc400ee3a947b1fa5c5"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -276,12 +276,12 @@
         },
         "persiantools": {
             "hashes": [
-                "sha256:532fb94d44b1566d2d8d4b0407733a0dbab01376f3b820330cb53e87d8bfcf06",
-                "sha256:a5c0454c60be47fcb7f5b7e33149d183603c5b98d9b65b54907f600ad305624d"
+                "sha256:a40e5dcce6f7c19c2e1febf4239f98c4b6203b0d09efc938e6c6c8a26d65c8a9",
+                "sha256:e96f0dbeff1e119b26c964dbbd4f7e1a058a7968c4376dfe3f5075070b4911e3"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.8'",
-            "version": "==4.2.0"
+            "markers": "python_version >= '3.9'",
+            "version": "==5.1.0"
         },
         "psutil": {
             "hashes": [
@@ -350,10 +350,10 @@
         },
         "pytz": {
             "hashes": [
-                "sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812",
-                "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"
+                "sha256:2aa355083c50a0f93fa581709deac0c9ad65cca8a9e9beac660adcbd493c798a",
+                "sha256:31c7c1817eb7fae7ca4b8c7ee50c72f93aa2dd863de768e1ef4245d426aa0725"
             ],
-            "version": "==2024.1"
+            "version": "==2024.2"
         },
         "pytzdata": {
             "hashes": [
