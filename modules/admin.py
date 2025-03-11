@@ -168,27 +168,31 @@ async def list_users_if_user_is_admin(update: Update, _context: CallbackContext)
 
 async def list_users(update: Update, limit: Optional[int] = None) -> None:
     """
-    Displays a list of all or specified last users in the form of ``user_id:username``.
+    Displays a list of all or specified last users in groups of `90` users per message.
 
     :param update: Update: The ``update`` object
-    :param limit: Update: Number of last users to return
+    :param limit: Optional[int]: Number of last users to return
     """
     if limit:
         users = User.all().take(-limit)
     else:
         users = User.all()
 
-    reply_message = ''
+    users_per_message = 90
+    user_chunks = [users[i:i + users_per_message] for i in range(0, len(users), users_per_message)]
 
-    for user in users:
-        reply_message += (f"{user.user_id}: {f'@{user.username}' if user.username else '-'}"
-                          f": {user.number_of_files_sent}\n")
+    for index, chunk in enumerate(user_chunks):
+        reply_message = "\n".join(
+            f"{user.user_id}: {f'@{user.username}' if user.username else '-'}: {user.number_of_files_sent}"
+            for user in chunk
+        )
 
-    await update.message.reply_text(
-        text=f"👥 List of all users ({len(users)} in total):\n\n"
-        f"{reply_message}",
-        parse_mode='',
-    )
+        await update.message.reply_text(
+            text=f"👥 List of users ({len(users)} total) - Page {index + 1}/{len(user_chunks)}:\n\n"
+                 f"{reply_message}",
+            parse_mode='',
+        )
+
 
 
 async def send_to_all():
