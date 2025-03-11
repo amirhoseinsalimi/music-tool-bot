@@ -1,6 +1,6 @@
 # Music Tool Bot
 
-The one and only Telegram bot you want to manage your music and MP3 files. Check it out here:
+Music Tool Bot is the ultimate bot for managing your music files effortlessly! 🎵✨. Check it out here:
 [@MusicToolBot](https://t.me/MusicToolBot)
 
 Supports 2 languages for now: **English** and **Persian**. ([Add more if you want](#contribution))
