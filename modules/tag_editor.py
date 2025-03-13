@@ -15,7 +15,7 @@ from config.telegram_bot import add_handler
 from utils import download_file, generate_start_over_keyboard, \
     generate_tag_editor_keyboard, get_chat_id, get_effective_message_id, get_effective_user_id, get_message, \
     get_message_text, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, reply_default_message, \
-    reset_user_data_context, set_current_module, t
+    reset_user_data_context, set_current_module, t, resize_image
 
 
 def is_current_module_tag_editor(current_module: str) -> bool:
@@ -543,26 +543,30 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         possible_art = None
 
         if new_art_path or art_path:
-            with open(new_art_path if new_art_path else art_path, "rb") as art:
+            original_art_path = new_art_path if new_art_path else art_path
+            resized_art_path = f"{original_art_path}_resized.jpg"
+
+            resize_image(original_art_path, resized_art_path)
+
+            with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
 
-        with open(music_path, 'rb') as music_file:
+        with open(music_path, "rb") as music_file:
             await context.bot.send_audio(
                 audio=music_file,
                 thumbnail=possible_art,
-                duration=user_data['music_duration'],
+                duration=user_data["music_duration"],
                 chat_id=get_chat_id(update),
                 filename=f"{music_tags.get('artist')} - {music_tags.get('title')}",
                 caption=f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data['music_message_id']
+                reply_to_message_id=user_data["music_message_id"],
             )
     except (TelegramError, BaseException) as error:
         await message.reply_text(
             text=t(lp.ERR_ON_UPLOADING, lang),
             reply_markup=start_over_button_keyboard
         )
-
         logger.exception("Telegram error: %s", error)
 
     reset_user_data_context(get_effective_user_id(update), user_data)
