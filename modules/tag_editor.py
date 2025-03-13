@@ -1,3 +1,4 @@
+import os
 import re
 
 import music_tag
@@ -218,6 +219,32 @@ async def ask_for_album_art(update: Update, user_data: UD, language: str) -> Non
     message_text = t(lp.ASK_FOR_ALBUM_ART, language)
 
     await update.message.reply_text(text=message_text)
+
+
+async def remove_album_art(update: Update, user_data: UD, language: str) -> None:
+    """
+    Removes the album art from the music file. It first creates a temp file, then it replaces it.
+
+    :param update: Update: The ``update`` object
+    :param user_data: UD: The ``user_data`` object
+    :param language: str: The language to ask
+    """
+    tag_editor_keyboard = generate_tag_editor_keyboard(language)
+    user_data['tag_editor']['current_tag'] = 'remove_album'
+
+    temp_path = user_data.get('music_path') + "_temp.mp3"
+    return_code = os.system(f"ffmpeg -i {user_data.get('music_path')} -map 0:a -c:a copy {temp_path} -y")
+    user_data['tag_editor']['new_art_path'] = None
+    user_data['tag_editor']['art_path'] = None
+
+    if return_code == 0:
+        os.replace(temp_path, user_data.get('music_path'))
+        reply_message = f"{t(lp.DONE, language)} " \
+                        f"{t(lp.CLICK_PREVIEW_MESSAGE, language)} " \
+                        f"{t(lp.OR, language).upper()}" \
+                        f" {t(lp.CLICK_DONE_MESSAGE, language).lower()}"
+
+        await update.message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
 
 
 async def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
@@ -491,8 +518,8 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
 
     await message.reply_text(
         text=f"{generate_music_info(tag_editor_context).format('')}"
-        f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
-        f"🆔 {BOT_USERNAME}",
+             f"{t(lp.CLICK_DONE_MESSAGE, lang)}\n\n"
+             f"🆔 {BOT_USERNAME}",
         reply_to_message_id=get_effective_message_id(update),
     )
 
@@ -614,6 +641,11 @@ async def ask_for_tag(update: Update, context: CallbackContext) -> None:
 
         return
 
+    if re.match('^(🧹 Remove Album Art|🧹 حذف کاور آلبوم)$', message_text):
+        await remove_album_art(update, user_data, lang)
+
+        return
+
     if re.match('^(🎹 Genre|🎹 ژانر)$', message_text):
         await ask_for_genre(update, user_data, lang)
 
@@ -657,8 +689,9 @@ class TagEditorModule:
                     filters.Regex('^(🎵 Title)$') | filters.Regex('^(🎵 عنوان)$') |
                     filters.Regex('^(🗣 Artist)$') | filters.Regex('^(🗣 خواننده)$') |
                     filters.Regex('^(🎼 Album)$') | filters.Regex('^(🎼 آلبوم)$') |
-                    filters.Regex('^(🖼 Album Art)$') | filters.Regex('^(🖼 عکس آلبوم)$') |
                     filters.Regex('^(🎹 Genre)$') | filters.Regex('^(🎹 ژانر)$') |
+                    filters.Regex('^(🖼 Album Art)$') | filters.Regex('^(🖼 کاور آلبوم)$') |
+                    filters.Regex('^(🧹 Remove Album Art)$') | filters.Regex('^(🧹 حذف کاور آلبوم)$') |
                     filters.Regex('^(📅 Year)$') | filters.Regex('^(📅 سال)$') |
                     filters.Regex('^(💿 Disk Number)$') | filters.Regex('^(💿 شماره دیسک)$') |
                     filters.Regex('^(▶️ Track Number)$') | filters.Regex('^(▶️ شماره ترک)$')),
