@@ -81,10 +81,11 @@ def generate_tag_editor_keyboard(language: str) -> ReplyKeyboardMarkup:
                 ],
                 [
                     t('BTN_GENRE', language),
-                    t('BTN_YEAR', language),
-                    t('BTN_ALBUM_ART', language)
+                    t('BTN_ALBUM_ART', language),
+                    t('BTN_REMOVE_ALBUM_ART', language)
                 ],
                 [
+                    t('BTN_YEAR', language),
                     t('BTN_DISK_NUMBER', language),
                     t('BTN_TRACK_NUMBER', language)
                 ],

@@ -61,6 +61,7 @@ BTN_ALBUM = "BTN_ALBUM"
 BTN_GENRE = "BTN_GENRE"
 BTN_YEAR = "BTN_YEAR"
 BTN_ALBUM_ART = "BTN_ALBUM_ART"
+BTN_REMOVE_ALBUM_ART = "BTN_REMOVE_ALBUM_ART"
 BTN_DISK_NUMBER = "BTN_DISK_NUMBER"
 BTN_TRACK_NUMBER = "BTN_TRACK_NUMBER"
 BTN_BACK = "BTN_BACK"
@@ -271,6 +272,10 @@ keys = {
     BTN_ALBUM_ART: {
         "en": "🖼 Album Art",
         "fa": "🖼 عکس آلبوم",
+    },
+    BTN_REMOVE_ALBUM_ART: {
+        "en": "🧹 Remove Album Art",
+        "fa": "🧹 حذف کاور آلبوم",
     },
     BTN_DISK_NUMBER: {
         "en": "💿 Disk Number",
