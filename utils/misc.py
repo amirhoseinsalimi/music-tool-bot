@@ -1,10 +1,11 @@
+from PIL import Image
 from telegram import Message, Update
 from telegram.ext import CallbackContext
 from telegram.ext._utils.types import UD
 
+from utils.fs import delete_all_user_files
 import utils.i18n as lp
 from config.modules import Module
-from utils import delete_all_user_files
 from .i18n import t
 
 
@@ -164,3 +165,16 @@ async def reply_default_message(update: Update, language: str) -> None:
     message_text = t(lp.DEFAULT_MESSAGE, language)
 
     await update.message.reply_text(text=message_text)
+
+
+def resize_image(image_path: str, output_path: str, size=(640, 640)):
+    """
+    Resize an image to a specific size.
+
+    :param image_path: The path of the input image
+    :param output_path: The path for the output image
+    :param size (Optional): The size in which the output should be
+    """
+    with Image.open(image_path) as img:
+        img = img.resize(size, Image.Resampling.LANCZOS)
+        img.save(output_path, format="JPEG")
