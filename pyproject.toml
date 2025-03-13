@@ -1,6 +1,6 @@
 [project]
 name = "music-tool-bot"
-version = "2.4.4"
+version = "2.5.0"
 description = "The one and only bot you need to manage your music files"
 readme = "README.md"
 authors = [{ name = "Amir Hosein Salimi", email = "ahosein.salimi2@gmail.com" }]
