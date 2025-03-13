@@ -557,6 +557,8 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 thumbnail=possible_art,
                 duration=user_data["music_duration"],
                 chat_id=get_chat_id(update),
+                performer=music_tags.get('artist'),
+                title=music_tags.get('title'),
                 filename=f"{music_tags.get('artist')} - {music_tags.get('title')}",
                 caption=f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
