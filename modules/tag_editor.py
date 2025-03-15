@@ -391,7 +391,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     user_data = get_user_data(context)
     lang = get_user_language_or_fallback(user_data)
 
-    music_path = user_data['music_path']
+    music_path = user_data.get('music_path')
     message = get_message(update)
 
     if not music_path:

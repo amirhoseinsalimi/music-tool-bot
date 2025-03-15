@@ -1,7 +1,7 @@
 [project]
 name = "music-tool-bot"
 version = "2.5.0"
-description = "The one and only bot you need to manage your music files"
+description = "Music Tool Bot is the ultimate bot for managing your music files effortlessly! 🎵✨"
 readme = "README.md"
 authors = [{ name = "Amir Hosein Salimi", email = "ahosein.salimi2@gmail.com" }]
 license = { file = "LICENSE" }

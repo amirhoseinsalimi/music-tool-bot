@@ -25,13 +25,13 @@ def main():
 
 
 if __name__ == '__main__':
+    AdminModule().register()
     VoiceConverterModule().register()
     BitrateChangerModule().register()
     TagEditorModule().register()
     CutterModule().register()
 
     DonationModule().register()
-    AdminModule().register()
     CoreModule().register()
 
     main()
