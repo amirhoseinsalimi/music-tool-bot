@@ -29,6 +29,6 @@ python-telegram-bot = {extras = ["job-queue"], version = "*"}
 pillow = "*"
 
 [dev-packages]
-pylint = "~=3.3.3"
+pylint = "~=3.3.6"
 autopep8 = "~=2.3.1"
 jurigged = "~=0.6.0"
