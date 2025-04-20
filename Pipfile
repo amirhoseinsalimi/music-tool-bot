@@ -25,8 +25,8 @@ masonite-orm = "~=2.22.3"
 cryptography = "~=43.0.3"
 asyncio = "*"
 httpcore = {extras = ["asyncio"], version = "*"}
-python-telegram-bot = {extras = ["job-queue"], version = "*"}
 pillow = "*"
+python-telegram-bot = {extras = ["job-queue"], version = "~=22.0"}
 
 [dev-packages]
 pylint = "~=3.3.6"
