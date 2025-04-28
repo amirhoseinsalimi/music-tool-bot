@@ -18,7 +18,7 @@ t = "pipenv run test"
 
 [packages]
 music-tag = "~=0.4.3"
-python-dotenv = "~=1.0.1"
+python-dotenv = "~=1.1.0"
 psutil = "~=6.1.1"
 persiantools = "~=4.2.0"
 masonite-orm = "~=2.22.3"
