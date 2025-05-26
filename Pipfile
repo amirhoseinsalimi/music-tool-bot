@@ -22,7 +22,7 @@ python-dotenv = "~=1.0.1"
 psutil = "~=6.1.1"
 persiantools = "~=4.2.0"
 masonite-orm = "~=2.22.3"
-cryptography = "~=43.0.3"
+cryptography = "~=45.0.3"
 asyncio = "*"
 httpcore = {extras = ["asyncio"], version = "*"}
 pillow = "*"
