@@ -5,7 +5,6 @@ from telegram.constants import ChatAction
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, filters, MessageHandler
 
-import utils.i18n as lp
 from config.envs import BOT_USERNAME
 from config.modules import Module
 from config.telegram_bot import add_handler
@@ -49,7 +48,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
 
     convert_to_voice(input_path, output_path)
 
-    lang = get_user_language_or_fallback(user_data)
+    language = get_user_language_or_fallback(user_data)
     set_current_module(user_data, Module.VOICE_CONVERTER)
 
     await context.bot.send_chat_action(
@@ -57,7 +56,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
         action=ChatAction.UPLOAD_VOICE
     )
 
-    start_over_button_keyboard = generate_start_over_keyboard(lang)
+    start_over_button_keyboard = generate_start_over_keyboard(language)
 
     try:
         with open(output_path, 'rb') as voice_file:
@@ -72,7 +71,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
             )
     except TelegramError as error:
         await message.reply_text(
-            text=t(lp.ERR_ON_UPLOADING, lang),
+            text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
 
@@ -92,8 +91,8 @@ class VoiceConverterModule:
         """
         add_handler(MessageHandler(
             (
-                filters.Regex('^(🗣 Music to Voice Converter)$') |
-                filters.Regex('^(🗣 تبدیل به پیام صوتی)$')
+                    filters.Regex('^(🗣 Music to Voice Converter)$') |
+                    filters.Regex('^(🗣 تبدیل به پیام صوتی)$')
             ),
             send_file_as_voice)
         )

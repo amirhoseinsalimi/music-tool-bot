@@ -5,7 +5,6 @@ from telegram import Update
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, filters, MessageHandler
 
-import utils.i18n as lp
 from config.envs import BOT_USERNAME
 from config.modules import Module
 from config.telegram_bot import add_handler
@@ -56,13 +55,13 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     """
     user_data = get_user_data(context)
 
-    lang = get_user_language_or_fallback(user_data)
-    bitrate_selector_keyboard = generate_bitrate_selector_keyboard(lang)
+    language = get_user_language_or_fallback(user_data)
+    bitrate_selector_keyboard = generate_bitrate_selector_keyboard(language)
 
     set_current_module(user_data, Module.BITRATE_CHANGER)
 
     await update.message.reply_text(
-        text=f"{t(lp.BITRATE_CHANGER_HELP, lang)}\n",
+        text=f"{t(language, 'bitrateChangerHelp')}\n",
         reply_markup=bitrate_selector_keyboard
     )
 
@@ -80,14 +79,14 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     """
     user_data = get_user_data(context)
     message = get_message(update)
-    lang = get_user_language_or_fallback(user_data)
+    language = get_user_language_or_fallback(user_data)
 
     if is_user_data_empty(user_data):
-        await reply_default_message(update, lang)
+        await reply_default_message(update, language)
 
         return
 
-    start_over_button_keyboard = generate_start_over_keyboard(lang)
+    start_over_button_keyboard = generate_start_over_keyboard(language)
 
     input_path = user_data['music_path']
     output_path = f"{input_path}_bitrate.mp3"
@@ -106,7 +105,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
             )
     except (TelegramError, BaseException) as error:
         await message.reply_text(
-            text=t(lp.ERR_ON_UPLOADING, lang),
+            text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
 

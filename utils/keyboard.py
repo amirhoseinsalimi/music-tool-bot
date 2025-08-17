@@ -13,7 +13,7 @@ def generate_start_over_keyboard(language: str) -> ReplyKeyboardMarkup:
     return (
         ReplyKeyboardMarkup(
             keyboard=[
-                [t('BTN_NEW_FILE', language)],
+                [t(language, 'btnNewFile')],
             ],
             resize_keyboard=True,
             one_time_keyboard=True,
@@ -31,7 +31,7 @@ def generate_back_button_keyboard(language: str) -> ReplyKeyboardMarkup:
     return (
         ReplyKeyboardMarkup(
             keyboard=[
-                [t('BTN_BACK', language)],
+                [t(language, 'btnBack')],
             ],
             resize_keyboard=True,
             one_time_keyboard=True,
@@ -50,12 +50,12 @@ def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
         ReplyKeyboardMarkup(
             keyboard=[
                 [
-                    t('BTN_TAG_AND_ART_EDITOR', language),
-                    t('BTN_MUSIC_TO_VOICE_CONVERTER', language)
+                    t(language, 'btnTagAndArtEditor'),
+                    t(language, 'btnMusicToVoiceConverter')
                 ],
                 [
-                    t('BTN_MUSIC_CUTTER', language),
-                    t('BTN_BITRATE_CHANGER', language)
+                    t(language, 'btnMusicCutter'),
+                    t(language, 'btnBitrateChanger')
                 ]
             ],
             resize_keyboard=True,
@@ -75,22 +75,22 @@ def generate_tag_editor_keyboard(language: str) -> ReplyKeyboardMarkup:
         ReplyKeyboardMarkup(
             keyboard=[
                 [
-                    t('BTN_ARTIST', language),
-                    t('BTN_TITLE', language),
-                    t('BTN_ALBUM', language)
+                    t(language, 'btnArtist'),
+                    t(language, 'btnTitle'),
+                    t(language, 'btnAlbum')
                 ],
                 [
-                    t('BTN_GENRE', language),
-                    t('BTN_ALBUM_ART', language),
-                    t('BTN_REMOVE_ALBUM_ART', language)
+                    t(language, 'btnGenre'),
+                    t(language, 'btnAlbumArt'),
+                    t(language, 'btnRemoveAlbumArt')
                 ],
                 [
-                    t('BTN_YEAR', language),
-                    t('BTN_DISK_NUMBER', language),
-                    t('BTN_TRACK_NUMBER', language)
+                    t(language, 'btnYear'),
+                    t(language, 'btnDiskNumber'),
+                    t(language, 'btnTrackNumber')
                 ],
                 [
-                    t('BTN_BACK', language)
+                    t(language, 'btnBack')
                 ]
             ],
             resize_keyboard=True,
@@ -118,7 +118,7 @@ def generate_bitrate_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
                     '320 kb/s',
                 ],
                 [
-                    t('BTN_BACK', language)
+                    t(language, 'btnBack')
                 ]
             ],
             resize_keyboard=True,
