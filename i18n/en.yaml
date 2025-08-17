@@ -1,0 +1,139 @@
+en:
+  startMessage: |
+    Hello there! 👋
+    Let's get started. Just send me a music and see how awesome I am!
+  startOverMessage: Send me a music and see how awesome I am!
+  helpMessage: |
+    It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁
+
+    By the way, if you're having problem processing your file, please enter /new command to start over.
+  aboutMessage: |
+    This bot is created by @amirhoseinsalimii in Python language.
+    The source code of this project is available on [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
+
+    If you have any question or feedback feel free to message me on Telegram. Or if you are a developer and have an idea to make this bot better, I appreciate your PRs.
+  defaultMessage: "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
+  askWhichModule: What do you want to do with this file?
+  askWhichTag: Which tag do you want to edit?
+  askForAlbum: |
+    Enter the name of the album:
+  askForArtist: |
+    Enter the name of the artist:
+  askForTitle: |
+    Enter the title:
+  askForGenre: |
+    Enter the genre:
+  askForYear: |
+    Enter the publish year:
+  askForAlbumArt: |
+    Send me a photo:
+  askForDiskNumber: |
+    Enter the disk number:
+  askForTrackNumber: |
+    Enter the track number:
+  albumArtChanged: Album art changed
+  expectedNumberMessage: |
+    You entered a string instead of a number. Although this is not a problem, I guess you entered this input by mistake.
+  clickPreviewMessage: If you want to preview your changes click /preview.
+  clickDoneMessage: Click /done to save your changes.
+  languageChanged: Language has been changed. If you want to change the language later, use /language command.
+  musicLength: "The file length is {length}."
+  reportBugMessage: "That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  errCreatingUserFolder: "Error on starting... That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  errOnDownloadAudioMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  errOnDownloadPhotoMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  errTooLargeFile: "This file is too big that I can process, sorry!"
+  errOnReadingTags: "Sorry, I couldn't read the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  errOnUpdatingTags: "Sorry, I couldn't update tags the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  errOnUploading: "Sorry, due to network issues, I couldn't upload your file. Please try again."
+  errNotImplemented: "This feature has not been implemented yet. Sorry!"
+  errOutOfRange: "The range you entered is out of the actual file duration. The file length is {length}."
+  errMalformedRange: "You have entered a malformed pattern. Please try again. {note}"
+  errBeginningPointIsGreater: The ending point should be greater than starting point
+  btnTagAndArtEditor: "🎵 Tag/Art Editor"
+  btnMusicToVoiceConverter: "🗣 Music to Voice Converter"
+  btnMusicCutter: "✂️ Music Cutter"
+  btnBitrateChanger: "🎙 Bitrate Changer"
+  btnArtist: "🗣 Artist"
+  btnTitle: "🎵 Title"
+  btnAlbum: "🎼 Album"
+  btnGenre: "🎹 Genre"
+  btnYear: "📅 Year"
+  btnAlbumArt: "🖼 Album Art"
+  btnRemoveAlbumArt: "🧹 Remove Album Art"
+  btnDiskNumber: "💿 Disk Number"
+  btnTrackNumber: "▶️ Track Number"
+  btnBack: "🔙 Back"
+  btnNewFile: "🆕 New File"
+  musicCutterHelp: |
+    Now send me which part of the music you want to cut out?
+    The file length is {length}.
+
+    Valid patterns are:
+    *mm:ss-mm:ss*:
+    e.g. 00:10-02:30
+    *ss-ss*:
+    e.g. 75-120
+
+    - m = minute, s = second
+    - Leading zeroes are optional
+    - Extra spaces are ignored
+    - Only English numbers are valid
+  bitrateChangerHelp: |
+    Now tell me at which bitrate you would like to have your file.
+    You can select your desired bitrate from the menu below.
+  donationMessage: |
+    Thank you for your interest in supporting my work. I am a developer and I run this Telegram bot as a hobby. 
+    Your donation will help me to continue developing and improving this bot. If you would like to donate, you can use the following methods. Thank you in advance for your support.
+  donateMessageBitcoin: |
+    Here's my BTC wallet.
+
+    ```{btc_wallet_address}```
+
+    Thank you in advance for your support.
+  donateMessageEthereum: |
+    Here's my ETH wallet.
+
+    ```{eth_wallet_address}```
+
+    Thank you in advance for your support.
+  donateMessageTron: |
+    Here's my TRX wallet.
+
+    ```{trx_wallet_address}```
+
+    Thank you in advance for your support.
+  donateMessageTether: |
+    Here are my USDT wallets.
+
+    TRC20:
+    ```{usdt_trc20_wallet_address}```
+
+    ERC20:
+    ```{usdt_erc20_wallet_address}```
+
+    Thank you in advance for your support.
+  donateMessageShiba: |
+    Here are my SHIB wallets.
+
+    BEP20:
+    ```{shiba_bep20_wallet_address}```
+
+    ERC20:
+    ```{shiba_erc20_wallet_address}```
+
+    Thank you in advance for your support.
+  donateMessageDogeCoin: |
+    Here's my DOGE wallet.
+
+    ```{doge_wallet_address}```
+
+    Thank you in advance for your support.
+  donateMessageZarinPal: |
+    This is meant to be for Iranian users only. If you're outside the country and want to donate, you can choose crypto options.
+
+    Here's my ZarinLink: [ZarinLink]({zarin_link_address})
+
+    Thank you in advance for your support.
+  done: Done!
+  or: or

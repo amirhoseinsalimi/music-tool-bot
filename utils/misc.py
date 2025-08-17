@@ -3,9 +3,8 @@ from telegram import Message, Update
 from telegram.ext import CallbackContext
 from telegram.ext._utils.types import UD
 
-from utils.fs import delete_all_user_files
-import utils.i18n as lp
 from config.modules import Module
+from utils.fs import delete_all_user_files
 from .i18n import t
 
 
@@ -162,7 +161,7 @@ async def reply_default_message(update: Update, language: str) -> None:
     :param update: Update: The ``update`` object
     :param language: str: The language of the message
     """
-    message_text = t(lp.DEFAULT_MESSAGE, language)
+    message_text = t(language, 'defaultMessage')
 
     await update.message.reply_text(text=message_text)
 

@@ -3,12 +3,10 @@ import re
 
 from persiantools import digits
 from telegram import Message, Update
-from telegram.constants import ParseMode
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, filters, MessageHandler
 from telegram.ext._utils.types import UD
 
-import utils.i18n as lp
 from config.envs import BOT_USERNAME
 from config.modules import Module
 from config.telegram_bot import add_handler
@@ -101,17 +99,16 @@ async def send_out_of_range_message(message: Message, user_data: UD) -> None:
     :param message: Message: The ``message`` object
     :param user_data: UD: The ``user_data`` object
     """
-    lang = get_user_language_or_fallback(user_data)
+    language = get_user_language_or_fallback(user_data)
     music_duration = user_data['music_duration']
-    back_button_keyboard = generate_back_button_keyboard(lang)
+    back_button_keyboard = generate_back_button_keyboard(language)
 
-    reply_message = t(lp.ERR_OUT_OF_RANGE, lang).format(
-        convert_seconds_to_human_readable_form(music_duration))
+    reply_message = t(language, 'errOutOfRange', length=convert_seconds_to_human_readable_form(music_duration))
 
     await message.reply_text(text=reply_message)
 
     await message.reply_text(
-        text=t(lp.MUSIC_CUTTER_HELP, lang),
+        text=t(language, 'musicCutterHelp'),
         reply_markup=back_button_keyboard
     )
 
@@ -124,15 +121,15 @@ async def send_beginning_is_greater_message(message: Message, user_data: UD) -> 
     :param message: Message: The ``message`` object
     :param user_data: UD: The ``user_data`` object
     """
-    lang = get_user_language_or_fallback(user_data)
-    back_button_keyboard = generate_back_button_keyboard(lang)
+    language = get_user_language_or_fallback(user_data)
+    back_button_keyboard = generate_back_button_keyboard(language)
 
-    reply_message = t(lp.ERR_BEGINNING_POINT_IS_GREATER, lang)
+    reply_message = t(language, 'errBeginningPointIsGreater')
 
     await message.reply_text(text=reply_message)
 
     await message.reply_text(
-        text=t(lp.MUSIC_CUTTER_HELP, lang),
+        text=t(language, 'musicCutterHelp'),
         reply_markup=back_button_keyboard
     )
 
@@ -167,15 +164,13 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
 
     message_text = digits.ar_to_fa(digits.fa_to_en(get_message_text(update)))
-    lang = get_user_language_or_fallback(user_data)
-    back_button_keyboard = generate_back_button_keyboard(lang)
+    language = get_user_language_or_fallback(user_data)
+    back_button_keyboard = generate_back_button_keyboard(language)
 
     try:
         beginning_sec, ending_sec = parse_cutting_range(message_text)
     except (ValueError, BaseException):
-        reply_message = t(lp.ERR_MALFORMED_RANGE, lang).format(
-            t(lp.MUSIC_CUTTER_HELP, lang),
-        )
+        reply_message = t(language, 'errMalformedRange', note=t(language, 'musicCutterHelp'))
 
         await message.reply_text(text=reply_message, reply_markup=back_button_keyboard)
 
@@ -193,7 +188,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
 
         return
 
-    start_over_button_keyboard = generate_start_over_keyboard(lang)
+    start_over_button_keyboard = generate_start_over_keyboard(language)
 
     input_path = user_data['music_path']
     output_path = f"{input_path}_cut.mp3"
@@ -216,7 +211,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
             )
     except (TelegramError, BaseException) as error:
         await message.reply_text(
-            text=t(lp.ERR_ON_UPLOADING, lang),
+            text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
 
@@ -236,17 +231,16 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """
     user_data = get_user_data(context)
 
-    lang = get_user_language_or_fallback(user_data)
-    back_button_keyboard = generate_back_button_keyboard(lang)
+    language = get_user_language_or_fallback(user_data)
+    back_button_keyboard = generate_back_button_keyboard(language)
 
     set_current_module(user_data, Module.CUTTER)
     music_duration = convert_seconds_to_human_readable_form(user_data['music_duration'])
 
     message = get_message(update)
 
-    # TODO: Send back the length of the music
     await message.reply_text(
-        text=f"{t(lp.MUSIC_CUTTER_HELP, lang).format(music_duration)}\n",
+        text=f"{t(language, 'musicCutterHelp', length=music_duration)}\n",
         reply_markup=back_button_keyboard
     )
 
