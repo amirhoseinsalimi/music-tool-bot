@@ -34,6 +34,9 @@ stop:
 db-migrate:
 	poetry run masonite-orm migrate -d $(MIGRATIONS_DIR)
 
+db-rollback:
+	poetry run masonite-orm migrate:rollback -d $(MIGRATIONS_DIR)
+
 db-refresh:
 	poetry run masonite-orm migrate:refresh -d $(MIGRATIONS_DIR)
 
