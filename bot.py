@@ -6,7 +6,7 @@ from datetime import datetime
 
 from config.telegram_bot import app
 from modules import AdminModule, BitrateChangerModule, CoreModule, CutterModule, DonationModule, TagEditorModule, \
-    VoiceConverterModule
+    VoiceConverterModule, LyricsModule
 from utils import logger, logging
 
 
@@ -30,6 +30,7 @@ if __name__ == '__main__':
     BitrateChangerModule().register()
     TagEditorModule().register()
     CutterModule().register()
+    LyricsModule().register()
 
     DonationModule().register()
     CoreModule().register()

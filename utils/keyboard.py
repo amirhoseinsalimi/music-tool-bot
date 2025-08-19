@@ -56,6 +56,9 @@ def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
                 [
                     t(language, 'btnMusicCutter'),
                     t(language, 'btnBitrateChanger')
+                ],
+                [
+                    t(language, 'btnLyrics'),
                 ]
             ],
             resize_keyboard=True,

@@ -6,3 +6,4 @@ class Module(Enum):
     BITRATE_CHANGER = 'bitrate_changer'
     CUTTER = 'music_cutter'
     VOICE_CONVERTER = 'mp3_to_voice_converter'
+    Lyrics = 'lyrics'

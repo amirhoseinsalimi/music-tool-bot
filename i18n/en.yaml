@@ -54,6 +54,10 @@ en:
   btnMusicToVoiceConverter: "🗣 Music to Voice Converter"
   btnMusicCutter: "✂️ Music Cutter"
   btnBitrateChanger: "🎙 Bitrate Changer"
+  lyricsSelectLanguageHelp: Please choose the language of your song from the options below.
+  invalidLanguageSelection: ❌ Invalid selection. Please choose a language from the provided buttons.
+  lyricsLanguageChosen: Language selected
+  btnLyrics: "📝 Lyrics (AI ✨)"
   btnArtist: "🗣 Artist"
   btnTitle: "🎵 Title"
   btnAlbum: "🎼 Album"
@@ -137,3 +141,6 @@ en:
     Thank you in advance for your support.
   done: Done!
   or: or
+  premiumFeatureMessageAdmin: |
+    This feature is available only for Premium users.
+    If you'd like access, please contact the admin: @amirhoseinsalimi.
