@@ -117,17 +117,21 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
     language_button_keyboard = ReplyKeyboardMarkup(
         keyboard=[
             ['🇬🇧 English', '🇮🇷 فارسی'],
+            ['🇷🇺 Русский', '🇪🇸 Español'],
+            ['🇫🇷 Français', '🇸🇦 العربية'],
         ],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
 
     await update.message.reply_text(
-        text="Please choose a language:\n\n"
-             "لطفا زبان را انتخاب کنید:",
         text="\n\n".join([
             t("en", "chooseLanguage"),
             t("fa", "chooseLanguage"),
+            t("ru", "chooseLanguage"),
+            t("es", "chooseLanguage"),
+            t("fr", "chooseLanguage"),
+            t("ar", "chooseLanguage"),
         ]),
         reply_markup=language_button_keyboard,
     )
@@ -148,6 +152,14 @@ async def set_language(update: Update, context: CallbackContext) -> None:
         user_data['language'] = 'en'
     elif "فارسی" in new_language:
         user_data['language'] = 'fa'
+    elif "русский" in new_language:
+        user_data['language'] = 'ru'
+    elif "español" in new_language:
+        user_data['language'] = 'es'
+    elif "français" in new_language:
+        user_data['language'] = 'fr'
+    elif "العربية" in new_language:
+        user_data['language'] = 'ar'
 
     language = get_user_language_or_fallback(user_data)
 
@@ -361,6 +373,10 @@ class CoreModule:
 
         add_handler(MessageHandler(filters.Regex('^(🇬🇧 English)$'), set_language))
         add_handler(MessageHandler(filters.Regex('^(🇮🇷 فارسی)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇷🇺 Русский)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇪🇸 Español)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇫🇷 Français)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇸🇦 العربية)$'), set_language))
 
         add_handler(MessageHandler(
             (filters.Regex('^(🔙 Back)$') | filters.Regex('^(🔙 بازگشت)$')),
