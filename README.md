@@ -3,7 +3,8 @@
 Music Tool Bot is the ultimate bot for managing your music files effortlessly! 🎵✨. Check it out here:
 [@MusicToolBot](https://t.me/MusicToolBot)
 
-Supports 2 languages for now: **English** and **Persian**. ([Add more if you want](#contribution))
+Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spanish**, **French**, **Arabic**. 
+([Add more if you want](#contribution))
 
 ---
 
