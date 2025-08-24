@@ -125,6 +125,10 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
     await update.message.reply_text(
         text="Please choose a language:\n\n"
              "لطفا زبان را انتخاب کنید:",
+        text="\n\n".join([
+            t("en", "chooseLanguage"),
+            t("fa", "chooseLanguage"),
+        ]),
         reply_markup=language_button_keyboard,
     )
 
