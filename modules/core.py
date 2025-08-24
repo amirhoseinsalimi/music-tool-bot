@@ -41,8 +41,6 @@ async def command_start(update: Update, context: CallbackContext) -> None:
 
     reset_user_data_context(get_effective_user_id(update), user_data)
 
-    print(get_user_language_or_fallback(user_data))
-    print(t('en', 'startMessage'))
     await update.message.reply_text(
         text=t(get_user_language_or_fallback(user_data), 'startMessage'),
         reply_markup=ReplyKeyboardRemove()
