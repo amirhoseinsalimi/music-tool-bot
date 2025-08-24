@@ -1,0 +1,17 @@
+name: music-tool-bot
+
+services:
+  bot:
+    image: music-tool-bot:prod
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      - START_CMD=python bot.py
+    volumes:
+      - bot_data:/data
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+
+volumes:
+  bot_data:
