@@ -44,7 +44,7 @@ async def command_start(update: Update, context: CallbackContext) -> None:
     print(get_user_language_or_fallback(user_data))
     print(t('en', 'startMessage'))
     await update.message.reply_text(
-        text=t('en', 'startMessage'),
+        text=t(get_user_language_or_fallback(user_data), 'startMessage'),
         reply_markup=ReplyKeyboardRemove()
     )
 
