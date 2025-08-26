@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    environment:
+      - PTB_TIMEDELTA=true
     volumes:
       - bot_data:/data
       - ./.env:/app/.env:ro
