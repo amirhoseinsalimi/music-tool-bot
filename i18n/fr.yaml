@@ -1,0 +1,140 @@
+fr:
+  startMessage: |
+    Salut ! 👋
+    On commence ? Envoie-moi simplement une musique et tu verras à quel point je suis génial !
+  chooseLanguage: "Veuillez choisir une langue :"
+  startOverMessage: "Envoie-moi une musique et tu verras à quel point je suis génial !"
+  helpMessage: |
+    C'est simple ! Envoie-moi ou transfère-moi une piste audio, un fichier MP3 ou une musique. J'attends... 😁
+
+    Au fait, si tu as des problèmes pour traiter ton fichier, saisis la commande /new pour recommencer.
+  aboutMessage: |
+    Ce bot a été créé par @amirhoseinsalimii en Python.
+    Le code source de ce projet est disponible sur [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
+
+    Si tu as des questions ou des retours, n'hésite pas à m'écrire sur Telegram. Et si tu es développeur et que tu as une idée pour améliorer ce bot, j'apprécierai tes PR.
+  defaultMessage: "Envoie-moi ou transfère-moi une piste audio, un fichier MP3 ou une musique. J'attends... 😁"
+  askWhichModule: "Que veux-tu faire avec ce fichier ?"
+  askWhichTag: "Quel tag veux-tu modifier ?"
+  askForAlbum: |
+    Saisis le nom de l'album :
+  askForArtist: |
+    Saisis le nom de l'artiste :
+  askForTitle: |
+    Saisis le titre :
+  askForGenre: |
+    Saisis le genre :
+  askForYear: |
+    Saisis l'année de publication :
+  askForAlbumArt: |
+    Envoie-moi une photo :
+  askForDiskNumber: |
+    Saisis le numéro de disque :
+  askForTrackNumber: |
+    Saisis le numéro de piste :
+  albumArtChanged: "Pochette d'album modifiée"
+  expectedNumberMessage: |
+    Tu as saisi une chaîne au lieu d'un nombre. Ce n'est pas un problème, mais je suppose que c'était une erreur.
+  clickPreviewMessage: "Si tu veux prévisualiser tes modifications, clique sur /preview."
+  clickDoneMessage: "Clique sur /done pour enregistrer tes modifications."
+  languageChanged: "La langue a été changée. Si tu veux la modifier plus tard, utilise la commande /language."
+  musicLength: "La durée du fichier est de {length}."
+  reportBugMessage: "C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  errCreatingUserFolder: "Erreur au démarrage... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  errOnDownloadAudioMessage: "Désolé, je n'ai pas pu télécharger ton fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  errOnDownloadPhotoMessage: "Désolé, je n'ai pas pu télécharger ton fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  errTooLargeFile: "Ce fichier est trop volumineux pour que je puisse le traiter, désolé !"
+  errOnReadingTags: "Désolé, je n'ai pas pu lire les tags du fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  errOnUpdatingTags: "Désolé, je n'ai pas pu mettre à jour les tags du fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  errOnUploading: "Désolé, à cause de problèmes réseau, je n'ai pas pu téléverser ton fichier. Merci de réessayer."
+  errNotImplemented: "Cette fonctionnalité n'a pas encore été implémentée. Désolé !"
+  errOutOfRange: "La plage indiquée dépasse la durée réelle du fichier. La durée est {length}."
+  errMalformedRange: "Tu as saisi un motif non valide. Merci de réessayer. {note}"
+  errBeginningPointIsGreater: "Le point de fin doit être supérieur au point de départ"
+  btnTagAndArtEditor: "🎵 Éditeur de tags/pochette"
+  btnMusicToVoiceConverter: "🗣 Musique → Voix"
+  btnMusicCutter: "✂️ Découper la musique"
+  btnBitrateChanger: "🎙 Changer le bitrate"
+  btnArtist: "🗣 Artiste"
+  btnTitle: "🎵 Titre"
+  btnAlbum: "🎼 Album"
+  btnGenre: "🎹 Genre"
+  btnYear: "📅 Année"
+  btnAlbumArt: "🖼 Pochette"
+  btnRemoveAlbumArt: "🧹 Supprimer la pochette"
+  btnDiskNumber: "💿 N° de disque"
+  btnTrackNumber: "▶️ N° de piste"
+  btnBack: "🔙 Retour"
+  btnNewFile: "🆕 Nouveau fichier"
+  musicCutterHelp: |
+    Maintenant, envoie-moi la partie de la musique que tu veux découper.
+    La durée du fichier est {length}.
+
+    Modèles valides :
+    *mm:ss-mm:ss* :
+    ex. 00:10-02:30
+    *ss-ss* :
+    ex. 75-120
+
+    - m = minute, s = seconde
+    - Les zéros initiaux sont facultatifs
+    - Les espaces en trop sont ignorés
+    - Seuls les chiffres anglais (0-9) sont acceptés
+  bitrateChangerHelp: |
+    Dis-moi maintenant à quel bitrate tu souhaites ton fichier.
+    Tu peux sélectionner le bitrate souhaité dans le menu ci-dessous.
+  donationMessage: |
+    Merci pour ton intérêt à soutenir mon travail. Je suis développeur et j'entretiens ce bot Telegram par passion. 
+    Ton don m'aidera à continuer de développer et d'améliorer ce bot. Si tu souhaites faire un don, tu peux utiliser les méthodes suivantes. Merci d'avance pour ton soutien.
+  donateMessageBitcoin: |
+    Voici mon portefeuille BTC.
+
+    ```{btc_wallet_address}```
+
+    Merci d'avance pour ton soutien.
+  donateMessageEthereum: |
+    Voici mon portefeuille ETH.
+
+    ```{eth_wallet_address}```
+
+    Merci d'avance pour ton soutien.
+  donateMessageTron: |
+    Voici mon portefeuille TRX.
+
+    ```{trx_wallet_address}```
+
+    Merci d'avance pour ton soutien.
+  donateMessageTether: |
+    Voici mes portefeuilles USDT.
+
+    TRC20 :
+    ```{usdt_trc20_wallet_address}```
+
+    ERC20 :
+    ```{usdt_erc20_wallet_address}```
+
+    Merci d'avance pour ton soutien.
+  donateMessageShiba: |
+    Voici mes portefeuilles SHIB.
+
+    BEP20 :
+    ```{shiba_bep20_wallet_address}```
+
+    ERC20 :
+    ```{shiba_erc20_wallet_address}```
+
+    Merci d'avance pour ton soutien.
+  donateMessageDogeCoin: |
+    Voici mon portefeuille DOGE.
+
+    ```{doge_wallet_address}```
+
+    Merci d'avance pour ton soutien.
+  donateMessageZarinPal: |
+    Ceci s'adresse uniquement aux utilisateurs iraniens. Si tu es à l'étranger et que tu veux faire un don, tu peux choisir les options en cryptomonnaies.
+
+    Voici mon ZarinLink : [ZarinLink]({zarin_link_address})
+
+    Merci d'avance pour ton soutien.
+  done: "Terminé !"
+  or: "ou"

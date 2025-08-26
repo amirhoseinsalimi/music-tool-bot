@@ -41,10 +41,8 @@ async def command_start(update: Update, context: CallbackContext) -> None:
 
     reset_user_data_context(get_effective_user_id(update), user_data)
 
-    print(get_user_language_or_fallback(user_data))
-    print(t('en', 'startMessage'))
     await update.message.reply_text(
-        text=t('en', 'startMessage'),
+        text=t(get_user_language_or_fallback(user_data), 'startMessage'),
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -117,14 +115,22 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
     language_button_keyboard = ReplyKeyboardMarkup(
         keyboard=[
             ['🇬🇧 English', '🇮🇷 فارسی'],
+            ['🇷🇺 Русский', '🇪🇸 Español'],
+            ['🇫🇷 Français', '🇸🇦 العربية'],
         ],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
 
     await update.message.reply_text(
-        text="Please choose a language:\n\n"
-             "لطفا زبان را انتخاب کنید:",
+        text="\n\n".join([
+            t("en", "chooseLanguage"),
+            t("fa", "chooseLanguage"),
+            t("ru", "chooseLanguage"),
+            t("es", "chooseLanguage"),
+            t("fr", "chooseLanguage"),
+            t("ar", "chooseLanguage"),
+        ]),
         reply_markup=language_button_keyboard,
     )
 
@@ -140,10 +146,19 @@ async def set_language(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     user_id = get_effective_user_id(update)
 
-    if "english" in new_language:
-        user_data['language'] = 'en'
-    elif "فارسی" in new_language:
-        user_data['language'] = 'fa'
+    match new_language:
+        case lang if "english" in lang:
+            user_data['language'] = 'en'
+        case lang if "فارسی" in lang:
+            user_data['language'] = 'fa'
+        case lang if "русский" in lang:
+            user_data['language'] = 'ru'
+        case lang if "español" in lang:
+            user_data['language'] = 'es'
+        case lang if "français" in lang:
+            user_data['language'] = 'fr'
+        case lang if "العربية" in lang:
+            user_data['language'] = 'ar'
 
     language = get_user_language_or_fallback(user_data)
 
@@ -357,6 +372,10 @@ class CoreModule:
 
         add_handler(MessageHandler(filters.Regex('^(🇬🇧 English)$'), set_language))
         add_handler(MessageHandler(filters.Regex('^(🇮🇷 فارسی)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇷🇺 Русский)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇪🇸 Español)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇫🇷 Français)$'), set_language))
+        add_handler(MessageHandler(filters.Regex('^(🇸🇦 العربية)$'), set_language))
 
         add_handler(MessageHandler(
             (filters.Regex('^(🔙 Back)$') | filters.Regex('^(🔙 بازگشت)$')),

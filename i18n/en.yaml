@@ -2,6 +2,7 @@ en:
   startMessage: |
     Hello there! 👋
     Let's get started. Just send me a music and see how awesome I am!
+  chooseLanguage: "Please choose a language:"
   startOverMessage: Send me a music and see how awesome I am!
   helpMessage: |
     It's simple! Just send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁

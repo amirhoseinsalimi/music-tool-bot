@@ -141,8 +141,12 @@ async def show_stats(update: Update) -> None:
 
     :param update: Update: The ``update`` object
     """
-    persian_users = User.all().where('language', 'fa')
     english_users = User.all().where('language', 'en')
+    persian_users = User.all().where('language', 'fa')
+    russian_users = User.all().where('language', 'ru')
+    spanish_users = User.all().where('language', 'es')
+    french_users = User.all().where('language', 'fr')
+    arabic_users = User.all().where('language', 'ar')
 
     downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(DOWNLOADS_DIT_PATH))
     number_of_downloaded_files = len(os.listdir(DOWNLOADS_DIT_PATH))
@@ -150,17 +154,20 @@ async def show_stats(update: Update) -> None:
         psutil.disk_usage('/')[-3:]
 
     await update.message.reply_text(
-        text=f"👥 {len(persian_users) + len(english_users)} users are using this bot!\n\n"
-             f"🇬🇧 English users: {len(english_users)}\n"
-             f"🇮🇷 Persian users: {len(persian_users)}\n\n"
-
-
-             f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying"
-             f" {downloads_dir_size}\n"
-             f"💽 Occupied disk space {pretty_print_size(occupied_disk_space_bytes)}, available"
-             " space: "
-             f"{pretty_print_size(available_disk_space_bytes)} ({available_disk_space_percent}%"
-             " used)\n"
+        text=f"""👥 {len(english_users) + len(persian_users) + len(russian_users) +
+                    len(spanish_users) + len(french_users) + len(arabic_users)} users 
+        are using this bot!\n\n
+        🇬🇧 English users: {len(english_users)}
+        🇮🇷 Persian users: {len(persian_users)}
+        🇷🇺 Russian users: {len(russian_users)}
+        🇪🇸 Spanish users: {len(spanish_users)}
+        🇫🇷 French users: {len(french_users)}
+        🇸🇦 Arabic users: {len(arabic_users)}\n\n
+        📁 There are {number_of_downloaded_files} files on the filesystem, occupying 
+        {downloads_dir_size}
+        💽 Occupied disk space: {pretty_print_size(occupied_disk_space_bytes)}, 
+        available space: {pretty_print_size(available_disk_space_bytes)} 
+        ({available_disk_space_percent}% used)\n"""
     )
 
 
