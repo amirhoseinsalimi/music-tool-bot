@@ -909,6 +909,17 @@ files = [
 ]
 
 [[package]]
+name = "pydevd-pycharm"
+version = "241.17890.14"
+description = "PyCharm Debugger (used in PyCharm and PyDev)"
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "pydevd-pycharm-241.17890.14.tar.gz", hash = "sha256:a7d41e9d370bae5812608b084c94fec619a20f8e2071d5f2f5fd9a3276459f43"},
+]
+
+[[package]]
 name = "pyi18n-v2"
 version = "1.2.2"
 description = "Simple and easy to use internationalizationlibrary inspired by Ruby i18n"
@@ -1277,4 +1288,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10.12"
-content-hash = "d75bd847595e5c59991d9924ff33de17712a16143f128ea85cf878daa56fcdf9"
+content-hash = "bca73f71cb84622a61b03b2712256bf22f2f9cc1bbf53461f3ff2d44dff58cc5"
