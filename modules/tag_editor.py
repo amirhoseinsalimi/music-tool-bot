@@ -497,10 +497,16 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     """
     message = get_message(update)
     user_data = get_user_data(context)
+    language = get_user_language_or_fallback(user_data)
+
+    if not user_data.get('music_path'):
+        await reply_default_message(update, language)
+
+        return
+
     tag_editor_context = user_data['tag_editor']
     art_path = tag_editor_context.get('art_path')
     new_art_path = tag_editor_context.get('new_art_path')
-    language = get_user_language_or_fallback(user_data)
 
     if art_path or new_art_path:
         with open(new_art_path if new_art_path else art_path, "rb") as art_file:
