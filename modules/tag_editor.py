@@ -533,19 +533,25 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    message = get_message(update)
     user_data = get_user_data(context)
+    message = get_message(update)
+
+    music_path = user_data.get('music_path')
+    language = get_user_language_or_fallback(user_data)
+
+    if not music_path:
+        await reply_default_message(update, language)
+
+        return
 
     await context.bot.send_chat_action(
         chat_id=get_chat_id(update),
         action=ChatAction.UPLOAD_VOICE
     )
 
-    music_path = user_data['music_path']
     music_tags = user_data['tag_editor']
     art_path = music_tags.get('art_path')
     new_art_path = music_tags.get('new_art_path')
-    language = get_user_language_or_fallback(user_data)
 
     start_over_button_keyboard = generate_start_over_keyboard(language)
 
