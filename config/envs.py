@@ -12,6 +12,8 @@ OWNER_USER_ID_INT = int(OWNER_USER_ID)
 
 DB_NAME = os.getenv("DB_NAME") if os.getenv("DB_NAME") else ''
 
+DEBUGGER = os.getenv("DEBUGGER") if os.getenv("DEBUGGER") else False
+
 BTC_WALLET_ADDRESS = os.getenv("BTC_WALLET_ADDRESS") if os.getenv("BTC_WALLET_ADDRESS") else ''
 ETH_WALLET_ADDRESS = os.getenv("ETH_WALLET_ADDRESS") if os.getenv("ETH_WALLET_ADDRESS") else ''
 TRX_WALLET_ADDRESS = os.getenv("TRX_WALLET_ADDRESS") if os.getenv("TRX_WALLET_ADDRESS") else ''
