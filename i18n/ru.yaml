@@ -9,7 +9,7 @@ ru:
 
     Кстати, если у тебя возникли проблемы с обработкой файла, введи команду /new, чтобы начать заново.
   aboutMessage: |
-    Этот бот создан @amirhoseinsalimii на языке Python.
+    Этот бот создан @amirhoseinsalimi на языке Python.
     Исходный код проекта доступен на [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
 
     Если у тебя есть вопросы или отзывы, смело пиши мне в Telegram. А если ты разработчик и у тебя есть идея, как сделать этот бот лучше, буду рад твоим PR.
@@ -39,13 +39,13 @@ ru:
   clickDoneMessage: "Нажми /done, чтобы сохранить изменения."
   languageChanged: "Язык был изменён. Если захочешь сменить язык позже, используй команду /language."
   musicLength: "Длина файла: {length}."
-  reportBugMessage: "Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimii"
-  errCreatingUserFolder: "Ошибка при запуске... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimii"
-  errOnDownloadAudioMessage: "Прости, я не смог скачать твой файл... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimii"
-  errOnDownloadPhotoMessage: "Прости, я не смог скачать твой файл... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimii"
+  reportBugMessage: "Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimi"
+  errCreatingUserFolder: "Ошибка при запуске... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimi"
+  errOnDownloadAudioMessage: "Прости, я не смог скачать твой файл... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimi"
+  errOnDownloadPhotoMessage: "Прости, я не смог скачать твой файл... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimi"
   errTooLargeFile: "Этот файл слишком большой для обработки, извини!"
-  errOnReadingTags: "Прости, я не смог прочитать теги файла... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimii"
-  errOnUpdatingTags: "Прости, я не смог обновить теги файла... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimii"
+  errOnReadingTags: "Прости, я не смог прочитать теги файла... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimi"
+  errOnUpdatingTags: "Прости, я не смог обновить теги файла... Это моя вина! Пожалуйста, отправь отчёт об ошибке сюда: @amirhoseinsalimi"
   errOnUploading: "Прости, из-за проблем с сетью я не смог загрузить твой файл. Пожалуйста, попробуй ещё раз."
   errNotImplemented: "Эта функция ещё не реализована. Извини!"
   errOutOfRange: "Указанный диапазон выходит за пределы фактической длительности файла. Длина файла: {length}."

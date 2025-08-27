@@ -9,7 +9,7 @@ ar:
 
     بالمناسبة، إذا واجهتك مشكلة في معالجة الملف، اكتب الأمر /new للبدء من جديد.
   aboutMessage: |
-    تم إنشاء هذا البوت بواسطة @amirhoseinsalimii بلغة بايثون.
+    تم إنشاء هذا البوت بواسطة @amirhoseinsalimi بلغة بايثون.
     الشيفرة المصدرية للمشروع متاحة على [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
 
     إذا كان لديك أي سؤال أو ملاحظة فلا تتردد في مراسلتي على تيليغرام. وإذا كنت مطوراً ولديك فكرة لتحسين هذا البوت، فسأقدّر مساهماتك (PRs).
@@ -39,13 +39,13 @@ ar:
   clickDoneMessage: "اضغط /done لحفظ تغييراتك."
   languageChanged: "تم تغيير اللغة. إذا أردت تغيير اللغة لاحقاً، استخدم الأمر /language."
   musicLength: "طول الملف هو {length}."
-  reportBugMessage: "هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimii"
-  errCreatingUserFolder: "خطأ عند البدء... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimii"
-  errOnDownloadAudioMessage: "عذراً، لم أتمكن من تنزيل ملفك... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimii"
-  errOnDownloadPhotoMessage: "عذراً، لم أتمكن من تنزيل ملفك... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimii"
+  reportBugMessage: "هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimi"
+  errCreatingUserFolder: "خطأ عند البدء... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimi"
+  errOnDownloadAudioMessage: "عذراً، لم أتمكن من تنزيل ملفك... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimi"
+  errOnDownloadPhotoMessage: "عذراً، لم أتمكن من تنزيل ملفك... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimi"
   errTooLargeFile: "هذا الملف كبير جداً بحيث لا أستطيع معالجته، آسف!"
-  errOnReadingTags: "عذراً، لم أتمكن من قراءة وسوم الملف... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimii"
-  errOnUpdatingTags: "عذراً، لم أتمكن من تحديث وسوم الملف... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimii"
+  errOnReadingTags: "عذراً، لم أتمكن من قراءة وسوم الملف... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimi"
+  errOnUpdatingTags: "عذراً، لم أتمكن من تحديث وسوم الملف... هذا خطئي! من فضلك أرسل تقرير العطل هنا: @amirhoseinsalimi"
   errOnUploading: "عذراً، بسبب مشاكل في الشبكة، لم أتمكن من رفع ملفك. حاول مرة أخرى."
   errNotImplemented: "هذه الميزة غير مطبقة بعد. آسف!"
   errOutOfRange: "المدى الذي أدخلته يتجاوز مدة الملف الفعلية. طول الملف: {length}."
