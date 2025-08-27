@@ -9,12 +9,12 @@ from telegram.ext._utils.types import UD
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
-from modules.tag_editor import save_tags_to_file
 from config.telegram_bot import add_handler
+from modules.tag_editor import save_tags_to_file
 from utils import convert_seconds_to_human_readable_form, delete_file, generate_back_button_keyboard, \
     generate_start_over_keyboard, get_chat_id, get_effective_user_id, get_message, get_message_text, get_user_data, \
     get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, reply_default_message, \
-    resize_image
+    resize_image, get_file_name
 
 
 def convert_time_to_seconds(time: str) -> int:
@@ -236,7 +236,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
                 duration=diff_sec,
                 performer=music_tags.get('artist'),
                 title=music_tags.get('title'),
-                filename=f"{music_tags.get('artist')} - {music_tags.get('title')}",
+                filename=get_file_name(music_tags),
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"🆔 {BOT_USERNAME}",

@@ -9,7 +9,7 @@ from config.envs import BOT_USERNAME
 from config.modules import Module
 from config.telegram_bot import add_handler
 from utils import delete_file, generate_start_over_keyboard, get_chat_id, get_effective_user_id, get_message, \
-    get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t
+    get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, get_file_name
 
 
 def convert_to_voice(input_path: str, output_path: str) -> None:
@@ -58,11 +58,13 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
 
     start_over_button_keyboard = generate_start_over_keyboard(language)
 
+    music_tags = user_data['tag_editor']
+
     try:
         with open(output_path, 'rb') as voice_file:
             await context.bot.send_voice(
                 voice=voice_file,
-                filename=output_path,
+                filename=get_file_name(music_tags),
                 duration=user_data['music_duration'],
                 chat_id=get_chat_id(update),
                 caption=f"🆔 {BOT_USERNAME}",
