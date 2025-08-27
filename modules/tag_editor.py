@@ -15,7 +15,7 @@ from config.telegram_bot import add_handler
 from utils import download_file, generate_start_over_keyboard, \
     generate_tag_editor_keyboard, get_chat_id, get_effective_message_id, get_effective_user_id, get_message, \
     get_message_text, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, reply_default_message, \
-    reset_user_data_context, set_current_module, t, resize_image
+    reset_user_data_context, set_current_module, t, resize_image, get_file_name
 
 
 def is_current_module_tag_editor(current_module: str) -> bool:
@@ -595,7 +595,7 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 chat_id=get_chat_id(update),
                 performer=music_tags.get('artist'),
                 title=music_tags.get('title'),
-                filename=f"{music_tags.get('artist')} - {music_tags.get('title')}",
+                filename=get_file_name(music_tags),
                 caption=f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data["music_message_id"],

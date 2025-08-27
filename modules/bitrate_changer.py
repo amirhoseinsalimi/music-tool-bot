@@ -10,7 +10,7 @@ from config.modules import Module
 from config.telegram_bot import add_handler
 from utils import delete_file, generate_bitrate_selector_keyboard, generate_start_over_keyboard, get_chat_id, \
     get_effective_user_id, get_message, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
-    reply_default_message, reset_user_data_context, set_current_module, t, resize_image
+    reply_default_message, reset_user_data_context, set_current_module, t, resize_image, get_file_name
 
 
 def parse_bitrate_number(message: str) -> int | None:
@@ -115,7 +115,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
                 duration=music_duration,
                 performer=music_tags.get('artist'),
                 title=music_tags.get('title'),
-                filename=f"{music_tags.get('artist')} - {music_tags.get('title')}",
+                filename=get_file_name(music_tags),
                 caption=f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
