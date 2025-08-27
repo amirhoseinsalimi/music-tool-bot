@@ -225,7 +225,7 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     user_id = get_effective_user_id(update)
     user_data = get_user_data(context)
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
     increment_file_counter_for_user(user_id=user_id)
 
     music_duration = message.audio.duration.total_seconds()
