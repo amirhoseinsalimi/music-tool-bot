@@ -4,7 +4,7 @@ import re
 import music_tag
 from persiantools import digits
 from telegram import ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction, ParseMode
+from telegram.constants import ChatAction
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 from telegram.ext._utils.types import UD
@@ -474,8 +474,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
                 photo=art_file,
                 caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
                 reply_to_message_id=get_effective_message_id(update),
-                reply_markup=tag_editor_keyboard,
-                parse_mode=ParseMode.MARKDOWN_V2
+                reply_markup=tag_editor_keyboard
             )
     else:
         await message.reply_text(
@@ -514,7 +513,6 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
                         f"{t(language, 'clickDoneMessage')}\n\n"
                         f"🆔 {BOT_USERNAME}",
                 reply_to_message_id=get_effective_message_id(update),
-                parse_mode=ParseMode.MARKDOWN
             )
 
         return

@@ -1,7 +1,6 @@
 import re
 
 from telegram import ReplyKeyboardRemove, Update
-from telegram.constants import ParseMode
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 
 from config.envs import BTC_WALLET_ADDRESS, DOGE_WALLET_ADDRESS, ETH_WALLET_ADDRESS, SHIBA_BEP20_WALLET_ADDRESS, \
@@ -68,7 +67,7 @@ async def show_addresses(update: Update, context: CallbackContext) -> None:
     elif re.match(r'^(ZarinPal)$', message_text):
         reply_text = f"{t(language, 'donateMessageZarinPal', zarin_link_address=ZARIN_LINK_ADDRESS)}"
 
-    await update.message.reply_text(text=reply_text, reply_markup=ReplyKeyboardRemove(), parse_mode=ParseMode.MARKDOWN)
+    await update.message.reply_text(text=reply_text, reply_markup=ReplyKeyboardRemove())
 
 
 class DonationModule:

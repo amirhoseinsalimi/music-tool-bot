@@ -5,9 +5,12 @@ from config.envs import BOT_TOKEN
 
 defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2)
 
-app = Application.builder() \
-    .token(BOT_TOKEN) \
-    .concurrent_updates(False) \
+app = (
+    Application.builder()
+    .token(BOT_TOKEN)
+    .defaults(defaults)
+    .concurrent_updates(False)
     .build()
+)
 
 add_handler = app.add_handler
