@@ -9,7 +9,7 @@ fr:
 
     Au fait, si tu as des problèmes pour traiter ton fichier, saisis la commande /new pour recommencer.
   aboutMessage: |
-    Ce bot a été créé par @amirhoseinsalimii en Python.
+    Ce bot a été créé par @amirhoseinsalimi en Python.
     Le code source de ce projet est disponible sur [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
 
     Si tu as des questions ou des retours, n'hésite pas à m'écrire sur Telegram. Et si tu es développeur et que tu as une idée pour améliorer ce bot, j'apprécierai tes PR.
@@ -39,13 +39,13 @@ fr:
   clickDoneMessage: "Clique sur /done pour enregistrer tes modifications."
   languageChanged: "La langue a été changée. Si tu veux la modifier plus tard, utilise la commande /language."
   musicLength: "La durée du fichier est de {length}."
-  reportBugMessage: "C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
-  errCreatingUserFolder: "Erreur au démarrage... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
-  errOnDownloadAudioMessage: "Désolé, je n'ai pas pu télécharger ton fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
-  errOnDownloadPhotoMessage: "Désolé, je n'ai pas pu télécharger ton fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  reportBugMessage: "C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimi"
+  errCreatingUserFolder: "Erreur au démarrage... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimi"
+  errOnDownloadAudioMessage: "Désolé, je n'ai pas pu télécharger ton fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimi"
+  errOnDownloadPhotoMessage: "Désolé, je n'ai pas pu télécharger ton fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimi"
   errTooLargeFile: "Ce fichier est trop volumineux pour que je puisse le traiter, désolé !"
-  errOnReadingTags: "Désolé, je n'ai pas pu lire les tags du fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
-  errOnUpdatingTags: "Désolé, je n'ai pas pu mettre à jour les tags du fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimii"
+  errOnReadingTags: "Désolé, je n'ai pas pu lire les tags du fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimi"
+  errOnUpdatingTags: "Désolé, je n'ai pas pu mettre à jour les tags du fichier... C'est ma faute ! Merci d'envoyer un rapport de bug ici : @amirhoseinsalimi"
   errOnUploading: "Désolé, à cause de problèmes réseau, je n'ai pas pu téléverser ton fichier. Merci de réessayer."
   errNotImplemented: "Cette fonctionnalité n'a pas encore été implémentée. Désolé !"
   errOutOfRange: "La plage indiquée dépasse la durée réelle du fichier. La durée est {length}."

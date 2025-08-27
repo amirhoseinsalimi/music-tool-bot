@@ -9,7 +9,7 @@ en:
 
     By the way, if you're having problem processing your file, please enter /new command to start over.
   aboutMessage: |
-    This bot is created by @amirhoseinsalimii in Python language.
+    This bot is created by @amirhoseinsalimi in Python language.
     The source code of this project is available on [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
 
     If you have any question or feedback feel free to message me on Telegram. Or if you are a developer and have an idea to make this bot better, I appreciate your PRs.
@@ -39,13 +39,13 @@ en:
   clickDoneMessage: Click /done to save your changes.
   languageChanged: Language has been changed. If you want to change the language later, use /language command.
   musicLength: "The file length is {length}."
-  reportBugMessage: "That's my fault! Please send a bug report here: @amirhoseinsalimii"
-  errCreatingUserFolder: "Error on starting... That's my fault! Please send a bug report here: @amirhoseinsalimii"
-  errOnDownloadAudioMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
-  errOnDownloadPhotoMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  reportBugMessage: "That's my fault! Please send a bug report here: @amirhoseinsalimi"
+  errCreatingUserFolder: "Error on starting... That's my fault! Please send a bug report here: @amirhoseinsalimi"
+  errOnDownloadAudioMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
+  errOnDownloadPhotoMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errTooLargeFile: "This file is too big that I can process, sorry!"
-  errOnReadingTags: "Sorry, I couldn't read the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
-  errOnUpdatingTags: "Sorry, I couldn't update tags the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimii"
+  errOnReadingTags: "Sorry, I couldn't read the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
+  errOnUpdatingTags: "Sorry, I couldn't update tags the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnUploading: "Sorry, due to network issues, I couldn't upload your file. Please try again."
   errNotImplemented: "This feature has not been implemented yet. Sorry!"
   errOutOfRange: "The range you entered is out of the actual file duration. The file length is {length}."

@@ -9,7 +9,7 @@ es:
 
     Por cierto, si tienes problemas al procesar tu archivo, escribe el comando /new para empezar de nuevo.
   aboutMessage: |
-    Este bot fue creado por @amirhoseinsalimii en el lenguaje Python.
+    Este bot fue creado por @amirhoseinsalimi en el lenguaje Python.
     El código fuente del proyecto está disponible en [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
 
     Si tienes alguna pregunta o comentario, no dudes en escribirme por Telegram. Y si eres desarrollador y tienes una idea para mejorar este bot, agradeceré tus PR.
@@ -39,13 +39,13 @@ es:
   clickDoneMessage: "Pulsa /done para guardar tus cambios."
   languageChanged: "El idioma se ha cambiado. Si quieres cambiarlo más tarde, usa el comando /language."
   musicLength: "La duración del archivo es {length}."
-  reportBugMessage: "¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimii"
-  errCreatingUserFolder: "Error al iniciar... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimii"
-  errOnDownloadAudioMessage: "Lo siento, no pude descargar tu archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimii"
-  errOnDownloadPhotoMessage: "Lo siento, no pude descargar tu archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimii"
+  reportBugMessage: "¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimi"
+  errCreatingUserFolder: "Error al iniciar... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimi"
+  errOnDownloadAudioMessage: "Lo siento, no pude descargar tu archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimi"
+  errOnDownloadPhotoMessage: "Lo siento, no pude descargar tu archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimi"
   errTooLargeFile: "Este archivo es demasiado grande para que pueda procesarlo, ¡lo siento!"
-  errOnReadingTags: "Lo siento, no pude leer las etiquetas del archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimii"
-  errOnUpdatingTags: "Lo siento, no pude actualizar las etiquetas del archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimii"
+  errOnReadingTags: "Lo siento, no pude leer las etiquetas del archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimi"
+  errOnUpdatingTags: "Lo siento, no pude actualizar las etiquetas del archivo... ¡Es culpa mía! Por favor, envía un informe de error aquí: @amirhoseinsalimi"
   errOnUploading: "Lo siento, debido a problemas de red, no pude subir tu archivo. Por favor, inténtalo de nuevo."
   errNotImplemented: "Esta función aún no está implementada. ¡Lo siento!"
   errOutOfRange: "El rango que introdujiste está fuera de la duración real del archivo. La duración es {length}."
