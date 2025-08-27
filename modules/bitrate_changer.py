@@ -10,7 +10,7 @@ from config.modules import Module
 from config.telegram_bot import add_handler
 from utils import delete_file, generate_bitrate_selector_keyboard, generate_start_over_keyboard, get_chat_id, \
     get_effective_user_id, get_message, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
-    reply_default_message, reset_user_data_context, set_current_module, t
+    reply_default_message, reset_user_data_context, set_current_module, t, resize_image
 
 
 def parse_bitrate_number(message: str) -> int | None:
@@ -91,14 +91,31 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     input_path = user_data['music_path']
     output_path = f"{input_path}_bitrate.mp3"
     output_bitrate = parse_bitrate_number(message.text)
+    music_duration = user_data['music_duration']
+    music_tags = user_data['tag_editor']
+    art_path = music_tags.get('art_path')
 
     try:
         convert_bitrate(input_path, output_bitrate, output_path)
+
+        if art_path:
+            original_art_path = art_path
+            resized_art_path = f"{original_art_path}_resized.jpg"
+
+            resize_image(original_art_path, resized_art_path)
+
+            with open(resized_art_path, "rb") as art:
+                possible_art = art.read()
 
         with open(output_path, 'rb') as music_file:
             await context.bot.send_audio(
                 audio=music_file,
                 chat_id=get_chat_id(update),
+                thumbnail=possible_art,
+                duration=music_duration,
+                performer=music_tags.get('artist'),
+                title=music_tags.get('title'),
+                filename=f"{music_tags.get('artist')} - {music_tags.get('title')}",
                 caption=f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
