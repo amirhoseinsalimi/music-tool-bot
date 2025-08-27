@@ -9,10 +9,12 @@ from telegram.ext._utils.types import UD
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
+from modules.tag_editor import save_tags_to_file
 from config.telegram_bot import add_handler
 from utils import convert_seconds_to_human_readable_form, delete_file, generate_back_button_keyboard, \
     generate_start_over_keyboard, get_chat_id, get_effective_user_id, get_message, get_message_text, get_user_data, \
-    get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t
+    get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, reply_default_message, \
+    resize_image
 
 
 def convert_time_to_seconds(time: str) -> int:
@@ -163,6 +165,14 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     message = get_message(update)
 
+    music_path = user_data.get('music_path')
+    language = get_user_language_or_fallback(user_data)
+
+    if not music_path:
+        await reply_default_message(update, language)
+
+        return
+
     message_text = digits.ar_to_fa(digits.fa_to_en(get_message_text(update)))
     language = get_user_language_or_fallback(user_data)
     back_button_keyboard = generate_back_button_keyboard(language)
@@ -196,13 +206,37 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
 
     cut(input_path, beginning_sec, diff_sec, output_path)
 
+    music_tags = user_data['tag_editor']
+    art_path = music_tags.get('art_path')
+    new_art_path = music_tags.get('new_art_path')
+
+    save_tags_to_file(
+        file=output_path,
+        tags=music_tags,
+        new_art_path=new_art_path
+    )
+
     try:
+        possible_art = None
+
+        if art_path:
+            original_art_path = art_path
+            resized_art_path = f"{original_art_path}_resized.jpg"
+
+            resize_image(original_art_path, resized_art_path)
+
+            with open(resized_art_path, "rb") as art:
+                possible_art = art.read()
+
         with open(output_path, 'rb') as music_file:
-            # FIXME: After sending the file, the album art can't be read back
             await context.bot.send_audio(
                 audio=music_file,
                 chat_id=get_chat_id(update),
+                thumbnail=possible_art,
                 duration=diff_sec,
+                performer=music_tags.get('artist'),
+                title=music_tags.get('title'),
+                filename=f"{music_tags.get('artist')} - {music_tags.get('title')}",
                 caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
                         f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
                         f"🆔 {BOT_USERNAME}",
@@ -231,7 +265,14 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """
     user_data = get_user_data(context)
 
+    music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
+
+    if not music_path:
+        await reply_default_message(update, language)
+
+        return
+
     back_button_keyboard = generate_back_button_keyboard(language)
 
     set_current_module(user_data, Module.CUTTER)
