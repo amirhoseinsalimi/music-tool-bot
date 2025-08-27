@@ -455,8 +455,6 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
     language = get_user_language_or_fallback(user_data)
 
     try:
-        await read_and_store_music_tags(update, user_data)
-
         tag_editor_context = user_data['tag_editor']
     except KeyError:
         await message.reply_text(text=t(language, 'defaultMessage'))

@@ -5,7 +5,7 @@ from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandle
 from config.telegram_bot import add_handler
 from database.models import User
 from modules.cutter import handle_cutter, is_current_module_music_cutter
-from modules.tag_editor import handle_tag_editor, is_current_module_tag_editor
+from modules.tag_editor import handle_tag_editor, is_current_module_tag_editor, read_and_store_music_tags
 from utils import create_user_directory, download_file, generate_back_button_keyboard, \
     generate_module_selector_keyboard, generate_start_over_keyboard, get_chat_id, get_effective_message_id, \
     get_effective_user_id, get_effective_user_username, get_message, get_message_text, get_user_data, \
@@ -275,6 +275,15 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     user_data['music_path'] = file_download_path
     user_data['music_message_id'] = message.message_id
     user_data['music_duration'] = music_duration
+
+    try:
+        await read_and_store_music_tags(update, user_data)
+    except KeyError:
+        reset_user_data_context(user_id, user_data)
+
+        await message.reply_text(text=t(language, 'errOnReadingTags'))
+
+        return
 
     await show_module_selector(update, context)
 
