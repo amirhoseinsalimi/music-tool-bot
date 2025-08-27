@@ -13,6 +13,7 @@ from config.telegram_bot import add_handler
 from utils import convert_seconds_to_human_readable_form, delete_file, generate_back_button_keyboard, \
     generate_start_over_keyboard, get_chat_id, get_effective_user_id, get_message, get_message_text, get_user_data, \
     get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t
+    get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, reply_default_message, \
 
 
 def convert_time_to_seconds(time: str) -> int:
@@ -163,6 +164,14 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     message = get_message(update)
 
+    music_path = user_data.get('music_path')
+    language = get_user_language_or_fallback(user_data)
+
+    if not music_path:
+        await reply_default_message(update, language)
+
+        return
+
     message_text = digits.ar_to_fa(digits.fa_to_en(get_message_text(update)))
     language = get_user_language_or_fallback(user_data)
     back_button_keyboard = generate_back_button_keyboard(language)
@@ -231,7 +240,14 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """
     user_data = get_user_data(context)
 
+    music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
+
+    if not music_path:
+        await reply_default_message(update, language)
+
+        return
+
     back_button_keyboard = generate_back_button_keyboard(language)
 
     set_current_module(user_data, Module.CUTTER)
