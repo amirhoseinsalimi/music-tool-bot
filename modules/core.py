@@ -147,17 +147,17 @@ async def set_language(update: Update, context: CallbackContext) -> None:
     user_id = get_effective_user_id(update)
 
     match new_language:
-        case lang if "english" in lang:
+        case language if "english" in language:
             user_data['language'] = 'en'
-        case lang if "فارسی" in lang:
+        case language if "فارسی" in language:
             user_data['language'] = 'fa'
-        case lang if "русский" in lang:
+        case language if "русский" in language:
             user_data['language'] = 'ru'
-        case lang if "español" in lang:
+        case language if "español" in language:
             user_data['language'] = 'es'
-        case lang if "français" in lang:
+        case language if "français" in language:
             user_data['language'] = 'fr'
-        case lang if "العربية" in lang:
+        case language if "العربية" in language:
             user_data['language'] = 'ar'
 
     language = get_user_language_or_fallback(user_data)

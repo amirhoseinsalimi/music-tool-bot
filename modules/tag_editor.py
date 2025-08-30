@@ -621,57 +621,57 @@ async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     """
     user_data = get_user_data(context)
-    lang = get_user_language_or_fallback(user_data)
+    language = get_user_language_or_fallback(user_data)
 
     if is_user_data_empty(user_data):
-        await reply_default_message(update, lang)
+        await reply_default_message(update, language)
 
         return
 
     message_text = get_message_text(update)
 
     if re.match('^(🎵 Title|🎵 عنوان)$', message_text):
-        await ask_for_title(update, user_data, lang)
+        await ask_for_title(update, user_data, language)
 
         return
 
     if re.match('^(🗣 Artist|🗣 خواننده)$', message_text):
-        await ask_for_artist(update, user_data, lang)
+        await ask_for_artist(update, user_data, language)
 
         return
 
     if re.match('^(🎼 Album|🎼 آلبوم)$', message_text):
-        await ask_for_album(update, user_data, lang)
+        await ask_for_album(update, user_data, language)
 
         return
 
     if re.match('(🖼 Album Art|🖼 عکس آلبوم)$', message_text):
-        await ask_for_album_art(update, user_data, lang)
+        await ask_for_album_art(update, user_data, language)
 
         return
 
     if re.match('^(🧹 Remove Album Art|🧹 حذف کاور آلبوم)$', message_text):
-        await remove_album_art(update, user_data, lang)
+        await remove_album_art(update, user_data, language)
 
         return
 
     if re.match('^(🎹 Genre|🎹 ژانر)$', message_text):
-        await ask_for_genre(update, user_data, lang)
+        await ask_for_genre(update, user_data, language)
 
         return
 
     if re.match('^(📅 Year|📅 سال)$', message_text):
-        await ask_for_year(update, user_data, lang)
+        await ask_for_year(update, user_data, language)
 
         return
 
     if re.match('^(💿 Disk Number|💿 شماره دیسک)$', message_text):
-        await ask_for_disknumber(update, user_data, lang)
+        await ask_for_disknumber(update, user_data, language)
 
         return
 
     if re.match('^(▶️ Track Number|▶️ شماره ترک)$', message_text):
-        await ask_for_tracknumber(update, user_data, lang)
+        await ask_for_tracknumber(update, user_data, language)
 
         return
 
