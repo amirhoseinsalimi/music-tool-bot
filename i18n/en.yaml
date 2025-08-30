@@ -68,18 +68,18 @@ en:
   btnNewFile: "🆕 New File"
   musicCutterHelp: |
     Now send me which part of the music you want to cut out?
-    The file length is {length}.
+    The file length is {length}\.
 
     Valid patterns are:
-    *mm:ss-mm:ss*:
-    e.g. 00:10-02:30
-    *ss-ss*:
-    e.g. 75-120
+    *mm:ss\-mm:ss*:
+    e\.g\. 00:10\-02:30
+    *ss\-ss*:
+    e\.g\. 75\-120
 
-    - m = minute, s = second
-    - Leading zeroes are optional
-    - Extra spaces are ignored
-    - Only English numbers are valid
+    \- m \= minute, s \= second
+    \- Leading zeroes are optional
+    \- Extra spaces are ignored
+    \- Only English numbers are valid
   bitrateChangerHelp: |
     Now tell me at which bitrate you would like to have your file.
     You can select your desired bitrate from the menu below.
@@ -136,5 +136,5 @@ en:
     Here's my ZarinLink: [ZarinLink]({zarin_link_address})
 
     Thank you in advance for your support.
-  done: Done!
+  done: Done\!
   or: or

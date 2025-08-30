@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 
 from config.pyi18n import i18n, DEFAULT_LOCALE
 
@@ -97,15 +97,105 @@ def t(locale: str, key: str, **kwargs: Any) -> str:
     """
     loc = _normalize_locale(locale)
 
-    res = _safe_gettext(loc, key, **kwargs)
+    template = _lookup(loc, key)
+
+    escape_all = kwargs.pop("escape_all", True)
+    raw_keys = kwargs.pop("raw_keys", ())
+    raw_set = set(raw_keys)
+
+    esc_kwargs: Dict[str, Any] = {}
+
+    for k, v in kwargs.items():
+        s = "" if v is None else str(v)
+        esc_kwargs[k] = s if k in raw_set else escape_markdown_safe(s, version=2)
+
+    filled = _format_safe(template, esc_kwargs)
+
+    if escape_all:
+        return escape_markdown_safe(filled, version=2)
+
+    return filled
+
+
+def _lookup(locale: str, key: str) -> str:
+    """
+    Retrieve a raw translation template without formatting values.
+
+    This function mirrors the fallback behavior of ``t`` but returns the
+    unformatted template so that callers can control escaping and formatting
+    explicitly.
+
+    :param locale: str: The requested locale code
+    :param key: str: The translation key to look up
+    :return: str: The raw template string or a humanized key if no translation is found
+    """
+    loc = _normalize_locale(locale)
+
+    res = _safe_gettext(loc, key)
 
     if not _is_missing(res):
         return res
 
     if loc != DEFAULT_LOCALE:
-        res_en = _safe_gettext(DEFAULT_LOCALE, key, **kwargs)
+        res_en = _safe_gettext(DEFAULT_LOCALE, key)
 
         if not _is_missing(res_en):
             return res_en
 
     return _humanize(key)
+
+
+class _SafeDict(dict):
+    """
+    A mapping that preserves unknown placeholders during format operations.
+
+    This dictionary subclass returns a '{name}' literal when a placeholder key
+    is missing, allowing best-effort formatting without raising KeyError.
+    """
+
+    def __missing__(self, key: str) -> str:
+        return "{" + key + "}"
+
+
+def _format_safe(template: str, values: Dict[str, Any]) -> str:
+    """
+    Format a template with best-effort semantics.
+
+    This function applies ``str.format_map`` using a dictionary that preserves
+    unknown placeholders. Missing keys remain intact as '{name}' instead of
+    raising an exception.
+
+    :param template: str: The template string containing placeholders
+    :param values: Dict[str, Any]: The values to substitute into the template
+    :return: str: The formatted string with unknown placeholders preserved
+    """
+    return template.format_map(_SafeDict(values))
+
+
+def escape_markdown_safe(text: str, version: int = 2) -> str:
+    """
+    Escape a text string for Telegram MarkdownV2.
+
+    This function escapes characters reserved by MarkdownV2 to prevent parsing
+    errors. If python-telegram-bot's helper is available, it will be used.
+    Otherwise, a local implementation is applied.
+
+    :param text: str: The input text to escape
+    :param version: int: The Markdown version (only 2 is supported here)
+    :return: str: The escaped text safe for MarkdownV2
+    """
+    if version != 2:
+        return text
+
+    try:
+        from telegram.helpers import escape_markdown as _tg_escape_markdown  # type: ignore
+
+        return _tg_escape_markdown(text, version=2)
+    except Exception:
+        specials = set(r"_*[]()~`>#+-=|{}.!\\")
+        out = []
+
+        for ch in text:
+            out.append("\\" + ch if ch in specials else ch)
+
+        return "".join(out)
