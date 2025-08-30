@@ -67,19 +67,19 @@ fr:
   btnBack: "🔙 Retour"
   btnNewFile: "🆕 Nouveau fichier"
   musicCutterHelp: |
-    Maintenant, envoie-moi la partie de la musique que tu veux découper.
-    La durée du fichier est {length}.
-
-    Modèles valides :
-    *mm:ss-mm:ss* :
-    ex. 00:10-02:30
-    *ss-ss* :
-    ex. 75-120
-
-    - m = minute, s = seconde
-    - Les zéros initiaux sont facultatifs
-    - Les espaces en trop sont ignorés
-    - Seuls les chiffres anglais (0-9) sont acceptés
+    Indiquez maintenant quelle partie de la musique vous souhaitez couper ?
+    La durée du fichier est {length}\.
+    
+    Formats valides :
+    *mm:ss\-mm:ss*:
+    par exemple : 00:10\-02:30
+    *ss\-ss*:
+    par exemple : 75\-120
+    
+    \- m \= minute, s \= seconde
+    \- Les zéros initiaux sont facultatifs
+    \- Les espaces supplémentaires sont ignorés
+    \- Seuls les chiffres latins \(0\-9\) sont acceptés
   bitrateChangerHelp: |
     Dis-moi maintenant à quel bitrate tu souhaites ton fichier.
     Tu peux sélectionner le bitrate souhaité dans le menu ci-dessous.

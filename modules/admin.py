@@ -7,7 +7,6 @@ from typing import Optional
 
 import psutil
 from telegram import Update
-from telegram.constants import ParseMode
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, filters
 
@@ -275,7 +274,6 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                         context.bot.send_message(
                             chat_id=user.user_id,
                             text=message_to_send.text,
-                            parse_mode=ParseMode.MARKDOWN,
                             disable_notification=True
                         ),
                         loop
@@ -286,7 +284,6 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                             chat_id=user.user_id,
                             photo=message_to_send.photo[-1].file_id,
                             caption=message_to_send.caption,
-                            parse_mode=ParseMode.MARKDOWN,
                             disable_notification=True
                         ),
                         loop
@@ -297,7 +294,6 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                             chat_id=user.user_id,
                             video=message_to_send.video.file_id,
                             caption=message_to_send.caption,
-                            parse_mode=ParseMode.MARKDOWN,
                             disable_notification=True
                         ),
                         loop
@@ -308,7 +304,6 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                             chat_id=user.user_id,
                             document=message_to_send.document.file_id,
                             caption=message_to_send.caption,
-                            parse_mode=ParseMode.MARKDOWN,
                             disable_notification=True
                         ),
                         loop
@@ -319,7 +314,6 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                             chat_id=user.user_id,
                             audio=message_to_send.audio.file_id,
                             caption=message_to_send.caption,
-                            parse_mode=ParseMode.MARKDOWN,
                             disable_notification=True
                         ),
                         loop
@@ -330,7 +324,6 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                             chat_id=user.user_id,
                             voice=message_to_send.voice.file_id,
                             caption=message_to_send.caption,
-                            parse_mode=ParseMode.MARKDOWN_V2,
                             disable_notification=True
                         ),
                         loop

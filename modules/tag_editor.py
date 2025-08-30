@@ -4,10 +4,11 @@ import re
 import music_tag
 from persiantools import digits
 from telegram import ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction, ParseMode
+from telegram.constants import ChatAction
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 from telegram.ext._utils.types import UD
+from telegram.helpers import escape_markdown
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
@@ -120,20 +121,21 @@ def generate_music_info(tag_editor_context: dict) -> str:
     default_value = ''
     ctx = tag_editor_context
 
-    music_info = (
-        f"*🗣 Artist:* {ctx.get('artist') if ctx.get('artist') else default_value}\n"
-        f"*🎵 Title:* {ctx.get('title') if ctx.get('title') else default_value}\n"
-        f"*🎼 Album:* {ctx.get('album') if ctx.get('album') else default_value}\n"
-        f"*🎹 Genre:* {ctx.get('genre') if ctx.get('genre') else default_value}\n"
-        f"*📅 Year:* {ctx.get('year') if ctx.get('year') else default_value}\n"
-        f"*💿 Disk Number:* {ctx.get('disknumber') if ctx.get('disknumber') else default_value}\n"
-        f"*▶️ Track Number:* {ctx.get('tracknumber') if ctx.get('tracknumber') else default_value}\n"
-        "{}\n"
-    )
+    def escape(val):
+        return escape_markdown(str(val) if val else default_value, version=2)
 
-    escaped_music_info = re.sub(r'([-_()!])', r'\\\1', music_info)
+    lines = [
+        "*🗣 Artist:* " + escape(ctx.get("artist")),
+        "*🎵 Title:* " + escape(ctx.get("title")),
+        "*🎼 Album:* " + escape(ctx.get("album")),
+        "*🎹 Genre:* " + escape(ctx.get("genre")),
+        "*📅 Year:* " + escape(ctx.get("year")),
+        "*💿 Disk Number:* " + escape(ctx.get("disknumber")),
+        "*▶️ Track Number:* " + escape(ctx.get("tracknumber")),
+        "{}"
+    ]
 
-    return escaped_music_info
+    return "\n".join(lines)
 
 
 async def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
@@ -474,8 +476,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
                 photo=art_file,
                 caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
                 reply_to_message_id=get_effective_message_id(update),
-                reply_markup=tag_editor_keyboard,
-                parse_mode=ParseMode.MARKDOWN_V2
+                reply_markup=tag_editor_keyboard
             )
     else:
         await message.reply_text(
@@ -514,7 +515,6 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
                         f"{t(language, 'clickDoneMessage')}\n\n"
                         f"🆔 {BOT_USERNAME}",
                 reply_to_message_id=get_effective_message_id(update),
-                parse_mode=ParseMode.MARKDOWN
             )
 
         return

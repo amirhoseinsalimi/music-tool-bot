@@ -67,19 +67,19 @@ es:
   btnBack: "🔙 Atrás"
   btnNewFile: "🆕 Archivo nuevo"
   musicCutterHelp: |
-    Ahora dime qué parte de la música quieres recortar.
-    La duración del archivo es {length}.
-
+    Ahora envíame qué parte de la música quieres recortar.
+    La duración del archivo es {length}\.
+    
     Patrones válidos:
-    *mm:ss-mm:ss*:
-    p. ej., 00:10-02:30
-    *ss-ss*:
-    p. ej., 75-120
-
-    - m = minuto, s = segundo
-    - Los ceros a la izquierda son opcionales
-    - Se ignoran los espacios extra
-    - Solo se aceptan números en inglés
+    *mm:ss\-mm:ss*:
+    por ejemplo: 00:10\-02:30
+    *ss\-ss*:
+    por ejemplo: 75\-120
+    
+    \- m \= minuto, s \= segundo
+    \- Los ceros a la izquierda son opcionales
+    \- Los espacios extra se ignoran
+    \- Solo son válidos los números en inglés \(0\-9\)
   bitrateChangerHelp: |
     Ahora dime a qué bitrate te gustaría tener tu archivo.
     Puedes elegir el bitrate deseado en el menú de abajo.

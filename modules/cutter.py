@@ -6,6 +6,7 @@ from telegram import Message, Update
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, filters, MessageHandler
 from telegram.ext._utils.types import UD
+from telegram.helpers import escape_markdown
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
@@ -280,8 +281,10 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
 
     message = get_message(update)
 
+    music_duration = escape_markdown(music_duration, version=2)
+
     await message.reply_text(
-        text=f"{t(language, 'musicCutterHelp', length=music_duration)}\n",
+        text=f"{t(language, 'musicCutterHelp', length=music_duration, escape_all=False)}\n",
         reply_markup=back_button_keyboard
     )
 

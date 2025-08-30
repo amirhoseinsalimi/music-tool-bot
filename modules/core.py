@@ -1,5 +1,5 @@
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction, ParseMode
+from telegram.constants import ChatAction
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 
 from config.telegram_bot import add_handler
@@ -90,8 +90,7 @@ async def command_about(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     """
     await update.message.reply_text(
-        text=t(get_user_language_or_fallback(get_user_data(context)), 'aboutMessage'),
-        parse_mode=ParseMode.MARKDOWN
+        text=t(get_user_language_or_fallback(get_user_data(context)), 'aboutMessage')
     )
 
 
@@ -131,7 +130,7 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
             t("fr", "chooseLanguage"),
             t("ar", "chooseLanguage"),
         ]),
-        reply_markup=language_button_keyboard,
+        reply_markup=language_button_keyboard
     )
 
 
