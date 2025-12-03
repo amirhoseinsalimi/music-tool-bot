@@ -3,7 +3,7 @@ from telegram.ext import Application, Defaults
 
 from config.envs import BOT_TOKEN
 
-defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2)
+defaults = Defaults(parse_mode=ParseMode.HTML)
 
 app = (
     Application.builder()
