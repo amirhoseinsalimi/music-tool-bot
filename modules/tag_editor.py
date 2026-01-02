@@ -1,10 +1,10 @@
+import music_tag
 import os
 import re
-
-import music_tag
+from html import escape as html_escape
 from persiantools import digits
 from telegram import ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction
+from telegram.constants import ChatAction, ParseMode
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 from telegram.ext._utils.types import UD
@@ -113,7 +113,7 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> None:
 
 def generate_music_info(tag_editor_context: dict) -> str:
     """
-    Returns the metadata of a music as a formatted string.
+    Returns the metadata of a music as an HTML string.
 
     :param tag_editor_context: dict: A dictionary representing the metadata of a music
     :return: str: The metadata of a music.
@@ -122,17 +122,16 @@ def generate_music_info(tag_editor_context: dict) -> str:
     ctx = tag_editor_context
 
     def escape(val):
-        return escape_markdown(str(val) if val else default_value, version=2)
+        return html_escape(str(val) if val is not None else default_value)
 
     lines = [
-        "*🗣 Artist:* " + escape(ctx.get("artist")),
-        "*🎵 Title:* " + escape(ctx.get("title")),
-        "*🎼 Album:* " + escape(ctx.get("album")),
-        "*🎹 Genre:* " + escape(ctx.get("genre")),
-        "*📅 Year:* " + escape(ctx.get("year")),
-        "*💿 Disk Number:* " + escape(ctx.get("disknumber")),
-        "*▶️ Track Number:* " + escape(ctx.get("tracknumber")),
-        "{}"
+        "<b>🗣 Artist:</b> " + escape(ctx.get("artist")),
+        "<b>🎵 Title:</b> " + escape(ctx.get("title")),
+        "<b>🎼 Album:</b> " + escape(ctx.get("album")),
+        "<b>🎹 Genre:</b> " + escape(ctx.get("genre")),
+        "<b>📅 Year:</b> " + escape(ctx.get("year")),
+        "<b>💿 Disk Number:</b> " + escape(ctx.get("disknumber")),
+        "<b>▶️ Track Number:</b> " + escape(ctx.get("tracknumber")),
     ]
 
     return "\n".join(lines)
@@ -474,13 +473,15 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
         with open(art_path, 'rb') as art_file:
             await message.reply_photo(
                 photo=art_file,
-                caption=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
+                caption=f"{generate_music_info(tag_editor_context)}"
+                        f"\n\n🆔 {BOT_USERNAME}",
                 reply_to_message_id=get_effective_message_id(update),
-                reply_markup=tag_editor_keyboard
+                reply_markup=tag_editor_keyboard,
             )
     else:
         await message.reply_text(
-            text=generate_music_info(tag_editor_context).format(f"\n🆔 {BOT_USERNAME}"),
+            text=f"{generate_music_info(tag_editor_context)}"
+                 f"\n\n🆔 {BOT_USERNAME}",
             reply_to_message_id=get_effective_message_id(update),
             reply_markup=tag_editor_keyboard
         )
@@ -511,18 +512,18 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
         with open(new_art_path if new_art_path else art_path, "rb") as art_file:
             await message.reply_photo(
                 photo=art_file,
-                caption=f"{generate_music_info(tag_editor_context).format('')}"
-                        f"{t(language, 'clickDoneMessage')}\n\n"
-                        f"🆔 {BOT_USERNAME}",
+                caption=f"{generate_music_info(tag_editor_context)}"
+                        f"\n\n{t(language, 'clickDoneMessage')}"
+                        f"\n\n🆔 {BOT_USERNAME}",
                 reply_to_message_id=get_effective_message_id(update),
             )
 
         return
 
     await message.reply_text(
-        text=f"{generate_music_info(tag_editor_context).format('')}"
-             f"{t(language, 'clickDoneMessage')}\n\n"
-             f"🆔 {BOT_USERNAME}",
+        text=f"{generate_music_info(tag_editor_context)}"
+             f"\n\n{t(language, 'clickDoneMessage')}"
+             f"\n\n🆔 {BOT_USERNAME}",
         reply_to_message_id=get_effective_message_id(update),
     )
 
