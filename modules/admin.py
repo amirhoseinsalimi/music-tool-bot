@@ -1,14 +1,14 @@
 import asyncio
 import os
+import psutil
 import re
 import threading
 import time
-from typing import Optional
-
-import psutil
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, filters
+from typing import Optional
 
 from config.telegram_bot import add_handler
 from database.models import Admin, User
@@ -207,7 +207,6 @@ async def list_users(update: Update, limit: Optional[int] = None) -> None:
         await update.message.reply_text(
             text=f"👥 List of users ({len(users)} total) - Page {index + 1}/{len(user_chunks)}:\n\n"
                  f"{reply_message}",
-            parse_mode='',
         )
 
 

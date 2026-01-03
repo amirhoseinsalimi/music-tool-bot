@@ -1,6 +1,5 @@
 import os
 import re
-
 from persiantools import digits
 from telegram import Message, Update
 from telegram.error import TelegramError
@@ -103,15 +102,15 @@ async def send_out_of_range_message(message: Message, user_data: UD) -> None:
     :param user_data: UD: The ``user_data`` object
     """
     language = get_user_language_or_fallback(user_data)
-    music_duration = user_data['music_duration']
+    music_duration = convert_seconds_to_human_readable_form(user_data['music_duration'])
     back_button_keyboard = generate_back_button_keyboard(language)
 
-    reply_message = t(language, 'errOutOfRange', length=convert_seconds_to_human_readable_form(music_duration))
+    reply_message = t(language, 'errOutOfRange', length=music_duration)
 
     await message.reply_text(text=reply_message)
 
     await message.reply_text(
-        text=t(language, 'musicCutterHelp'),
+        text=t(language, 'musicCutterHelp', length=music_duration),
         reply_markup=back_button_keyboard
     )
 
@@ -126,13 +125,14 @@ async def send_beginning_is_greater_message(message: Message, user_data: UD) -> 
     """
     language = get_user_language_or_fallback(user_data)
     back_button_keyboard = generate_back_button_keyboard(language)
+    music_duration = convert_seconds_to_human_readable_form(user_data['music_duration'])
 
     reply_message = t(language, 'errBeginningPointIsGreater')
 
     await message.reply_text(text=reply_message)
 
     await message.reply_text(
-        text=t(language, 'musicCutterHelp'),
+        text=t(language, 'musicCutterHelp', length=music_duration),
         reply_markup=back_button_keyboard
     )
 
@@ -176,18 +176,19 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
 
     message_text = digits.ar_to_fa(digits.fa_to_en(get_message_text(update)))
     language = get_user_language_or_fallback(user_data)
+    music_duration = user_data['music_duration']
+    music_duration_formatted = convert_seconds_to_human_readable_form(music_duration)
     back_button_keyboard = generate_back_button_keyboard(language)
 
     try:
         beginning_sec, ending_sec = parse_cutting_range(message_text)
     except (ValueError, BaseException):
-        reply_message = t(language, 'errMalformedRange', note=t(language, 'musicCutterHelp'))
+        reply_message = t(language, 'errMalformedRange',
+                          note=t(language, 'musicCutterHelp', length=music_duration_formatted))
 
         await message.reply_text(text=reply_message, reply_markup=back_button_keyboard)
 
         return
-
-    music_duration = user_data['music_duration']
 
     if is_out_of_range(music_duration, beginning_sec, ending_sec):
         await send_out_of_range_message(message, user_data)
@@ -238,8 +239,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
                 performer=music_tags.get('artist'),
                 title=music_tags.get('title'),
                 filename=get_file_name(music_tags),
-                caption=f"*From*: {convert_seconds_to_human_readable_form(beginning_sec)}\n"
-                        f"*To*: {convert_seconds_to_human_readable_form(ending_sec)}\n\n"
+                caption=f"{t(language, 'fromTo', fromSecond=convert_seconds_to_human_readable_form(beginning_sec), toSecond=convert_seconds_to_human_readable_form(ending_sec))}\n"
                         f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
@@ -284,7 +284,7 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     music_duration = escape_markdown(music_duration, version=2)
 
     await message.reply_text(
-        text=f"{t(language, 'musicCutterHelp', length=music_duration, escape_all=False)}\n",
+        text=f"{t(language, 'musicCutterHelp', length=music_duration)}\n",
         reply_markup=back_button_keyboard
     )
 

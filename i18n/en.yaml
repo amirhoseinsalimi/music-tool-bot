@@ -35,6 +35,14 @@ en:
   albumArtChanged: Album art changed
   expectedNumberMessage: |
     You entered a string instead of a number. Although this is not a problem, I guess you entered this input by mistake.
+  musicMetadataTemplate: |
+    <b>🗣 Artist:</b> {artist}
+    <b>🎵 Title:</b> {title}
+    <b>🎼 Album:</b> {album}
+    <b>🎹 Genre:</b> {genre}
+    <b>📅 Year:</b> {year}
+    <b>💿 Disk Number:</b> {disknumber}
+    <b>▶️ Track Number:</b> {tracknumber}
   clickPreviewMessage: If you want to preview your changes click /preview.
   clickDoneMessage: Click /done to save your changes.
   languageChanged: Language has been changed. If you want to change the language later, use /language command.
@@ -67,19 +75,25 @@ en:
   btnBack: "🔙 Back"
   btnNewFile: "🆕 New File"
   musicCutterHelp: |
-    Now send me which part of the music you want to cut out?
-    The file length is {length}\.
-
-    Valid patterns are:
-    *mm:ss\-mm:ss*:
-    e\.g\. 00:10\-02:30
-    *ss\-ss*:
-    e\.g\. 75\-120
-
-    \- m \= minute, s \= second
-    \- Leading zeroes are optional
-    \- Extra spaces are ignored
-    \- Only English numbers are valid
+    Now send me <b>which part of the music</b> you want to cut out?
+    
+    The file length is <code>{length}</code> seconds.
+    
+    <b>Valid patterns:</b>
+    <code>mm:ss-mm:ss</code>
+    e.g. <code>00:10-02:30</code>
+    
+    <code>ss-ss</code>
+    e.g. <code>75-120</code>
+    
+    <b>Notes:</b>
+    - m = minute, s = second
+    - Leading zeros are optional
+    - Extra spaces are ignored
+    - Only English numbers are valid
+  fromTo: |
+    <b>From</b>: {fromSecond}
+    <b>To</b>: {toSecond}
   bitrateChangerHelp: |
     Now tell me at which bitrate you would like to have your file.
     You can select your desired bitrate from the menu below.
@@ -136,5 +150,5 @@ en:
     Here's my ZarinLink: [ZarinLink]({zarin_link_address})
 
     Thank you in advance for your support.
-  done: Done\!
+  done: Done!
   or: or
