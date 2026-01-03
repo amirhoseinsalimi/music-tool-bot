@@ -35,6 +35,14 @@ en:
   albumArtChanged: Album art changed
   expectedNumberMessage: |
     You entered a string instead of a number. Although this is not a problem, I guess you entered this input by mistake.
+  musicMetadataTemplate: |
+    <b>🗣 Artist:</b> {artist}
+    <b>🎵 Title:</b> {title}
+    <b>🎼 Album:</b> {album}
+    <b>🎹 Genre:</b> {genre}
+    <b>📅 Year:</b> {year}
+    <b>💿 Disk Number:</b> {disknumber}
+    <b>▶️ Track Number:</b> {tracknumber}
   clickPreviewMessage: If you want to preview your changes click /preview.
   clickDoneMessage: Click /done to save your changes.
   languageChanged: Language has been changed. If you want to change the language later, use /language command.

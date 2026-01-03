@@ -111,7 +111,7 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> None:
     music.save()
 
 
-def generate_music_info(tag_editor_context: dict) -> str:
+def generate_music_info(tag_editor_context: dict, language: str) -> str:
     """
     Returns the metadata of a music as an HTML string.
 
@@ -124,17 +124,15 @@ def generate_music_info(tag_editor_context: dict) -> str:
     def escape(val):
         return html_escape(str(val) if val is not None else default_value)
 
-    lines = [
-        "<b>🗣 Artist:</b> " + escape(ctx.get("artist")),
-        "<b>🎵 Title:</b> " + escape(ctx.get("title")),
-        "<b>🎼 Album:</b> " + escape(ctx.get("album")),
-        "<b>🎹 Genre:</b> " + escape(ctx.get("genre")),
-        "<b>📅 Year:</b> " + escape(ctx.get("year")),
-        "<b>💿 Disk Number:</b> " + escape(ctx.get("disknumber")),
-        "<b>▶️ Track Number:</b> " + escape(ctx.get("tracknumber")),
-    ]
-
-    return "\n".join(lines)
+    return t(language, 'musicMetadataTemplate',
+        artist=escape(ctx.get("artist")),
+        title="<b>🎵 Title:</b> " + escape(ctx.get("title")),
+        album="<b>🎼 Album:</b> " + escape(ctx.get("album")),
+        genre="<b>🎹 Genre:</b> " + escape(ctx.get("genre")),
+        year="<b>📅 Year:</b> " + escape(ctx.get("year")),
+        disknumber="<b>💿 Disk Number:</b> " + escape(ctx.get("disknumber")),
+        tracknumber="<b>▶️ Track Number:</b> " + escape(ctx.get("tracknumber")),
+    )
 
 
 async def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
@@ -473,14 +471,14 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
         with open(art_path, 'rb') as art_file:
             await message.reply_photo(
                 photo=art_file,
-                caption=f"{generate_music_info(tag_editor_context)}"
+                caption=f"{generate_music_info(tag_editor_context, language)}"
                         f"\n\n🆔 {BOT_USERNAME}",
                 reply_to_message_id=get_effective_message_id(update),
                 reply_markup=tag_editor_keyboard,
             )
     else:
         await message.reply_text(
-            text=f"{generate_music_info(tag_editor_context)}"
+            text=f"{generate_music_info(tag_editor_context, language)}"
                  f"\n\n🆔 {BOT_USERNAME}",
             reply_to_message_id=get_effective_message_id(update),
             reply_markup=tag_editor_keyboard
@@ -512,7 +510,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
         with open(new_art_path if new_art_path else art_path, "rb") as art_file:
             await message.reply_photo(
                 photo=art_file,
-                caption=f"{generate_music_info(tag_editor_context)}"
+                caption=f"{generate_music_info(tag_editor_context, language)}"
                         f"\n\n{t(language, 'clickDoneMessage')}"
                         f"\n\n🆔 {BOT_USERNAME}",
                 reply_to_message_id=get_effective_message_id(update),
@@ -521,7 +519,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
         return
 
     await message.reply_text(
-        text=f"{generate_music_info(tag_editor_context)}"
+        text=f"{generate_music_info(tag_editor_context, language)}"
              f"\n\n{t(language, 'clickDoneMessage')}"
              f"\n\n🆔 {BOT_USERNAME}",
         reply_to_message_id=get_effective_message_id(update),
