@@ -1,5 +1,5 @@
 import os
-
+import subprocess
 from telegram import Update
 from telegram.constants import ChatAction
 from telegram.error import TelegramError
@@ -20,10 +20,26 @@ def convert_to_voice(input_path: str, output_path: str) -> None:
     :param input_path: str: The path of the input file
     :param output_path: str: The output path of the converted file
     """
-    os.system(
-        f"ffmpeg -i {input_path} -c:a libopus -b:a 32k -vbr on "
-        f"-compression_level 10 -frame_duration 60 -application voip"
-        f" {output_path}")
+    subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-i", input_path,
+            "-map", "0:a:0",
+            "-vn",
+            "-sn",
+            "-dn",
+            "-map_metadata", "-1",
+            "-ac", "1",
+            "-c:a", "libopus",
+            "-b:a", "32k",
+            "-vbr", "on",
+            "-compression_level", "10",
+            "-frame_duration", "60",
+            "-application", "voip",
+            output_path,
+        ],
+        check=True,
+    )
 
 
 async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
