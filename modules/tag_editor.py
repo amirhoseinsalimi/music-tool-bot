@@ -126,12 +126,12 @@ def generate_music_info(tag_editor_context: dict, language: str) -> str:
 
     return t(language, 'musicMetadataTemplate',
         artist=escape(ctx.get("artist")),
-        title="<b>🎵 Title:</b> " + escape(ctx.get("title")),
-        album="<b>🎼 Album:</b> " + escape(ctx.get("album")),
-        genre="<b>🎹 Genre:</b> " + escape(ctx.get("genre")),
-        year="<b>📅 Year:</b> " + escape(ctx.get("year")),
-        disknumber="<b>💿 Disk Number:</b> " + escape(ctx.get("disknumber")),
-        tracknumber="<b>▶️ Track Number:</b> " + escape(ctx.get("tracknumber")),
+        title=escape(ctx.get("title")),
+        album=escape(ctx.get("album")),
+        genre=escape(ctx.get("genre")),
+        year=escape(ctx.get("year")),
+        disknumber=escape(ctx.get("disknumber")),
+        tracknumber=escape(ctx.get("tracknumber")),
     )
 
 
