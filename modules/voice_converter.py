@@ -64,7 +64,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
         with open(output_path, 'rb') as voice_file:
             await context.bot.send_voice(
                 voice=voice_file,
-                filename=get_file_name(music_tags),
+                filename=f"{get_file_name(music_tags)}.opus",
                 chat_id=get_chat_id(update),
                 caption=f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
