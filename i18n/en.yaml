@@ -58,7 +58,7 @@ en:
   errNotImplemented: "This feature has not been implemented yet. Sorry!"
   errOutOfRange: "The range you entered is out of the actual file duration. The file length is {length}."
   errMalformedRange: "You have entered a malformed pattern. Please try again. {note}"
-  errBeginningPointIsGreater: The ending point should be greater than starting point
+  errBeginningPointIsGreater: The ending point should be greater than starting point.
   btnTagAndArtEditor: "🎵 Tag/Art Editor"
   btnMusicToVoiceConverter: "🗣 Music to Voice Converter"
   btnMusicCutter: "✂️ Music Cutter"
