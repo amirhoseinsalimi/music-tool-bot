@@ -123,5 +123,5 @@ head around the syntax and the built-in functionality of the language. However, 
 this bot can be written in a more smart way with better code structure. So, if you know Python, I would really
 appreciate any help to make this kid better. My main concern is the application structure, but please feel free to
 create PRs, open discussions and make small fixes (like typos). In addition, I have some plans and features for this
-bot, you can find them on the [issue board](https://github.com/amirhoseinsalimi/music-tool-bot/issues). Also, I'd be 
-very appreciated if you can translate the bot to your language.
+bot, you can find them on the [issue board](https://github.com/amirhoseinsalimi/music-tool-bot/issues). Also, I'd really appreciate it if you can translate the bot to 
+your language.
