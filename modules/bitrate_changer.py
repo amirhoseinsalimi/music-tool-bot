@@ -1,6 +1,7 @@
 import os
 import re
-
+import subprocess
+from pathlib import Path
 from telegram import Update
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, filters, MessageHandler
@@ -34,16 +35,55 @@ def parse_bitrate_number(message: str) -> int | None:
 
 def convert_bitrate(input_path: str, output_bitrate: int, output_path: str) -> None:
     """
-    Creates a new audio file with a specified bitrate.
+    Re-encodes audio to the given bitrate while preserving metadata and album art.
 
-    :param input_path: str: The path of the input file
-    :param output_bitrate: int: The bitrate of the output file
-    :param output_path: str: The output path of the converted file
+    Notes:
+    - This keeps tags (`-map_metadata 0`) and attempts to keep embedded cover art by mapping streams.
+    - If the input contains multiple audio streams, this keeps the first audio stream.
+    - If output is MP3, album art is stored as an attached picture (ID3 APIC) when supported by ffmpeg.
+
+    :param input_path: Path to input audio file
+    :param output_bitrate: Target audio bitrate (kbps)
+    :param output_path: Path to output audio file
     """
-    os.system(
-        f"ffmpeg -v debug -i \"{input_path}\" -c:a libmp3lame \
-                            -b:a {output_bitrate}k -ac 2 -ar 44100 -vn \"{output_path}\""
-    )
+    in_path = Path(input_path)
+    out_path = Path(output_path)
+
+    if not in_path.exists():
+        raise FileNotFoundError(f"Input file not found: {in_path}")
+
+    cmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-y",
+        "-i",
+        str(in_path),
+
+        "-map", "0:a:0",
+        "-map", "0:v?",
+
+        "-map_metadata", "0",
+
+        "-c:a", "libmp3lame",
+        "-b:a", f"{output_bitrate}k",
+        "-ac", "2",
+        "-ar", "44100",
+
+        "-c:v", "copy",
+
+        "-disposition:v:0", "attached_pic",
+
+        str(out_path),
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            "ffmpeg failed.\n"
+            f"Command: {' '.join(cmd)}\n\n"
+            f"STDERR:\n{result.stderr}"
+        )
 
 
 async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
@@ -93,7 +133,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     output_bitrate = parse_bitrate_number(message.text)
     music_duration = user_data['music_duration']
     music_tags = user_data['tag_editor']
-    art_path = music_tags.get('art_path')
+    possible_art = art_path = music_tags.get('art_path')
 
     try:
         convert_bitrate(input_path, output_bitrate, output_path)
