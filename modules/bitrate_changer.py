@@ -93,7 +93,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     output_bitrate = parse_bitrate_number(message.text)
     music_duration = user_data['music_duration']
     music_tags = user_data['tag_editor']
-    art_path = music_tags.get('art_path')
+    possible_art = art_path = music_tags.get('art_path')
 
     try:
         convert_bitrate(input_path, output_bitrate, output_path)
