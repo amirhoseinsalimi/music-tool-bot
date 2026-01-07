@@ -1,5 +1,7 @@
 import os
 import re
+import subprocess
+from pathlib import Path
 from persiantools import digits
 from telegram import Message, Update
 from telegram.error import TelegramError
@@ -139,19 +141,56 @@ async def send_beginning_is_greater_message(message: Message, user_data: UD) -> 
 
 def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) -> None:
     """
-    The cut function takes in a path to an audio file, the beginning time of the cut
-    in seconds, and the duration of the cut in seconds. It then uses ``ffmpeg`` to create
-    a new audio file with only that portion of sound.
+    Cuts a segment without re-encoding while preserving metadata and album art.
 
+    - Copies the first audio stream.
+    - Copies any attached picture streams (album art).
+    - Copies container/global metadata.
+
+    Note: Stream copy + cutting can be inaccurate for some formats unless the cut starts on keyframes.
+    For MP3/AAC this is usually fine but not always sample-exact.
+    
     :param input_path: str: The path of the input file
     :param beginning_sec: int: The starting point of the cut
     :param duration: int: Duration of the cut
     :param output_path: str: The path of the output file
     """
-    os.system(
-        f"ffmpeg -y -ss {beginning_sec} -t {duration} -i {input_path} -acodec copy \
-                {output_path}"
-    )
+    in_path = Path(input_path)
+    out_path = Path(output_path)
+
+    if not in_path.exists():
+        raise FileNotFoundError(f"Input file not found: {in_path}")
+   
+    if beginning_sec < 0:
+        raise ValueError("beginning_sec must be >= 0")
+  
+    if duration <= 0:
+        raise ValueError("duration must be > 0")
+
+    cmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-y",
+        "-ss", str(beginning_sec),
+        "-t", str(duration),
+        "-i", str(in_path),
+        "-map", "0:a:0",
+        "-map", "0:v?",
+        "-map_metadata", "0",
+        "-c", "copy",
+        "-disposition:v:0", "attached_pic",
+
+        str(out_path),
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            "ffmpeg failed.\n"
+            f"Command: {' '.join(cmd)}\n\n"
+            f"STDERR:\n{result.stderr}"
+        )
 
 
 async def handle_cutter(update: Update, context: CallbackContext) -> None:
