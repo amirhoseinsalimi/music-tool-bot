@@ -1,14 +1,14 @@
-import music_tag
 import os
 import re
 from html import escape as html_escape
+
+import music_tag
 from persiantools import digits
 from telegram import ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction, ParseMode
+from telegram.constants import ChatAction
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
 from telegram.ext._utils.types import UD
-from telegram.helpers import escape_markdown
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
@@ -125,14 +125,14 @@ def generate_music_info(tag_editor_context: dict, language: str) -> str:
         return html_escape(str(val) if val is not None else default_value)
 
     return t(language, 'musicMetadataTemplate',
-        artist=escape(ctx.get("artist")),
-        title=escape(ctx.get("title")),
-        album=escape(ctx.get("album")),
-        genre=escape(ctx.get("genre")),
-        year=escape(ctx.get("year")),
-        disknumber=escape(ctx.get("disknumber")),
-        tracknumber=escape(ctx.get("tracknumber")),
-    )
+             artist=escape(ctx.get("artist")),
+             title=escape(ctx.get("title")),
+             album=escape(ctx.get("album")),
+             genre=escape(ctx.get("genre")),
+             year=escape(ctx.get("year")),
+             disknumber=escape(ctx.get("disknumber")),
+             tracknumber=escape(ctx.get("tracknumber")),
+             )
 
 
 async def ask_for_artist(update: Update, user_data: UD, language: str) -> None:
@@ -629,49 +629,45 @@ async def ask_for_tag(update: Update, context: CallbackContext) -> None:
 
     message_text = get_message_text(update)
 
-    if re.match('^(🎵 Title|🎵 عنوان)$', message_text):
+    if re.match('^(🎵 Title|🎵 عنوان|🎵 Название|🎵 Título|🎵 Titre|🎵 العنوان)$', message_text):
         await ask_for_title(update, user_data, language)
-
         return
 
-    if re.match('^(🗣 Artist|🗣 خواننده)$', message_text):
+    if re.match('^(🗣 Artist|🗣 آرتیست|🗣 Исполнитель|🗣 Artista|🗣 Artiste|🗣 الفنان)$', message_text):
         await ask_for_artist(update, user_data, language)
-
         return
 
-    if re.match('^(🎼 Album|🎼 آلبوم)$', message_text):
+    if re.match('^(🎼 Album|🎼 آلبوم|🎼 Альбом|🎼 Álbum|🎼 Album|🎼 الألبوم)$', message_text):
         await ask_for_album(update, user_data, language)
-
         return
 
-    if re.match('(🖼 Album Art|🖼 عکس آلبوم)$', message_text):
+    if re.match('^(🖼 Album Art|🖼 عکس آلبوم|🖼 Обложка альбома|🖼 Portada del Álbum|🖼 Pochette|🖼 صورة الألبوم)$',
+                message_text):
         await ask_for_album_art(update, user_data, language)
-
         return
 
-    if re.match('^(🧹 Remove Album Art|🧹 حذف کاور آلبوم)$', message_text):
+    if re.match(
+            '^(🧹 Remove Album Art|🧹 حذف عکس آلبوم|🧹 Удалить обложку|🧹 Eliminar Portada|🧹 Supprimer la pochette|🧹 إزالة صورة الألبوم)$',
+            message_text):
         await remove_album_art(update, user_data, language)
-
         return
 
-    if re.match('^(🎹 Genre|🎹 ژانر)$', message_text):
+    if re.match('^(🎹 Genre|🎹 سبک|🎹 Жанр|🎹 Género|🎹 Genre|🎹 النوع)$', message_text):
         await ask_for_genre(update, user_data, language)
-
         return
 
-    if re.match('^(📅 Year|📅 سال)$', message_text):
+    if re.match('^(📅 Year|📅 سال|📅 Год|📅 Año|📅 Année|📅 السنة)$', message_text):
         await ask_for_year(update, user_data, language)
-
         return
 
-    if re.match('^(💿 Disk Number|💿 شماره دیسک)$', message_text):
+    if re.match('^(💿 Disk Number|💿 شماره دیسک|💿 Номер диска|💿 Número de Disco|💿 Numéro de disque|💿 رقم القرص)$',
+                message_text):
         await ask_for_disknumber(update, user_data, language)
-
         return
 
-    if re.match('^(▶️ Track Number|▶️ شماره ترک)$', message_text):
+    if re.match('^(▶️ Track Number|▶️ شماره ترک|▶️ Номер трека|▶️ Número de Pista|▶️ Numéro de piste|▶️ رقم المقطع)$',
+                message_text):
         await ask_for_tracknumber(update, user_data, language)
-
         return
 
 
@@ -688,20 +684,44 @@ class TagEditorModule:
         add_handler(MessageHandler(filters.PHOTO, handle_photo_message))
 
         add_handler(MessageHandler(
-            (filters.Regex('^(🎵 Tag/Art Editor)$') | filters.Regex('^(🎵 تغییر تگ/آرت)$')),
+            (filters.Regex('^(🎵 Tag/Art Editor)$') |
+             filters.Regex('^(🎵 ادیت تگ/عکس آلبوم)$') |
+             filters.Regex('^(🎵 Редактор тегов/обложки)$') |
+             filters.Regex('^(🎵 Editor de Etiquetas/Portada)$') |
+             filters.Regex('^(🎵 Éditeur Tags/Pochette)$') |
+             filters.Regex('^(🎵 محرّر الوسوم/الصور)$')),
             ask_which_tag_to_edit)
         )
 
         add_handler(MessageHandler(
             (
-                    filters.Regex('^(🎵 Title)$') | filters.Regex('^(🎵 عنوان)$') |
-                    filters.Regex('^(🗣 Artist)$') | filters.Regex('^(🗣 خواننده)$') |
-                    filters.Regex('^(🎼 Album)$') | filters.Regex('^(🎼 آلبوم)$') |
-                    filters.Regex('^(🎹 Genre)$') | filters.Regex('^(🎹 ژانر)$') |
-                    filters.Regex('^(🖼 Album Art)$') | filters.Regex('^(🖼 کاور آلبوم)$') |
-                    filters.Regex('^(🧹 Remove Album Art)$') | filters.Regex('^(🧹 حذف کاور آلبوم)$') |
-                    filters.Regex('^(📅 Year)$') | filters.Regex('^(📅 سال)$') |
-                    filters.Regex('^(💿 Disk Number)$') | filters.Regex('^(💿 شماره دیسک)$') |
-                    filters.Regex('^(▶️ Track Number)$') | filters.Regex('^(▶️ شماره ترک)$')),
+                    filters.Regex('^(🎵 Title)$') | filters.Regex('^(🎵 عنوان)$') | filters.Regex(
+                '^(🎵 Название)$') | filters.Regex('^(🎵 Título)$') | filters.Regex('^(🎵 Titre)$') | filters.Regex(
+                '^(🎵 العنوان)$') |
+                    filters.Regex('^(🗣 Artist)$') | filters.Regex('^(🗣 آرتیست)$') | filters.Regex(
+                '^(🗣 Исполнитель)$') | filters.Regex('^(🗣 Artista)$') | filters.Regex('^(🗣 Artiste)$') | filters.Regex(
+                '^(🗣 الفنان)$') |
+                    filters.Regex('^(🎼 Album)$') | filters.Regex('^(🎼 آلبوم)$') | filters.Regex(
+                '^(🎼 Альбом)$') | filters.Regex('^(🎼 Álbum)$') | filters.Regex('^(🎼 Album)$') | filters.Regex(
+                '^(🎼 الألبوم)$') |
+                    filters.Regex('^(🎹 Genre)$') | filters.Regex('^(🎹 سبک)$') | filters.Regex(
+                '^(🎹 Жанр)$') | filters.Regex('^(🎹 Género)$') | filters.Regex('^(🎹 Genre)$') | filters.Regex(
+                '^(🎹 النوع)$') |
+                    filters.Regex('^(🖼 Album Art)$') | filters.Regex('^(🖼 عکس آلبوم)$') | filters.Regex(
+                '^(🖼 Обложка альбома)$') | filters.Regex('^(🖼 Portada del Álbum)$') | filters.Regex(
+                '^(🖼 Pochette)$') | filters.Regex('^(🖼 صورة الألبوم)$') |
+                    filters.Regex('^(🧹 Remove Album Art)$') | filters.Regex('^(🧹 حذف عکس آلبوم)$') | filters.Regex(
+                '^(🧹 Удалить обложку)$') | filters.Regex('^(🧹 Eliminar Portada)$') | filters.Regex(
+                '^(🧹 Supprimer la pochette)$') | filters.Regex('^(🧹 إزالة صورة الألبوم)$') |
+                    filters.Regex('^(📅 Year)$') | filters.Regex('^(📅 سال)$') | filters.Regex(
+                '^(📅 Год)$') | filters.Regex('^(📅 Año)$') | filters.Regex('^(📅 Année)$') | filters.Regex(
+                '^(📅 السنة)$') |
+                    filters.Regex('^(💿 Disk Number)$') | filters.Regex('^(💿 شماره دیسک)$') | filters.Regex(
+                '^(💿 Номер диска)$') | filters.Regex('^(💿 Número de Disco)$') | filters.Regex(
+                '^(💿 Numéro de disque)$') | filters.Regex('^(💿 رقم القرص)$') |
+                    filters.Regex('^(▶️ Track Number)$') | filters.Regex('^(▶️ شماره ترک)$') | filters.Regex(
+                '^(▶️ Номер трека)$') | filters.Regex('^(▶️ Número de Pista)$') | filters.Regex(
+                '^(▶️ Numéro de piste)$') | filters.Regex('^(▶️ رقم المقطع)$')
+            ),
             ask_for_tag)
         )

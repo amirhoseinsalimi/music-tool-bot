@@ -1,7 +1,8 @@
-import os
+import re
 import re
 import subprocess
 from pathlib import Path
+
 from persiantools import digits
 from telegram import Message, Update
 from telegram.error import TelegramError
@@ -160,10 +161,10 @@ def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) ->
 
     if not in_path.exists():
         raise FileNotFoundError(f"Input file not found: {in_path}")
-   
+
     if beginning_sec < 0:
         raise ValueError("beginning_sec must be >= 0")
-  
+
     if duration <= 0:
         raise ValueError("duration must be > 0")
 
@@ -336,6 +337,11 @@ class CutterModule:
         messages sent to the bot.
         """
         add_handler(MessageHandler(
-            (filters.Regex('^(✂️ Music Cutter)$') | filters.Regex('^(✂️ بریدن آهنگ)$')),
+            (filters.Regex('^(✂️ Music Cutter)$') |
+             filters.Regex('^(✂️ برش موزیک)$') |
+             filters.Regex('^(✂️ Обрезка музыки)$') |
+             filters.Regex('^(✂️ Cortador de Música)$') |
+             filters.Regex('^(✂️ Découpe Musique)$') |
+             filters.Regex('^(✂️ قصّ المقطع الموسيقي)$')),
             show_cutter_help)
         )
