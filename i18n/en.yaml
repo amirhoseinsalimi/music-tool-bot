@@ -103,51 +103,51 @@ en:
   donateMessageBitcoin: |
     Here's my BTC wallet.
 
-    ```{btc_wallet_address}```
+    <code>{btc_wallet_address}</code>
 
     Thank you in advance for your support.
   donateMessageEthereum: |
     Here's my ETH wallet.
 
-    ```{eth_wallet_address}```
+    <code>{eth_wallet_address}</code>
 
     Thank you in advance for your support.
   donateMessageTron: |
     Here's my TRX wallet.
 
-    ```{trx_wallet_address}```
+    <code>{trx_wallet_address}</code>
 
     Thank you in advance for your support.
   donateMessageTether: |
     Here are my USDT wallets.
 
     TRC20:
-    ```{usdt_trc20_wallet_address}```
+    <code>{usdt_trc20_wallet_address}</code>
 
     ERC20:
-    ```{usdt_erc20_wallet_address}```
+    <code>{usdt_erc20_wallet_address}</code>
 
     Thank you in advance for your support.
   donateMessageShiba: |
     Here are my SHIB wallets.
 
     BEP20:
-    ```{shiba_bep20_wallet_address}```
+    <code>{shiba_bep20_wallet_address}</code>
 
     ERC20:
-    ```{shiba_erc20_wallet_address}```
+    <code>{shiba_erc20_wallet_address}```
 
     Thank you in advance for your support.
   donateMessageDogeCoin: |
     Here's my DOGE wallet.
 
-    ```{doge_wallet_address}```
+    <code>{doge_wallet_address}</code>
 
     Thank you in advance for your support.
   donateMessageZarinPal: |
     This is meant to be for Iranian users only. If you're outside the country and want to donate, you can choose crypto options.
 
-    Here's my ZarinLink: [ZarinLink]({zarin_link_address})
+    Here's my ZarinLink: <a href="{zarin_link_address}">ZarinLink</a> 
 
     Thank you in advance for your support.
   done: Done!

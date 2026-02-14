@@ -23,13 +23,13 @@ dev:
 	poetry run jurigged -v $(ENTRYPOINT)
 
 start:
-	pm2 start --name $(BOT_NAME) $(ENTRYPOINT) --time --interpreter python
+	pm2 start --name "$(BOT_NAME)" $(ENTRYPOINT) --time --interpreter python
 
 restart:
-	pm2 restart $(BOT_NAME)
+	pm2 restart "$(BOT_NAME)"
 
 stop:
-	pm2 stop $(BOT_NAME)
+	pm2 stop "$(BOT_NAME)"
 
 db-migrate:
 	poetry run masonite-orm migrate -d $(MIGRATIONS_DIR)

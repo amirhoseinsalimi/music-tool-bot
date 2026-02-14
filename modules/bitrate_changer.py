@@ -1,7 +1,8 @@
-import os
+import re
 import re
 import subprocess
 from pathlib import Path
+
 from telegram import Update
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, filters, MessageHandler
@@ -186,6 +187,12 @@ class BitrateChangerModule:
         )
 
         add_handler(MessageHandler(
-            (filters.Regex('^(🎙 Bitrate Changer)$') | filters.Regex('^(🎙 تغییر بیت ریت)$')),
+            (filters.Regex('^(🎙 Bitrate Changer)$') |
+             filters.Regex('^(🎙 تغییر بیت‌ریت)$') |
+             filters.Regex('^(🎙 Изменение битрейта)$') |
+             filters.Regex('^(🎙 Cambiador de Bitrate)$') |
+             filters.Regex('^(🎙 Modificateur de Bitrate)$') |
+             filters.Regex('^(🎙 تغيير معدل البت)$')),
             show_bitrate_changer_keyboard)
         )
+

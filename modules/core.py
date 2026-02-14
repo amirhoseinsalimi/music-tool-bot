@@ -386,11 +386,21 @@ class CoreModule:
         add_handler(MessageHandler(filters.Regex('^(🇸🇦 العربية)$'), set_language))
 
         add_handler(MessageHandler(
-            (filters.Regex('^(🔙 Back)$') | filters.Regex('^(🔙 بازگشت)$')),
+            (filters.Regex('^(🔙 Back)$') |
+             filters.Regex('^(🔙 برگشت)$') |
+             filters.Regex('^(🔙 Назад)$') |
+             filters.Regex('^(🔙 Atrás)$') |
+             filters.Regex('^(🔙 Retour)$') |
+             filters.Regex('^(🔙 رجوع)$')),
             show_module_selector)
         )
         add_handler(MessageHandler(
-            (filters.Regex('^(🆕 New File)$') | filters.Regex('^(🆕 فایل جدید)$')),
+            (filters.Regex('^(🆕 New File)$') |
+             filters.Regex('^(🆕 فایل جدید)$') |
+             filters.Regex('^(🆕 Новый файл)$') |
+             filters.Regex('^(🆕 Nuevo Archivo)$') |
+             filters.Regex('^(🆕 Nouveau fichier)$') |
+             filters.Regex('^(🆕 ملف جديد)$')),
             start_over)
         )
 
