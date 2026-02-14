@@ -147,7 +147,7 @@ ru:
   donateMessageZarinPal: |
     Только для пользователей из Ирана. Если ты вне страны и хочешь поддержать — выбери криптовалюту.
 
-    Вот моя ZarinLink: [ZarinLink]({zarin_link_address})
+    Вот моя ZarinLink: <a href="{zarin_link_address}">ZarinLink</a>
 
     Заранее спасибо за поддержку.
   done: Готово!

@@ -147,7 +147,7 @@ en:
   donateMessageZarinPal: |
     This is meant to be for Iranian users only. If you're outside the country and want to donate, you can choose crypto options.
 
-    Here's my ZarinLink: [ZarinLink]({zarin_link_address})
+    Here's my ZarinLink: <a href="{zarin_link_address}">ZarinLink</a> 
 
     Thank you in advance for your support.
   done: Done!

@@ -147,8 +147,7 @@ fa:
   donateMessageZarinPal: |
     فقط برای داخل ایران. بیرون بودی و خواستی حمایت کنی، گزینه‌های کریپتو رو انتخاب کن.
 
-    اینم زرین‌لینک من:  
-    <code>{zarin_link_address}</code>
+    اینم زرین‌لینک من: <a href="{zarin_link_address}">ZarinLink</a> 
 
     پیشاپیش دمت گرم!
   done: تموم شد!
