@@ -1,5 +1,4 @@
 import re
-import re
 import subprocess
 from pathlib import Path
 
@@ -278,7 +277,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
                 duration=diff_sec,
                 performer=music_tags.get('artist'),
                 title=music_tags.get('title'),
-                filename=get_file_name(music_tags),
+                filename=f"{get_file_name(music_tags)}.mp3",
                 caption=f"{t(language, 'fromTo', fromSecond=convert_seconds_to_human_readable_form(beginning_sec), toSecond=convert_seconds_to_human_readable_form(ending_sec))}\n"
                         f"🆔 {BOT_USERNAME}",
                 reply_markup=start_over_button_keyboard,
