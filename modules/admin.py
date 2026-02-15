@@ -5,7 +5,6 @@ import re
 import threading
 import time
 from telegram import Update
-from telegram.constants import ParseMode
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, filters
 from typing import Optional

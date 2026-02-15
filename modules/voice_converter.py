@@ -1,5 +1,5 @@
-import os
 import subprocess
+
 from telegram import Update
 from telegram.constants import ChatAction
 from telegram.error import TelegramError
