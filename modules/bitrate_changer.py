@@ -1,5 +1,4 @@
 import re
-import re
 import subprocess
 from pathlib import Path
 
@@ -11,8 +10,8 @@ from config.envs import BOT_USERNAME
 from config.modules import Module
 from config.telegram_bot import add_handler
 from utils import delete_file, generate_bitrate_selector_keyboard, generate_start_over_keyboard, get_chat_id, \
-    get_effective_user_id, get_message, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
-    reply_default_message, reset_user_data_context, set_current_module, t, resize_image, get_file_name
+    get_message, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
+    reply_default_message, reset_user_data_context, set_current_module, t, resize_image, get_file_name, upsert_user
 
 
 def parse_bitrate_number(message: str) -> int | None:
@@ -87,6 +86,7 @@ def convert_bitrate(input_path: str, output_bitrate: int, output_path: str) -> N
         )
 
 
+@upsert_user
 async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
     """
     sets the current module to `Module.BITRATE_CHANGER`, and displays a keyboard with buttons for each bitrate option.
@@ -107,6 +107,7 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     )
 
 
+@upsert_user
 async def change_bitrate(update: Update, context: CallbackContext) -> None:
     """
     Handles the change bitrate functionality.
@@ -118,6 +119,8 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     :param context: Update: The ``context`` object
     :raises TelegramError | BaseException
     """
+    user = context.user_data['user']
+    user_id = user.user_id
     user_data = get_user_data(context)
     message = get_message(update)
     language = get_user_language_or_fallback(user_data)
@@ -171,7 +174,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
 
     delete_file(output_path)
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
 
 
 class BitrateChangerModule:
@@ -195,4 +198,3 @@ class BitrateChangerModule:
              filters.Regex('^(🎙 تغيير معدل البت)$')),
             show_bitrate_changer_keyboard)
         )
-

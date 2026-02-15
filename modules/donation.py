@@ -7,9 +7,11 @@ from config.envs import BTC_WALLET_ADDRESS, DOGE_WALLET_ADDRESS, ETH_WALLET_ADDR
     TRX_WALLET_ADDRESS, USDT_ERC20_WALLET_ADDRESS, USDT_TRC20_WALLET_ADDRESS, ZARIN_LINK_ADDRESS, \
     SHIBA_ERC20_WALLET_ADDRESS
 from config.telegram_bot import add_handler
-from utils import generate_donation_keyboard, get_message_text, get_user_data, get_user_language_or_fallback, t
+from utils import generate_donation_keyboard, get_message_text, get_user_data, get_user_language_or_fallback, t, \
+    upsert_user
 
 
+@upsert_user
 async def show_donation_methods(update: Update, context: CallbackContext) -> None:
     """
     Displays a keyboard with all available donation methods and sends it to the user.
@@ -28,6 +30,7 @@ async def show_donation_methods(update: Update, context: CallbackContext) -> Non
     )
 
 
+@upsert_user
 async def show_addresses(update: Update, context: CallbackContext) -> None:
     """
     Displays the corresponding addresses of the selected donation methods.

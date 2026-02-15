@@ -8,9 +8,8 @@ from modules.cutter import handle_cutter, is_current_module_music_cutter
 from modules.tag_editor import handle_tag_editor, is_current_module_tag_editor, read_and_store_music_tags
 from utils import create_user_directory, download_file, generate_back_button_keyboard, \
     generate_module_selector_keyboard, generate_start_over_keyboard, get_chat_id, get_effective_message_id, \
-    get_effective_user_id, get_effective_user_username, get_message, get_message_text, get_user_data, \
-    get_user_language_or_fallback, increment_file_counter_for_user, is_user_data_empty, logger, reply_default_message, \
-    reset_user_data_context, unset_current_module, update_user_username_if_updated, t
+    get_message, get_message_text, get_user_data, get_user_language_or_fallback, increment_file_counter_for_user, \
+    is_user_data_empty, logger, reply_default_message, reset_user_data_context, unset_current_module, t, upsert_user
 
 
 def does_user_have_music_file(music_path: str) -> bool:
@@ -23,6 +22,7 @@ def does_user_have_music_file(music_path: str) -> bool:
     return bool(music_path)
 
 
+@upsert_user
 async def command_start(update: Update, context: CallbackContext) -> None:
     """
     The first function that gets called when a user starts using the bot.
@@ -33,13 +33,14 @@ async def command_start(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    user_id = get_effective_user_id(update)
-    username = get_effective_user_username(update)
+    user = context.user_data['user']
+    user_id = user.user_id
+    username = user.username
     chat_id = get_chat_id(update)
 
     user_data = get_user_data(context)
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
 
     await update.message.reply_text(
         text=t(get_user_language_or_fallback(user_data), 'startMessage'),
@@ -48,22 +49,8 @@ async def command_start(update: Update, context: CallbackContext) -> None:
 
     await show_language_selector(update, context)
 
-    user = User.where('user_id', '=', user_id).first()
 
-    if user:
-        return
-
-    User.create({
-        'user_id': user_id,
-        'chat_id': chat_id,
-        'username': username,
-        'language': 'en',
-        'number_of_files_sent': 0,
-    })
-
-    logger.info('A user with id %s has started using the bot.', user_id)
-
-
+@upsert_user
 async def start_over(update: Update, context: CallbackContext) -> None:
     """
     Resets all the user's data to initial values and asks them to send an audio file.
@@ -71,9 +58,11 @@ async def start_over(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
+    user = context.user_data['user']
+    user_id = user.user_id
     user_data = get_user_data(context)
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
 
     await update.message.reply_text(
         text=t(get_user_language_or_fallback(user_data), 'startOverMessage'),
@@ -82,6 +71,7 @@ async def start_over(update: Update, context: CallbackContext) -> None:
     )
 
 
+@upsert_user
 async def command_about(update: Update, context: CallbackContext) -> None:
     """
     Handles the ``/about`` command. Replies to the user with a message containing information about the bot.
@@ -94,6 +84,7 @@ async def command_about(update: Update, context: CallbackContext) -> None:
     )
 
 
+@upsert_user
 async def command_help(update: Update, context: CallbackContext) -> None:
     """
     Handles the ``/help`` command. Replies to the user with a guide on how to use the bot.
@@ -104,6 +95,7 @@ async def command_help(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(text=t(get_user_language_or_fallback(get_user_data(context)), 'helpMessage'))
 
 
+@upsert_user
 async def show_language_selector(update: Update, _context: CallbackContext) -> None:
     """
     Handles the ``/language`` command. Asks the user to select a language.
@@ -134,6 +126,7 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
     )
 
 
+@upsert_user
 async def set_language(update: Update, context: CallbackContext) -> None:
     """
     Sets a language for a user. It reads the language from the user's message.
@@ -141,9 +134,10 @@ async def set_language(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
+    user = context.user_data['user']
+    user_id = user.user_id
     new_language = get_message_text(update).lower()
     user_data = get_user_data(context)
-    user_id = get_effective_user_id(update)
 
     match new_language:
         case language if "english" in language:
@@ -173,6 +167,7 @@ async def set_language(update: Update, context: CallbackContext) -> None:
     user.update({"language": language})
 
 
+@upsert_user
 async def show_module_selector(update: Update, context: CallbackContext) -> None:
     """
     Displays a keyboard with all the available modules and asks the user to select one.
@@ -212,6 +207,7 @@ def throw_not_implemented(update: Update, context: CallbackContext) -> None:
     )
 
 
+@upsert_user
 async def handle_music_message(update: Update, context: CallbackContext) -> None:
     """
     Checks if the audio file is too large, and if it isn't, downloads it and saves its path in the user's data context.
@@ -221,7 +217,8 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     :param context: CallbackContext: The ``context`` object
     """
     message = get_message(update)
-    user_id = get_effective_user_id(update)
+    user = context.user_data['user']
+    user_id = user.user_id
     user_data = get_user_data(context)
 
     reset_user_data_context(user_id, user_data)
@@ -286,9 +283,8 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     await show_module_selector(update, context)
 
-    update_user_username_if_updated(user_id, get_effective_user_username(update))
 
-
+@upsert_user
 async def handle_responses(update: Update, context: CallbackContext) -> None:
     """
     Handles all other the responses from users and decides what to do with them.
@@ -301,6 +297,9 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
+    user = context.user_data['user']
+    user_id = user.user_id
+    username = user.username
     message = get_message(update)
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
@@ -314,8 +313,8 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
     logger.info(
         "%s:%s:%s",
-        get_effective_user_id(update),
-        get_effective_user_username(update),
+        user_id,
+        username,
         get_message_text(update)
     )
 
@@ -349,6 +348,7 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
     throw_not_implemented(update, context)
 
 
+@upsert_user
 async def ignore_file(update: Update, context: CallbackContext) -> None:
     """
     Sends a message to tell users to start over when they send a file format that the bot is not interested in.
@@ -356,8 +356,10 @@ async def ignore_file(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
+    user = context.user_data['user']
+    user_id = user.user_id
     user_data = get_user_data(context)
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
 
     await update.message.reply_text(
         text=t(get_user_language_or_fallback(user_data), 'startOverMessage'),

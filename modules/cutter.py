@@ -14,9 +14,9 @@ from config.modules import Module
 from config.telegram_bot import add_handler
 from modules.tag_editor import save_tags_to_file
 from utils import convert_seconds_to_human_readable_form, delete_file, generate_back_button_keyboard, \
-    generate_start_over_keyboard, get_chat_id, get_effective_user_id, get_message, get_message_text, get_user_data, \
+    generate_start_over_keyboard, get_chat_id, get_message, get_message_text, get_user_data, \
     get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, reply_default_message, \
-    resize_image, get_file_name
+    resize_image, get_file_name, upsert_user
 
 
 def convert_time_to_seconds(time: str) -> int:
@@ -193,6 +193,7 @@ def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) ->
         )
 
 
+@upsert_user
 async def handle_cutter(update: Update, context: CallbackContext) -> None:
     """
     Handles the cut functionality. When a user enters a cutting range, this function parses it, and acts upon
@@ -202,6 +203,8 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
+    user = context.user_data['user']
+    user_id = user.user_id
     user_data = get_user_data(context)
     message = get_message(update)
 
@@ -293,9 +296,10 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
 
     delete_file(output_path)
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
 
 
+@upsert_user
 async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """
     Displays the guide on how to use the cutter module, and set the current module to ``Module.CUTTER``.
