@@ -8,8 +8,9 @@ from telegram.ext import CallbackContext, filters, MessageHandler
 from config.envs import BOT_USERNAME
 from config.modules import Module
 from config.telegram_bot import add_handler
-from utils import delete_file, generate_start_over_keyboard, get_chat_id, get_effective_user_id, get_message, \
-    get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, get_file_name
+from utils import delete_file, generate_start_over_keyboard, get_chat_id, get_message, \
+    get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, get_file_name, \
+    upsert_user
 
 
 def convert_to_voice(input_path: str, output_path: str) -> None:
@@ -42,6 +43,7 @@ def convert_to_voice(input_path: str, output_path: str) -> None:
     )
 
 
+@upsert_user
 async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     """
     Handles the voice conversion functionality. This is the main function of the ``voice_converter`` module that
@@ -51,6 +53,8 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     :raises TelegramError | BaseException
     """
+    user = context.user_data['user']
+    user_id = user.user_id
     message = get_message(update)
     user_data = get_user_data(context)
 
@@ -96,7 +100,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
 
     delete_file(output_path)
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
 
 
 class VoiceConverterModule:

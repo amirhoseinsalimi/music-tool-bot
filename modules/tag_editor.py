@@ -16,7 +16,7 @@ from config.telegram_bot import add_handler
 from utils import download_file, generate_start_over_keyboard, \
     generate_tag_editor_keyboard, get_chat_id, get_effective_message_id, get_effective_user_id, get_message, \
     get_message_text, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, reply_default_message, \
-    reset_user_data_context, set_current_module, t, resize_image, get_file_name
+    reset_user_data_context, set_current_module, t, resize_image, get_file_name, upsert_user
 
 
 def is_current_module_tag_editor(current_module: str) -> bool:
@@ -327,6 +327,7 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             art_file.write(art.first.data)
 
 
+@upsert_user
 async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the user's input when they are editing a tag. It first checks if the user
@@ -379,6 +380,7 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     unset_current_tag(user_data)
 
 
+@upsert_user
 async def handle_photo_message(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the album arts that the user wants to be saved in their file.
@@ -386,6 +388,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
+    user = context.user_data['user']
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
@@ -399,7 +402,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
 
         return
 
-    user_id = get_effective_user_id(update)
+    user_id = user.user_id
     current_module = user_data['current_module']
     current_tag = user_data['tag_editor']['current_tag']
     tag_editor_keyboard = generate_tag_editor_keyboard(language)
@@ -441,6 +444,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
         return
 
 
+@upsert_user
 async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
     """
     This function is called when the user has selected the `Module.TAG_EDITOR module`.
@@ -485,6 +489,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
         )
 
 
+@upsert_user
 async def display_preview(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/preview`` command. Displays a caption with all the information about the music file, and if there's
@@ -526,6 +531,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     )
 
 
+@upsert_user
 async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/finish`` command.
@@ -536,6 +542,8 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
+    user = context.user_data['user']
+    user_id = user.user_id
     user_data = get_user_data(context)
     message = get_message(update)
 
@@ -606,9 +614,10 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         )
         logger.exception("Telegram error: %s", error)
 
-    reset_user_data_context(get_effective_user_id(update), user_data)
+    reset_user_data_context(user_id, user_data)
 
 
+@upsert_user
 async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     """
     Asks the user to input a value based on the tag that they just selected.
