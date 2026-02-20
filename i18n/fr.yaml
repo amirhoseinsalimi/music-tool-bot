@@ -9,10 +9,11 @@ fr:
 
     Au passage, si tu rencontres un problème lors du traitement du fichier, utilise la commande /new pour recommencer.
   aboutMessage: |
-    Ce bot a été créé par @amirhoseinsalimi en utilisant le langage Python.
-    Le code source de ce projet est disponible sur GitHub.
+    Ce bot a été créé par @amirhoseinsalimi en utilisant Python.
+    Le code source de ce projet est disponible sur <a href="https://github.com/amirhoseinsalimi/music-tool-bot">GitHub</a>.
 
-    Si tu as des questions ou des retours, n’hésite pas à m’écrire sur Telegram. Et si tu es développeur et que tu as une idée pour améliorer le bot, j’apprécie beaucoup tes PR !
+    Si tu as des questions ou des retours, n’hésite pas à m’écrire sur Telegram.
+    Si tu es développeur et que tu as une idée pour améliorer le bot, j’accueille volontiers tes pull requests.
   defaultMessage: "Envoie-moi ou transfère-moi une piste audio, un fichier MP3 ou de la musique. J’attends… 😁"
   askWhichModule: Que veux-tu faire avec ce fichier ?
   askWhichTag: Quel tag veux-tu modifier ?
