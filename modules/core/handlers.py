@@ -1,25 +1,17 @@
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ChatAction
-from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
+from telegram.ext import CallbackContext
 
-from config.telegram_bot import add_handler
 from database.models import User
 from modules.cutter import handle_cutter, is_current_module_music_cutter
-from modules.tag_editor import handle_tag_editor, is_current_module_tag_editor, read_and_store_music_tags
-from utils import create_user_directory, download_file, generate_back_button_keyboard, \
-    generate_module_selector_keyboard, generate_start_over_keyboard, get_chat_id, get_effective_message_id, \
+from modules.tag_editor.handlers import handle_tag_editor
+from modules.tag_editor.service import read_and_store_music_tags
+from modules.tag_editor.utils import is_current_module_tag_editor
+from utils import create_user_directory, download_file, generate_module_selector_keyboard, generate_start_over_keyboard, \
+    get_chat_id, get_effective_message_id, \
     get_message, get_message_text, get_user_data, get_user_language_or_fallback, increment_file_counter_for_user, \
     is_user_data_empty, logger, reply_default_message, reset_user_data_context, unset_current_module, t, upsert_user
-
-
-def does_user_have_music_file(music_path: str) -> bool:
-    """
-    Checks if a user has a music file.
-
-    :param music_path: str: The user's current music_path
-    :return: bool: Whether the user has a music path
-    """
-    return bool(music_path)
+from .utils import throw_not_implemented, does_user_have_music_file
 
 
 @upsert_user
@@ -189,24 +181,6 @@ async def show_module_selector(update: Update, context: CallbackContext) -> None
     unset_current_module(user_data)
 
 
-def throw_not_implemented(update: Update, context: CallbackContext) -> None:
-    """
-    Displays an error message and offers the user to go back. It is called when the user tries to access a feature that
-    has not been implemented yet.
-
-    :param update: Update: The ``update`` object
-    :param context: CallbackContext: The ``context`` object
-    """
-    language = get_user_language_or_fallback(get_user_data(context))
-
-    back_button_keyboard = generate_back_button_keyboard(language)
-
-    update.message.reply_text(
-        text=t(language, 'errNotImplemented'),
-        reply_markup=back_button_keyboard
-    )
-
-
 @upsert_user
 async def handle_music_message(update: Update, context: CallbackContext) -> None:
     """
@@ -365,51 +339,3 @@ async def ignore_file(update: Update, context: CallbackContext) -> None:
         text=t(get_user_language_or_fallback(user_data), 'startOverMessage'),
         reply_markup=ReplyKeyboardRemove()
     )
-
-
-class CoreModule:
-    @staticmethod
-    def register():
-        """
-        Registers all the handlers that are defined in ``Core`` module, so that they can be used to respond to messages
-        sent to the bot.
-        """
-        add_handler(CommandHandler('start', command_start))
-        add_handler(CommandHandler('new', start_over))
-        add_handler(CommandHandler('language', show_language_selector))
-        add_handler(CommandHandler('help', command_help))
-        add_handler(CommandHandler('about', command_about))
-
-        add_handler(MessageHandler(filters.Regex('^(🇬🇧 English)$'), set_language))
-        add_handler(MessageHandler(filters.Regex('^(🇮🇷 فارسی)$'), set_language))
-        add_handler(MessageHandler(filters.Regex('^(🇷🇺 Русский)$'), set_language))
-        add_handler(MessageHandler(filters.Regex('^(🇪🇸 Español)$'), set_language))
-        add_handler(MessageHandler(filters.Regex('^(🇫🇷 Français)$'), set_language))
-        add_handler(MessageHandler(filters.Regex('^(🇸🇦 العربية)$'), set_language))
-
-        add_handler(MessageHandler(
-            (filters.Regex('^(🔙 Back)$') |
-             filters.Regex('^(🔙 برگشت)$') |
-             filters.Regex('^(🔙 Назад)$') |
-             filters.Regex('^(🔙 Atrás)$') |
-             filters.Regex('^(🔙 Retour)$') |
-             filters.Regex('^(🔙 رجوع)$')),
-            show_module_selector)
-        )
-        add_handler(MessageHandler(
-            (filters.Regex('^(🆕 New File)$') |
-             filters.Regex('^(🆕 فایل جدید)$') |
-             filters.Regex('^(🆕 Новый файл)$') |
-             filters.Regex('^(🆕 Nuevo Archivo)$') |
-             filters.Regex('^(🆕 Nouveau fichier)$') |
-             filters.Regex('^(🆕 ملف جديد)$')),
-            start_over)
-        )
-
-        add_handler(MessageHandler(filters.AUDIO, handle_music_message))
-
-        add_handler(MessageHandler(filters.TEXT, handle_responses))
-        add_handler(MessageHandler(
-            (filters.VIDEO | filters.Document.ALL | filters.CONTACT & (
-                    ~filters.AUDIO | ~filters.PHOTO | ~filters.Document.IMAGE | ~filters.Document.JPG | ~filters.Document.MP3)),
-            ignore_file))
