@@ -9,10 +9,11 @@ en:
 
     By the way, if you're having problem processing your file, please enter /new command to start over.
   aboutMessage: |
-    This bot is created by @amirhoseinsalimi in Python language.
-    The source code of this project is available on [GitHub](https://github.com/amirhoseinsalimi/music-tool-bot).
+    This bot was created by @amirhoseinsalimi using Python.
+    The source code of this project is available on <a href="https://github.com/amirhoseinsalimi/music-tool-bot">GitHub</a>.
 
-    If you have any question or feedback feel free to message me on Telegram. Or if you are a developer and have an idea to make this bot better, I appreciate your PRs.
+    If you have any questions or feedback, feel free to message me on Telegram.
+    If you are a developer and have ideas to improve this bot, I welcome your pull requests.
   defaultMessage: "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
   askWhichModule: What do you want to do with this file?
   askWhichTag: Which tag do you want to edit?
