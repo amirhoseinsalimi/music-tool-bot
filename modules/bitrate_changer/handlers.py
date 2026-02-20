@@ -1,89 +1,14 @@
-import re
-import subprocess
-from pathlib import Path
-
 from telegram import Update
 from telegram.error import TelegramError
-from telegram.ext import CallbackContext, filters, MessageHandler
+from telegram.ext import CallbackContext
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
-from config.telegram_bot import add_handler
 from utils import delete_file, generate_bitrate_selector_keyboard, generate_start_over_keyboard, get_chat_id, \
     get_message, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
     reply_default_message, reset_user_data_context, set_current_module, t, resize_image, get_file_name, upsert_user
-
-
-def parse_bitrate_number(message: str) -> int | None:
-    """
-    Parses, converts and returns a bitrate in a text.
-
-    The ``message`` is expected to look like `320 kb/s`.
-
-    :param message: str: A message text containing a bitrate
-    :return: int | None: The extracted bitrate
-    """
-    number_pattern = r'^\d+'
-
-    matches = re.findall(number_pattern, message)
-
-    if matches:
-        return int(matches[0])
-    else:
-        return None
-
-
-def convert_bitrate(input_path: str, output_bitrate: int, output_path: str) -> None:
-    """
-    Re-encodes audio to the given bitrate while preserving metadata and album art.
-
-    Notes:
-    - This keeps tags (`-map_metadata 0`) and attempts to keep embedded cover art by mapping streams.
-    - If the input contains multiple audio streams, this keeps the first audio stream.
-    - If output is MP3, album art is stored as an attached picture (ID3 APIC) when supported by ffmpeg.
-
-    :param input_path: Path to input audio file
-    :param output_bitrate: Target audio bitrate (kbps)
-    :param output_path: Path to output audio file
-    """
-    in_path = Path(input_path)
-    out_path = Path(output_path)
-
-    if not in_path.exists():
-        raise FileNotFoundError(f"Input file not found: {in_path}")
-
-    cmd = [
-        "ffmpeg",
-        "-hide_banner",
-        "-y",
-        "-i",
-        str(in_path),
-
-        "-map", "0:a:0",
-        "-map", "0:v?",
-
-        "-map_metadata", "0",
-
-        "-c:a", "libmp3lame",
-        "-b:a", f"{output_bitrate}k",
-        "-ac", "2",
-        "-ar", "44100",
-
-        "-c:v", "copy",
-
-        "-disposition:v:0", "attached_pic",
-
-        str(out_path),
-    ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            "ffmpeg failed.\n"
-            f"Command: {' '.join(cmd)}\n\n"
-            f"STDERR:\n{result.stderr}"
-        )
+from .service import convert_bitrate
+from .utils import parse_bitrate_number
 
 
 @upsert_user
@@ -175,26 +100,3 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     delete_file(output_path)
 
     reset_user_data_context(user_id, user_data)
-
-
-class BitrateChangerModule:
-    @staticmethod
-    def register():
-        """
-        Registers all the handlers that are defined in ``BitrateChanger`` module, so that they can be used to respond to
-        messages sent to the bot.
-        """
-        add_handler(MessageHandler(
-            filters.Regex(r'^(\d{3}\s{1}kb/s)$'),
-            change_bitrate)
-        )
-
-        add_handler(MessageHandler(
-            (filters.Regex('^(🎙 Bitrate Changer)$') |
-             filters.Regex('^(🎙 تغییر بیت‌ریت)$') |
-             filters.Regex('^(🎙 Изменение битрейта)$') |
-             filters.Regex('^(🎙 Cambiador de Bitrate)$') |
-             filters.Regex('^(🎙 Modificateur de Bitrate)$') |
-             filters.Regex('^(🎙 تغيير معدل البت)$')),
-            show_bitrate_changer_keyboard)
-        )

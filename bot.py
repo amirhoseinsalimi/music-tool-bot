@@ -6,8 +6,13 @@ from datetime import datetime
 
 from config.envs import DEBUGGER
 from config.telegram_bot import app
-from modules import AdminModule, BitrateChangerModule, CoreModule, CutterModule, DonationModule, TagEditorModule, \
-    VoiceConverterModule
+from modules.admin import register as register_admin
+from modules.bitrate_changer import register as register_bitrate_changer
+from modules.core import register as register_core
+from modules.cutter import register as register_cutter
+from modules.donation import register as register_donation
+from modules.tag_editor import register as register_tag_editor
+from modules.voice_converter import register as register_voice_converter
 from utils import logger, logging
 
 
@@ -40,13 +45,12 @@ def main():
 
 
 if __name__ == '__main__':
-    AdminModule().register()
-    VoiceConverterModule().register()
-    BitrateChangerModule().register()
-    TagEditorModule().register()
-    CutterModule().register()
-
-    DonationModule().register()
-    CoreModule().register()
+    register_admin(app.add_handler)
+    register_bitrate_changer(app.add_handler)
+    register_cutter(app.add_handler)
+    register_donation(app.add_handler)
+    register_tag_editor(app.add_handler)
+    register_voice_converter(app.add_handler)
+    register_core(app.add_handler)
 
     main()

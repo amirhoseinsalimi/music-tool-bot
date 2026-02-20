@@ -1,12 +1,11 @@
 import re
 
 from telegram import ReplyKeyboardRemove, Update
-from telegram.ext import CallbackContext, CommandHandler, filters, MessageHandler
+from telegram.ext import CallbackContext
 
 from config.envs import BTC_WALLET_ADDRESS, DOGE_WALLET_ADDRESS, ETH_WALLET_ADDRESS, SHIBA_BEP20_WALLET_ADDRESS, \
     TRX_WALLET_ADDRESS, USDT_ERC20_WALLET_ADDRESS, USDT_TRC20_WALLET_ADDRESS, ZARIN_LINK_ADDRESS, \
     SHIBA_ERC20_WALLET_ADDRESS
-from config.telegram_bot import add_handler
 from utils import generate_donation_keyboard, get_message_text, get_user_data, get_user_language_or_fallback, t, \
     upsert_user
 
@@ -71,22 +70,3 @@ async def show_addresses(update: Update, context: CallbackContext) -> None:
         reply_text = f"{t(language, 'donateMessageZarinPal', zarin_link_address=ZARIN_LINK_ADDRESS)}"
 
     await update.message.reply_text(text=reply_text, reply_markup=ReplyKeyboardRemove())
-
-
-class DonationModule:
-    @staticmethod
-    def register():
-        """
-        Registers all the handlers that are defined in ``Donation`` module, so that they can be used to respond to
-        messages sent to the bot.
-        """
-        add_handler(CommandHandler('donate', show_donation_methods))
-
-        add_handler(MessageHandler(
-            (
-                    filters.Regex(r'^(Bitcoin \(BTC\))$') | filters.Regex(r'^(Ethereum \(ETH\))$') |
-                    filters.Regex(r'^(TRON \(TRX\))$') | filters.Regex(r'^(Tether \(USDT\))$') |
-                    filters.Regex(r'^(Shiba \(SHIB\))$') | filters.Regex(r'^(Dogecoin \(DOGE\))$') |
-                    filters.Regex(r'^(ZarinPal)$') | filters.Regex(r'^(زرین پال)$')),
-            show_addresses)
-        )

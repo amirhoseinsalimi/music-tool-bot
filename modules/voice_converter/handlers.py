@@ -1,46 +1,14 @@
-import subprocess
-
 from telegram import Update
 from telegram.constants import ChatAction
 from telegram.error import TelegramError
-from telegram.ext import CallbackContext, filters, MessageHandler
+from telegram.ext import CallbackContext
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
-from config.telegram_bot import add_handler
 from utils import delete_file, generate_start_over_keyboard, get_chat_id, get_message, \
     get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, get_file_name, \
     upsert_user
-
-
-def convert_to_voice(input_path: str, output_path: str) -> None:
-    """
-    Creates a new file with `opus` format using `libopus` plugin. The new file can be recognized as a voice message by
-    Telegram.
-
-    :param input_path: str: The path of the input file
-    :param output_path: str: The output path of the converted file
-    """
-    subprocess.run(
-        [
-            "ffmpeg", "-y",
-            "-i", input_path,
-            "-map", "0:a:0",
-            "-vn",
-            "-sn",
-            "-dn",
-            "-map_metadata", "-1",
-            "-ac", "1",
-            "-c:a", "libopus",
-            "-b:a", "32k",
-            "-vbr", "on",
-            "-compression_level", "10",
-            "-frame_duration", "60",
-            "-application", "voip",
-            output_path,
-        ],
-        check=True,
-    )
+from .service import convert_to_voice
 
 
 @upsert_user
@@ -101,23 +69,3 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     delete_file(output_path)
 
     reset_user_data_context(user_id, user_data)
-
-
-class VoiceConverterModule:
-    @staticmethod
-    def register():
-        """
-        Registers all the handlers that are defined in ``VoiceConverter`` module, so that they can be used to respond
-        to messages sent to the bot.
-        """
-        add_handler(MessageHandler(
-            (
-                    filters.Regex('^(🗣 Music to Voice Converter)$') |
-                    filters.Regex('^(🗣 تبدیل موزیک به ویس)$') |
-                    filters.Regex('^(🗣 Конвертер музыки в голос)$') |
-                    filters.Regex('^(🗣 Convertidor de Música a Voz)$') |
-                    filters.Regex('^(🗣 Convertisseur Musique en Voix)$') |
-                    filters.Regex('^(🗣 تحويل الموسيقى إلى صوت)$')
-            ),
-            send_file_as_voice)
-        )
