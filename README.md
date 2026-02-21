@@ -40,11 +40,12 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    Run `cp .env.example .env`. Then put your credentials there:
    | Field                      | Type      | Description |
    | -------------------------- | --------- | -------------------------------------------------------------------------|
-   | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.      |
+   | APP_ENV                    | `str`     | Defines app's environment. Valid values: `production` | `development`    |
    | BOT_NAME                   | `str`     | The name of the bot                                                      |
    | BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions. |
    | BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                |
    | DB_NAME                    | `str`     | Database name. Read the next step for more information.                  |
+   | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.      |
    | DEBUGGER                   | `boolean` | Attaches a PyCharm's debugger on port `5400`                             |
    | BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                 |
    | ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                 |

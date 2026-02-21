@@ -4,7 +4,7 @@ import re
 import sys
 from datetime import datetime
 
-from config.envs import DEBUGGER
+from config.envs import DEBUGGER, APP_ENV
 from config.telegram_bot import app
 from modules.admin import register as register_admin
 from modules.bitrate_changer import register as register_bitrate_changer
@@ -30,6 +30,10 @@ def main():
             )
         except ImportError as e:
             print("Debugger not attached. pydevd_pycharm not found:", e)
+
+    if APP_ENV == "production":
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("httpcore").setLevel(logging.WARNING)
 
     now = datetime.now()
     now = re.sub(':', '_', str(now))
