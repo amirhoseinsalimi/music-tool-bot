@@ -12,14 +12,13 @@ def registry() -> list[BaseHandler]:
 
         MessageHandler(
             (
-                    filters.Regex(r'^(Bitcoin \(BTC\))$') |
-                    filters.Regex(r'^(Ethereum \(ETH\))$') |
-                    filters.Regex(r'^(TRON \(TRX\))$') |
-                    filters.Regex(r'^(Tether \(USDT\))$') |
-                    filters.Regex(r'^(Shiba \(SHIB\))$') |
-                    filters.Regex(r'^(Dogecoin \(DOGE\))$') |
-                    filters.Regex(r'^(ZarinPal)$') |
-                    filters.Regex(r'^(زرین پال)$')
+                    filters.Regex(r'^Bitcoin$') |
+                    filters.Regex(r'^Ethereum$') |
+                    filters.Regex(r'^TRON$') |
+                    filters.Regex(r'^Tether$') |
+                    filters.Regex(r'^Shiba$') |
+                    filters.Regex(r'^Dogecoin$') |
+                    filters.Regex(r'^ZarinPal$')
             ),
             show_addresses
         )
@@ -28,7 +27,7 @@ def registry() -> list[BaseHandler]:
 
 def register(add_handler):
     """
-    Register handlers using the host app's add_handler callable.\
+    Register handlers using the host app's add_handler callable.
     """
     for h in registry():
         add_handler(h)

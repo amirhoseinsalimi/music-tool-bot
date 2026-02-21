@@ -24,7 +24,7 @@ def registry() -> list[BaseHandler]:
 
 def register(add_handler):
     """
-    Register handlers using the host app's add_handler callable.\
+    Register handlers using the host app's add_handler callable.
     """
     for h in registry():
         add_handler(h)

@@ -27,8 +27,6 @@ async def command_start(update: Update, context: CallbackContext) -> None:
     """
     user = context.user_data['user']
     user_id = user.user_id
-    username = user.username
-    chat_id = get_chat_id(update)
 
     user_data = get_user_data(context)
 
