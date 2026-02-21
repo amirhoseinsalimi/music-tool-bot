@@ -3,8 +3,27 @@ import re
 from telegram import Message
 from telegram.ext._utils.types import UD
 
-from utils import get_user_language_or_fallback, generate_back_button_keyboard, \
-    convert_seconds_to_human_readable_form, t
+from modules.core.utils import generate_back_button_keyboard
+from utils import get_user_language_or_fallback, t
+
+
+def convert_seconds_to_human_readable_form(seconds: int) -> str:
+    """
+    Converts seconds to a human-readable time format, e.g. 02:30
+
+    :param seconds: int: Seconds to format
+    :return: str: Formatted string
+    """
+    if seconds <= 0:
+        return "00:00"
+
+    minutes = int(seconds / 60)
+    remainder = int(seconds % 60)
+
+    minutes_formatted = str(minutes) if minutes >= 10 else "0" + str(minutes)
+    seconds_formatted = str(remainder) if remainder >= 10 else "0" + str(remainder)
+
+    return f"{minutes_formatted}:{seconds_formatted}"
 
 
 def convert_time_to_seconds(time: str) -> int:

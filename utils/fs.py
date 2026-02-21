@@ -1,26 +1,7 @@
 import os
-from pathlib import Path
 
 from telegram import Audio, PhotoSize
 from telegram.ext import CallbackContext
-
-
-def create_user_directory(user_id: int) -> str | None:
-    """
-    Creates a directory for a user with a given id.
-
-    :param user_id: int: The ``user_id`` of the user we want to create directory for
-    :raises OSError | FileNotFoundError | BaseException: Can't create directory for the user
-    :return: str | None: The relative path of the user's directory if succeeds; ``None`` otherwise
-    """
-    user_download_dir = f"downloads/{user_id}"
-
-    try:
-        Path(user_download_dir).mkdir(parents=True, exist_ok=True)
-
-        return user_download_dir
-    except (OSError, FileNotFoundError, BaseException) as error:
-        raise Exception(f"Can't create directory for user_id: {user_id}") from error
 
 
 def delete_all_user_files(user_id: int) -> None:
@@ -87,17 +68,6 @@ async def download_file(
     except ValueError as error:
         raise Exception(f"Couldn't download the file with file_id: {file_id}") from error
 
-
-def get_dir_size_in_bytes(dir_path: str) -> float:
-    """
-    Get the size of a directory and its subdirectories in bytes.
-
-    :param dir_path: str: The path of the directory to get its size
-    :return: float: The size of a directory and its subdirectories in bytes
-    """
-    root_directory = Path(dir_path)
-
-    return sum(f.stat().st_size for f in root_directory.glob('**/*') if f.is_file())
 
 def get_audio_file_extension(audio):
     """

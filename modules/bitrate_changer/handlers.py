@@ -4,10 +4,12 @@ from telegram.ext import CallbackContext
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
-from utils import delete_file, generate_bitrate_selector_keyboard, generate_start_over_keyboard, get_chat_id, \
+from modules.core.utils import generate_start_over_keyboard
+from utils import delete_file, get_chat_id, \
     get_message, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
     reply_default_message, reset_user_data_context, set_current_module, t, resize_image, get_file_name, upsert_user
 from .service import convert_bitrate
+from .utils import generate_bitrate_selector_keyboard
 from .utils import parse_bitrate_number
 
 

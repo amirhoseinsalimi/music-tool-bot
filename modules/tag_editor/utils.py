@@ -1,4 +1,41 @@
+from telegram import ReplyKeyboardMarkup
 from telegram.ext._utils.types import UD
+
+from utils import t
+
+
+def generate_tag_editor_keyboard(language: str) -> ReplyKeyboardMarkup:
+    """
+    Creates and returns an instance of ``tag_editor_keyboard`` with the specified language
+
+    :param language: str: The language to generate the labels
+    :return: ReplyKeyboardMarkup: Tag editor keyboard
+    """
+    return (
+        ReplyKeyboardMarkup(
+            keyboard=[
+                [
+                    t(language, 'btnArtist'),
+                    t(language, 'btnTitle'),
+                    t(language, 'btnAlbum')
+                ],
+                [
+                    t(language, 'btnGenre'),
+                    t(language, 'btnAlbumArt'),
+                    t(language, 'btnRemoveAlbumArt')
+                ],
+                [
+                    t(language, 'btnYear'),
+                    t(language, 'btnDiskNumber'),
+                    t(language, 'btnTrackNumber')
+                ],
+                [
+                    t(language, 'btnBack')
+                ]
+            ],
+            resize_keyboard=True,
+        )
+    )
 
 
 def is_current_module_tag_editor(current_module: str) -> bool:
