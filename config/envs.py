@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
 
+APP_ENV = os.getenv("APP_ENV") if os.getenv("APP_ENV") else "development"
+
 BOT_USERNAME = os.getenv('BOT_USERNAME')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
