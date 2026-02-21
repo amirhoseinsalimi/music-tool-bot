@@ -7,10 +7,11 @@ from modules.cutter import handle_cutter, is_current_module_music_cutter
 from modules.tag_editor.handlers import handle_tag_editor
 from modules.tag_editor.service import read_and_store_music_tags
 from modules.tag_editor.utils import is_current_module_tag_editor
-from utils import create_user_directory, download_file, generate_module_selector_keyboard, generate_start_over_keyboard, \
-    get_chat_id, get_effective_message_id, \
-    get_message, get_message_text, get_user_data, get_user_language_or_fallback, increment_file_counter_for_user, \
-    is_user_data_empty, logger, reply_default_message, reset_user_data_context, unset_current_module, t, upsert_user
+from utils import download_file, get_chat_id, get_effective_message_id, \
+    get_message, get_message_text, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
+    reply_default_message, reset_user_data_context, unset_current_module, t, upsert_user
+from .utils import generate_module_selector_keyboard, increment_file_counter_for_user, generate_start_over_keyboard, \
+    create_user_directory
 from .utils import throw_not_implemented, does_user_have_music_file
 
 

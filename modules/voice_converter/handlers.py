@@ -5,8 +5,9 @@ from telegram.ext import CallbackContext
 
 from config.envs import BOT_USERNAME
 from config.modules import Module
-from utils import delete_file, generate_start_over_keyboard, get_chat_id, get_message, \
-    get_user_data, get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, get_file_name, \
+from modules.core.utils import generate_start_over_keyboard
+from utils import delete_file, get_chat_id, get_message, get_user_data, get_user_language_or_fallback, logger, \
+    reset_user_data_context, set_current_module, t, get_file_name, \
     upsert_user
 from .service import convert_to_voice
 

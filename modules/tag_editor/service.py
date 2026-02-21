@@ -5,8 +5,9 @@ import music_tag
 from telegram import Update
 from telegram.ext._utils.types import UD
 
-from utils import generate_start_over_keyboard, \
-    generate_tag_editor_keyboard, get_effective_user_id, get_user_language_or_fallback, logger, t
+from modules.core.utils import generate_start_over_keyboard
+from modules.tag_editor.utils import generate_tag_editor_keyboard
+from utils import get_effective_user_id, get_user_language_or_fallback, logger, t
 
 
 def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> None:

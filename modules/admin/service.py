@@ -5,8 +5,8 @@ import psutil
 from telegram import Update
 
 from database.models import Admin, User
-from utils import get_dir_size_in_bytes, get_message_text, is_user_admin, \
-    pretty_print_size
+from modules.admin.utils import is_user_admin, get_dir_size_in_bytes, pretty_print_size
+from utils import get_message_text
 from .utils import extract_user_id
 
 DOWNLOADS_DIT_PATH = 'downloads'
