@@ -2,6 +2,8 @@ import re
 
 from telegram import ReplyKeyboardMarkup
 
+from utils import t
+
 
 def generate_bitrate_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
     """
