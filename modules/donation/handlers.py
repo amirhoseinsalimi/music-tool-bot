@@ -1,14 +1,34 @@
 import re
 
-from telegram import ReplyKeyboardRemove, Update
-from telegram.ext import CallbackContext
+from telegram import (
+    ReplyKeyboardRemove,
+    Update,
+)
+from telegram.ext import (
+    CallbackContext,
+)
 
-from config.envs import BTC_WALLET_ADDRESS, DOGE_WALLET_ADDRESS, ETH_WALLET_ADDRESS, SHIBA_BEP20_WALLET_ADDRESS, \
-    TRX_WALLET_ADDRESS, USDT_ERC20_WALLET_ADDRESS, USDT_TRC20_WALLET_ADDRESS, ZARIN_LINK_ADDRESS, \
-    SHIBA_ERC20_WALLET_ADDRESS
-from utils import get_message_text, get_user_data, get_user_language_or_fallback, t, \
-    upsert_user
-from .utils import generate_donation_keyboard
+from config.envs import (
+    BTC_WALLET_ADDRESS,
+    DOGE_WALLET_ADDRESS,
+    ETH_WALLET_ADDRESS,
+    SHIBA_BEP20_WALLET_ADDRESS,
+    TRX_WALLET_ADDRESS,
+    USDT_ERC20_WALLET_ADDRESS,
+    USDT_TRC20_WALLET_ADDRESS,
+    ZARIN_LINK_ADDRESS,
+    SHIBA_ERC20_WALLET_ADDRESS,
+)
+from utils import (
+    get_message_text,
+    get_user_data,
+    get_user_language_or_fallback,
+    t,
+    upsert_user,
+)
+from .utils import (
+    generate_donation_keyboard,
+)
 
 
 @upsert_user

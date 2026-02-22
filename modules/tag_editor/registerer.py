@@ -1,7 +1,17 @@
-from telegram.ext import CommandHandler, MessageHandler, BaseHandler, filters
+from telegram.ext import (
+    CommandHandler,
+    MessageHandler,
+    BaseHandler,
+    filters,
+)
 
-from .handlers import finish_editing_tags, display_preview, handle_photo_message, ask_for_tag, \
-    ask_which_tag_to_edit
+from .handlers import (
+    finish_editing_tags,
+    display_preview,
+    handle_photo_message,
+    ask_for_tag,
+    ask_which_tag_to_edit,
+)
 
 
 def registry() -> list[BaseHandler]:

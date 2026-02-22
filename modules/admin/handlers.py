@@ -7,8 +7,8 @@ from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
 
 from database.models import User
-from utils import get_effective_user_id, get_message_text
 from modules.admin.utils import is_admin_owner, is_user_admin
+from utils import get_effective_user_id, get_message_text
 from .service import add_admin, del_admin, list_users, show_stats
 from .utils import get_list_limit
 

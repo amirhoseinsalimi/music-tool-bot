@@ -1,20 +1,59 @@
-from persiantools import digits
-from telegram import Update
-from telegram.error import TelegramError
-from telegram.ext import CallbackContext
-from telegram.helpers import escape_markdown
+from persiantools import (
+    digits,
+)
+from telegram import (
+    Update,
+)
+from telegram.error import (
+    TelegramError,
+)
+from telegram.ext import (
+    CallbackContext,
+)
+from telegram.helpers import (
+    escape_markdown,
+)
 
-from config.envs import BOT_USERNAME
-from config.modules import Module
-from modules.core.utils import generate_start_over_keyboard, generate_back_button_keyboard
-from modules.tag_editor.service import save_tags_to_file
-from utils import delete_file, get_chat_id, get_message, get_message_text, get_user_data, \
-    get_user_language_or_fallback, logger, reset_user_data_context, set_current_module, t, reply_default_message, \
-    resize_image, get_file_name, upsert_user
-from .service import cut
-from .utils import convert_seconds_to_human_readable_form
-from .utils import parse_cutting_range, is_range_malformed, send_out_of_range_message, \
-    send_beginning_is_greater_message, is_out_of_range
+from config.envs import (
+    BOT_USERNAME,
+)
+from config.modules import (
+    Module,
+)
+from modules.core.utils import (
+    generate_start_over_keyboard,
+    generate_back_button_keyboard,
+)
+from modules.tag_editor.service import (
+    save_tags_to_file,
+)
+from utils import (
+    delete_file,
+    get_chat_id,
+    get_message,
+    get_message_text,
+    get_user_data,
+    get_user_language_or_fallback,
+    logger,
+    reset_user_data_context,
+    set_current_module,
+    t,
+    reply_default_message,
+    resize_image,
+    get_file_name,
+    upsert_user,
+)
+from .service import (
+    cut,
+)
+from .utils import (
+    convert_seconds_to_human_readable_form,
+    parse_cutting_range,
+    is_range_malformed,
+    send_out_of_range_message,
+    send_beginning_is_greater_message,
+    is_out_of_range,
+)
 
 
 @upsert_user
