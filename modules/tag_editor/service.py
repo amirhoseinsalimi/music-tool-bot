@@ -244,27 +244,34 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
 
         return
 
-    artist = music['artist']
-    title = music['title']
-    album = music['album']
-    genre = music['genre']
-    art = music['artwork']
-    year = music.raw['year']
-    disknumber = music.raw['disknumber']
-    tracknumber = music.raw['tracknumber']
+    artist = music.get('artist')
+    title = music.get('title')
+    album = music.get('album')
+    genre = music.get('genre')
+
+    raw = getattr(music, "raw", {}) or {}
+    year = raw.get('year')
+    disknumber = raw.get('disknumber')
+    tracknumber = raw.get('tracknumber')
+
+    try:
+        art = music['artwork']
+    except KeyError:
+        art = None
 
     tag_editor_context = user_data['tag_editor']
-
-    tag_editor_context['artist'] = str(artist)
-    tag_editor_context['title'] = str(title)
-    tag_editor_context['album'] = str(album)
-    tag_editor_context['genre'] = str(genre)
-    tag_editor_context['year'] = str(year)
-    tag_editor_context['disknumber'] = str(disknumber)
-    tag_editor_context['tracknumber'] = str(tracknumber)
+    tag_editor_context['artist'] = str(artist or "")
+    tag_editor_context['title'] = str(title or "")
+    tag_editor_context['album'] = str(album or "")
+    tag_editor_context['genre'] = str(genre or "")
+    tag_editor_context['year'] = str(year or "")
+    tag_editor_context['disknumber'] = str(disknumber or "")
+    tag_editor_context['tracknumber'] = str(tracknumber or "")
 
     if art:
         tag_editor_context['art_path'] = f"{file_download_path}.jpg"
 
         with open(tag_editor_context['art_path'], 'wb') as art_file:
             art_file.write(art.first.data)
+    else:
+        tag_editor_context.pop('art_path', None)

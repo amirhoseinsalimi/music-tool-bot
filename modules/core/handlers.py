@@ -284,7 +284,7 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     try:
         await read_and_store_music_tags(update, user_data)
-    except KeyError:
+    except (KeyError, Exception):
         reset_user_data_context(user_id, user_data)
 
         await message.reply_text(text=t(language, 'errOnReadingTags'))
