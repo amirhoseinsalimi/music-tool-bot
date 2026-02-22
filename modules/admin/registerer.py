@@ -1,8 +1,20 @@
-from telegram.ext import BaseHandler
-from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, filters
+from telegram.ext import (
+    BaseHandler,
+    ConversationHandler,
+    CommandHandler,
+    MessageHandler,
+    filters,
+)
 
-from .handlers import send_to_all_command, handle_admin_message, cancel_send_to_all, add_admin_if_user_is_owner, \
-    list_users_if_user_is_admin, show_stats_if_user_is_admin, del_admin_if_user_is_owner
+from .handlers import (
+    send_to_all_command,
+    handle_admin_message,
+    cancel_send_to_all,
+    add_admin_if_user_is_owner,
+    list_users_if_user_is_admin,
+    show_stats_if_user_is_admin,
+    del_admin_if_user_is_owner,
+)
 
 DOWNLOADS_DIT_PATH = 'downloads'
 SLEEP_TIME_TO_NEXT_USER_IN_SECONDS = 3

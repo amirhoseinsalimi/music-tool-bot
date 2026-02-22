@@ -1,16 +1,45 @@
-from telegram import Update
-from telegram.error import TelegramError
-from telegram.ext import CallbackContext
+from telegram import (
+    Update,
+)
+from telegram.error import (
+    TelegramError,
+)
+from telegram.ext import (
+    CallbackContext,
+)
 
-from config.envs import BOT_USERNAME
-from config.modules import Module
-from modules.core.utils import generate_start_over_keyboard
-from utils import delete_file, get_chat_id, \
-    get_message, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, \
-    reply_default_message, reset_user_data_context, set_current_module, t, resize_image, get_file_name, upsert_user
-from .service import convert_bitrate
-from .utils import generate_bitrate_selector_keyboard
-from .utils import parse_bitrate_number
+from config.envs import (
+    BOT_USERNAME,
+)
+from config.modules import (
+    Module,
+)
+from modules.core.utils import (
+    generate_start_over_keyboard,
+)
+from utils import (
+    delete_file,
+    get_chat_id,
+    get_message,
+    get_user_data,
+    get_user_language_or_fallback,
+    is_user_data_empty,
+    logger,
+    reply_default_message,
+    reset_user_data_context,
+    set_current_module,
+    t,
+    resize_image,
+    get_file_name,
+    upsert_user,
+)
+from .service import (
+    convert_bitrate,
+)
+from .utils import (
+    generate_bitrate_selector_keyboard,
+    parse_bitrate_number,
+)
 
 
 @upsert_user

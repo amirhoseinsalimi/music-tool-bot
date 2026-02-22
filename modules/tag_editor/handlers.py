@@ -1,22 +1,72 @@
 import re
 
-from persiantools import digits
-from telegram import ReplyKeyboardRemove, Update
-from telegram.constants import ChatAction
-from telegram.error import TelegramError
-from telegram.ext import CallbackContext
+from persiantools import (
+    digits,
+)
+from telegram import (
+    ReplyKeyboardRemove,
+    Update,
+)
+from telegram.constants import (
+    ChatAction,
+)
+from telegram.error import (
+    TelegramError,
+)
+from telegram.ext import (
+    CallbackContext,
+)
 
-from config.envs import BOT_USERNAME
-from config.modules import Module
-from modules.core.utils import generate_start_over_keyboard
-from modules.tag_editor.utils import generate_tag_editor_keyboard
-from utils import download_file, get_chat_id, get_effective_message_id, get_message, \
-    get_message_text, get_user_data, get_user_language_or_fallback, is_user_data_empty, logger, reply_default_message, \
-    reset_user_data_context, set_current_module, t, resize_image, get_file_name, upsert_user
-from .service import ask_for_title, ask_for_year, remove_album_art, ask_for_genre, ask_for_tracknumber, ask_for_artist, \
-    ask_for_disknumber, ask_for_album, ask_for_album_art, generate_music_info, save_tags_to_file
-from .utils import did_user_select_a_tag, is_current_tag_album_art, unset_current_tag, is_current_module_tag_editor, \
-    save_text_into_tag
+from config.envs import (
+    BOT_USERNAME,
+)
+from config.modules import (
+    Module,
+)
+from modules.core.utils import (
+    generate_start_over_keyboard,
+)
+from modules.tag_editor.utils import (
+    generate_tag_editor_keyboard,
+)
+from utils import (
+    download_file,
+    get_chat_id,
+    get_effective_message_id,
+    get_message,
+    get_message_text,
+    get_user_data,
+    get_user_language_or_fallback,
+    is_user_data_empty,
+    logger,
+    reply_default_message,
+    reset_user_data_context,
+    set_current_module,
+    t,
+    resize_image,
+    get_file_name,
+    upsert_user,
+)
+from .service import (
+    ask_for_title,
+    ask_for_year,
+    remove_album_art,
+    ask_for_genre,
+    ask_for_tracknumber,
+    ask_for_artist,
+    ask_for_disknumber,
+    ask_for_album,
+    ask_for_album_art,
+    generate_music_info,
+    save_tags_to_file,
+)
+from .utils import (
+    did_user_select_a_tag,
+    is_current_tag_album_art,
+    unset_current_tag,
+    is_current_module_tag_editor,
+    save_text_into_tag,
+)
 
 
 @upsert_user

@@ -1,7 +1,22 @@
-from telegram.ext import CommandHandler, filters, MessageHandler, BaseHandler
+from telegram.ext import (
+    CommandHandler,
+    filters,
+    MessageHandler,
+    BaseHandler,
+)
 
-from .handlers import command_start, start_over, command_help, command_about, show_module_selector, set_language, \
-    show_language_selector, handle_responses, ignore_file, handle_music_message
+from .handlers import (
+    command_start,
+    start_over,
+    command_help,
+    command_about,
+    show_module_selector,
+    set_language,
+    show_language_selector,
+    handle_responses,
+    ignore_file,
+    handle_music_message,
+)
 
 
 def registry() -> list[BaseHandler]:
