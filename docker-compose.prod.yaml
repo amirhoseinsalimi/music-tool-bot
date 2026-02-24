@@ -6,12 +6,12 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    env_file:
+      - .env
     environment:
-      - START_CMD=python bot.py
+      DB_PATH: /data/music_tool_bot_prod.sqlite3
+      PTB_TIMEDELTA: "true"
+      START_CMD: python bot.py
     volumes:
-      - bot_data:/data
-      - ./.env:/app/.env:ro
+      - ./music_tool_bot_prod.sqlite3:/data/music_tool_bot_prod.sqlite3
     restart: unless-stopped
-
-volumes:
-  bot_data:
