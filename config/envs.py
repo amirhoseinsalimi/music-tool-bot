@@ -9,8 +9,6 @@ APP_ENV = os.getenv("APP_ENV") if os.getenv("APP_ENV") else "development"
 BOT_USERNAME = os.getenv('BOT_USERNAME')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-DB_NAME = os.getenv("DB_NAME") if os.getenv("DB_NAME") else ''
-DB_CONNECTION = os.getenv("DB_CONNECTION") if os.getenv("DB_CONNECTION") else 'sqlite'
 DB_HOST = os.getenv("DB_HOST") if os.getenv("DB_HOST") else 'localhost'
 DB_PORT = int(os.getenv("DB_PORT")) if os.getenv("DB_PORT") else 5432
 DB_DATABASE = os.getenv("DB_DATABASE") if os.getenv("DB_DATABASE") else ''

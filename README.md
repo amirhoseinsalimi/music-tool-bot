@@ -44,8 +44,6 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    | BOT_NAME                   | `str`     | The name of the bot                                                      |
    | BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions. |
    | BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                |
-   | DB_CONNECTION              | `str`     | Database driver. Use `postgres` for local Docker development.            |
-   | DB_NAME                    | `str`     | SQLite filename (only when `DB_CONNECTION=sqlite`).                      |
    | DB_HOST                    | `str`     | Database host (for postgres).                                            |
    | DB_PORT                    | `int`     | Database port (for postgres).                                            |
    | DB_DATABASE                | `str`     | Database name (for postgres).                                            |
@@ -64,7 +62,7 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    | ZARIN_LINK_ADDRESS         | `str`     | ZarinLink address to receive donations.                                  |
 
 6. **Set up the database:**<br />
-   This bot persists users/admins in a relational database (Postgres or SQLite). Run migrations:<br />
+   This bot persists users/admins in PostgreSQL. Run migrations:<br />
    `make db-migrate`.<br />
    Then run seeds to populate the `admins` table with an owner-level
    access:<br />
