@@ -1,17 +1,1 @@
-name: music-tool-bot
-
-services:
-  bot:
-    image: music-tool-bot:prod
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    env_file:
-      - .env
-    environment:
-      DB_PATH: /data/music_tool_bot_prod.sqlite3
-      PTB_TIMEDELTA: "true"
-      START_CMD: python bot.py
-    volumes:
-      - ./music_tool_bot_prod.sqlite3:/data/music_tool_bot_prod.sqlite3
-    restart: unless-stopped
+services: {}

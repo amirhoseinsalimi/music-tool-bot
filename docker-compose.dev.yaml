@@ -1,6 +1,8 @@
-name: music-tool-bot
-
 services:
+  postgres:
+    ports:
+      - "${DB_PORT:-5432}:5432"
+
   bot:
     image: music-tool-bot:dev
     build:
@@ -12,4 +14,3 @@ services:
       - ./:/app
       - ./data:/data
       - ./.env:/app/.env:ro
-    restart: unless-stopped

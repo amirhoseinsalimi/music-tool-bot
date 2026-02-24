@@ -44,7 +44,13 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    | BOT_NAME                   | `str`     | The name of the bot                                                      |
    | BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions. |
    | BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                |
-   | DB_NAME                    | `str`     | Database name. Read the next step for more information.                  |
+   | DB_CONNECTION              | `str`     | Database driver. Use `postgres` for local Docker development.            |
+   | DB_NAME                    | `str`     | SQLite filename (only when `DB_CONNECTION=sqlite`).                      |
+   | DB_HOST                    | `str`     | Database host (for postgres).                                            |
+   | DB_PORT                    | `int`     | Database port (for postgres).                                            |
+   | DB_DATABASE                | `str`     | Database name (for postgres).                                            |
+   | DB_USERNAME                | `str`     | Database username (for postgres).                                        |
+   | DB_PASSWORD                | `str`     | Database password (for postgres).                                        |
    | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.      |
    | DEBUGGER                   | `boolean` | Attaches a PyCharm's debugger on port `5400`                             |
    | BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                 |
@@ -58,8 +64,7 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    | ZARIN_LINK_ADDRESS         | `str`     | ZarinLink address to receive donations.                                  |
 
 6. **Set up the database:**<br />
-   This bot persists the IDs of users and admins in a SQLite database. So you need to create a database followed by
-   running migrations:<br />
+   This bot persists users/admins in a relational database (Postgres or SQLite). Run migrations:<br />
    `make db-migrate`.<br />
    Then run seeds to populate the `admins` table with an owner-level
    access:<br />
@@ -108,7 +113,7 @@ You can also run the bot in Docker, without installing Python, Poetry, or ffmpeg
 4. **Start the bot (development mode with hot reload)**
    `docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up`
 
-   The SQLite database will appear in your local `./data/` directory.
+   In dev mode, Docker Compose starts a local Postgres container and the bot connects to it using your `.env` values.
 
 5. **Start the bot (production mode)**
    `docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d`
