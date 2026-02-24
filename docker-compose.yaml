@@ -1,17 +1,38 @@
 name: music-tool-bot
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-music_tool_bot_dev}
+      POSTGRES_USER: ${DB_USERNAME:-music_tool_bot}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-music_tool_bot_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-music_tool_bot} -d ${DB_DATABASE:-music_tool_bot_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   bot:
     image: music-tool-bot:prod
     build:
       context: .
       dockerfile: docker/Dockerfile
+    env_file:
+      - .env
     environment:
-      - PTB_TIMEDELTA=true
+      PTB_TIMEDELTA: "true"
+      START_CMD: python bot.py
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - bot_data:/data
-      - ./.env:/app/.env:ro
     restart: unless-stopped
 
 volumes:
   bot_data:
+  postgres_data:
