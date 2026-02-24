@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 import re
 import sys
 from datetime import datetime
@@ -13,7 +14,7 @@ from modules.cutter import register as register_cutter
 from modules.donation import register as register_donation
 from modules.tag_editor import register as register_tag_editor
 from modules.voice_converter import register as register_voice_converter
-from utils import logger, logging
+from utils import logger
 
 
 def main():

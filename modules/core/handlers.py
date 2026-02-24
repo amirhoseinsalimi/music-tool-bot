@@ -13,8 +13,10 @@ from telegram.ext import (
 from database.models import (
     User,
 )
-from modules.cutter import (
+from modules.cutter.handlers import (
     handle_cutter,
+)
+from modules.cutter.utils import (
     is_current_module_music_cutter,
 )
 from modules.tag_editor.handlers import (
