@@ -7,6 +7,8 @@ services:
       POSTGRES_DB: ${DB_DATABASE:-music_tool_bot_dev}
       POSTGRES_USER: ${DB_USERNAME:-music_tool_bot}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-music_tool_bot_dev}
+    ports:
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
