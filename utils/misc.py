@@ -94,7 +94,7 @@ def is_user_data_empty(user_data: UD) -> bool:
     :param user_data: UD: The ``user_data`` object of the user that we want to check its emptiness
     :return: bool: Whether the user has data
     """
-    return len(user_data) == 0
+    return len(user_data) == 1
 
 
 def get_user_language_or_fallback(user_data: UD) -> str:
