@@ -49,7 +49,6 @@ from .utils import (
     increment_file_counter_for_user,
     generate_start_over_keyboard,
     create_user_directory,
-    throw_not_implemented,
     does_user_have_music_file,
 )
 
@@ -356,8 +355,6 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
         )
 
         return
-
-    throw_not_implemented(update, context)
 
 
 @upsert_user

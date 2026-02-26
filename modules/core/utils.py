@@ -1,11 +1,9 @@
 from pathlib import Path
 
 from telegram import ReplyKeyboardMarkup
-from telegram import Update
-from telegram.ext import CallbackContext
 
 from database.models import User
-from utils import get_user_language_or_fallback, get_user_data, t
+from utils import t
 
 
 def create_user_directory(user_id: int) -> str | None:
@@ -112,21 +110,3 @@ def increment_file_counter_for_user(user_id: int) -> None:
     user.update({
         "number_of_files_sent": user.number_of_files_sent + 1
     })
-
-
-def throw_not_implemented(update: Update, context: CallbackContext) -> None:
-    """
-    Displays an error message and offers the user to go back. It is called when the user tries to access a feature that
-    has not been implemented yet.
-
-    :param update: Update: The ``update`` object
-    :param context: CallbackContext: The ``context`` object
-    """
-    language = get_user_language_or_fallback(get_user_data(context))
-
-    back_button_keyboard = generate_back_button_keyboard(language)
-
-    update.message.reply_text(
-        text=t(language, 'errNotImplemented'),
-        reply_markup=back_button_keyboard
-    )
