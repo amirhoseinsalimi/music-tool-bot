@@ -1,9 +1,13 @@
+import re
+from functools import lru_cache
 from pathlib import Path
 
 from telegram import ReplyKeyboardMarkup
-
 from database.models import User
 from utils import t
+
+PYPROJECT_PATH = Path(__file__).resolve().parents[2] / 'pyproject.toml'
+VERSION_PATTERN = re.compile(r'^\s*version\s*=\s*"([^"]+)"\s*$')
 
 
 def create_user_directory(user_id: int) -> str | None:
@@ -110,3 +114,18 @@ def increment_file_counter_for_user(user_id: int) -> None:
     user.update({
         "number_of_files_sent": user.number_of_files_sent + 1
     })
+
+
+@lru_cache(maxsize=1)
+def get_app_version() -> str:
+    try:
+        with PYPROJECT_PATH.open(mode='r', encoding='utf-8') as pyproject_file:
+            for line in pyproject_file:
+                match = VERSION_PATTERN.match(line)
+
+                if match:
+                    return match.group(1)
+    except OSError:
+        pass
+
+    return 'unknown'

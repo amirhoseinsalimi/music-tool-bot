@@ -50,6 +50,7 @@ from .utils import (
     generate_start_over_keyboard,
     create_user_directory,
     does_user_have_music_file,
+    get_app_version,
 )
 
 
@@ -109,7 +110,11 @@ async def command_about(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     """
     await update.message.reply_text(
-        text=t(get_user_language_or_fallback(get_user_data(context)), 'aboutMessage')
+        text=t(
+            get_user_language_or_fallback(get_user_data(context)),
+            'aboutMessage',
+            version=get_app_version(),
+        )
     )
 
 

@@ -11,6 +11,7 @@ fr:
   aboutMessage: |
     Ce bot a été créé par @amirhoseinsalimi en utilisant Python.
     Le code source de ce projet est disponible sur <a href="https://github.com/amirhoseinsalimi/music-tool-bot">GitHub</a>.
+    Version : {version}
 
     Si tu as des questions ou des retours, n’hésite pas à m’écrire sur Telegram.
     Si tu es développeur et que tu as une idée pour améliorer le bot, j’accueille volontiers tes pull requests.

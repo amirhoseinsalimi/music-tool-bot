@@ -11,6 +11,7 @@ fa:
   aboutMessage: |
     این بات توسط @amirhoseinsalimi با استفاده از پایتون ساخته شده است.
     کد منبع این پروژه در <a href="https://github.com/amirhoseinsalimi/music-tool-bot">GitHub</a> در دسترس است.
+    نسخه: {version}
 
     اگر سؤال یا نظری دارید، می‌توانید در تلگرام به من پیام بدهید.
     اگر توسعه‌دهنده هستید و ایده‌ای برای بهبود بات دارید، از Pull Requestهای شما استقبال می‌کنم.

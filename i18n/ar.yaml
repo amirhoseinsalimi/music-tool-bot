@@ -11,6 +11,7 @@ ar:
   aboutMessage: |
     تم إنشاء هذا البوت بواسطة @amirhoseinsalimi باستخدام لغة Python.
     يمكنك العثور على الكود المصدري للمشروع على <a href="https://github.com/amirhoseinsalimi/music-tool-bot">GitHub</a>.
+    الإصدار: {version}
 
     إذا كان لديك أي سؤال أو ملاحظة، فلا تتردد في مراسلتي على Telegram.
     وإذا كنت مطورًا ولديك فكرة لتحسين البوت، فأرحّب بطلبات السحب (Pull Requests) الخاصة بك.
