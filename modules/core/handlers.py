@@ -49,8 +49,8 @@ from .utils import (
     increment_file_counter_for_user,
     generate_start_over_keyboard,
     create_user_directory,
-    throw_not_implemented,
     does_user_have_music_file,
+    get_app_version,
 )
 
 
@@ -110,7 +110,11 @@ async def command_about(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     """
     await update.message.reply_text(
-        text=t(get_user_language_or_fallback(get_user_data(context)), 'aboutMessage')
+        text=t(
+            get_user_language_or_fallback(get_user_data(context)),
+            'aboutMessage',
+            version=get_app_version(),
+        )
     )
 
 
@@ -356,8 +360,6 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
         )
 
         return
-
-    throw_not_implemented(update, context)
 
 
 @upsert_user

@@ -1,11 +1,13 @@
+import re
+from functools import lru_cache
 from pathlib import Path
 
 from telegram import ReplyKeyboardMarkup
-from telegram import Update
-from telegram.ext import CallbackContext
-
 from database.models import User
-from utils import get_user_language_or_fallback, get_user_data, t
+from utils import t
+
+PYPROJECT_PATH = Path(__file__).resolve().parents[2] / 'pyproject.toml'
+VERSION_PATTERN = re.compile(r'^\s*version\s*=\s*"([^"]+)"\s*$')
 
 
 def create_user_directory(user_id: int) -> str | None:
@@ -114,19 +116,16 @@ def increment_file_counter_for_user(user_id: int) -> None:
     })
 
 
-def throw_not_implemented(update: Update, context: CallbackContext) -> None:
-    """
-    Displays an error message and offers the user to go back. It is called when the user tries to access a feature that
-    has not been implemented yet.
+@lru_cache(maxsize=1)
+def get_app_version() -> str:
+    try:
+        with PYPROJECT_PATH.open(mode='r', encoding='utf-8') as pyproject_file:
+            for line in pyproject_file:
+                match = VERSION_PATTERN.match(line)
 
-    :param update: Update: The ``update`` object
-    :param context: CallbackContext: The ``context`` object
-    """
-    language = get_user_language_or_fallback(get_user_data(context))
+                if match:
+                    return match.group(1)
+    except OSError:
+        pass
 
-    back_button_keyboard = generate_back_button_keyboard(language)
-
-    update.message.reply_text(
-        text=t(language, 'errNotImplemented'),
-        reply_markup=back_button_keyboard
-    )
+    return 'unknown'
