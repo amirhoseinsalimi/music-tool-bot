@@ -254,10 +254,29 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
     disknumber = raw.get('disknumber')
     tracknumber = raw.get('tracknumber')
 
+    art = None
+
     try:
-        art = music['artwork']
+        possible_art = music['artwork']
+
+        if possible_art:
+            art = possible_art
     except KeyError:
-        art = None
+        pass
+
+    if not art:
+        thumbnail = getattr(getattr(update.message, "audio", None), "thumbnail", None)
+
+        if thumbnail:
+            thumbnail_path = f"{file_download_path}.thumb.jpg"
+            thumbnail_file = await update.get_bot().get_file(file_id=thumbnail.file_id)
+
+            await thumbnail_file.download_to_drive(thumbnail_path)
+
+            with open(thumbnail_path, "rb") as art_file:
+                art = art_file.read()
+
+            os.remove(thumbnail_path)
 
     tag_editor_context = user_data['tag_editor']
     tag_editor_context['artist'] = str(artist or "")
@@ -272,6 +291,6 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
         tag_editor_context['art_path'] = f"{file_download_path}.jpg"
 
         with open(tag_editor_context['art_path'], 'wb') as art_file:
-            art_file.write(art.first.data)
+            art_file.write(art.first.data if hasattr(art, "first") else art)
     else:
         tag_editor_context.pop('art_path', None)
