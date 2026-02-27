@@ -120,10 +120,20 @@ async def list_users(update: Update, limit: Optional[int] = None) -> None:
     :param update: Update: The ``update`` object
     :param limit: Optional[int]: Number of last users to return
     """
+    users = list(User.all())
+    users.sort(
+        key=lambda user: (
+            getattr(user, 'created_at', None) is not None,
+            getattr(user, 'created_at', None),
+            getattr(user, 'id', 0),
+        ),
+        reverse=True,
+    )
+
     if limit:
-        users = User.all().take(-limit)
-    else:
-        users = User.all()
+        users = users[:limit]
+
+    users.reverse()
 
     users_per_message = 90
     user_chunks = [users[i:i + users_per_message] for i in range(0, len(users), users_per_message)]
