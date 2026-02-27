@@ -94,22 +94,29 @@ async def show_stats(update: Update) -> None:
     number_of_downloaded_files = len(os.listdir(DOWNLOADS_DIT_PATH))
     occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = \
         psutil.disk_usage('/')[-3:]
+    total_users = (
+        len(english_users)
+        + len(persian_users)
+        + len(russian_users)
+        + len(spanish_users)
+        + len(french_users)
+        + len(arabic_users)
+    )
 
     await update.message.reply_text(
-        text=f"""👥 {len(english_users) + len(persian_users) + len(russian_users) +
-                    len(spanish_users) + len(french_users) + len(arabic_users)} users 
-        are using this bot!\n\n
-        🇬🇧 English users: {len(english_users)}
-        🇮🇷 Persian users: {len(persian_users)}
-        🇷🇺 Russian users: {len(russian_users)}
-        🇪🇸 Spanish users: {len(spanish_users)}
-        🇫🇷 French users: {len(french_users)}
-        🇸🇦 Arabic users: {len(arabic_users)}\n\n
-        📁 There are {number_of_downloaded_files} files on the filesystem, occupying 
-        {downloads_dir_size}
-        💽 Occupied disk space: {pretty_print_size(occupied_disk_space_bytes)}, 
-        available space: {pretty_print_size(available_disk_space_bytes)} 
-        ({available_disk_space_percent}% used)\n"""
+        text=(
+            f"👥 {total_users} users are using this bot!\n\n"
+            f"🇬🇧 English users: {len(english_users)}\n"
+            f"🇮🇷 Persian users: {len(persian_users)}\n"
+            f"🇷🇺 Russian users: {len(russian_users)}\n"
+            f"🇪🇸 Spanish users: {len(spanish_users)}\n"
+            f"🇫🇷 French users: {len(french_users)}\n"
+            f"🇸🇦 Arabic users: {len(arabic_users)}\n\n"
+            f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
+            f"💽 Occupied disk space: {pretty_print_size(occupied_disk_space_bytes)}, "
+            f"available space: {pretty_print_size(available_disk_space_bytes)} "
+            f"({available_disk_space_percent}% used)"
+        )
     )
 
 
