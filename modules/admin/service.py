@@ -83,35 +83,33 @@ async def show_stats(update: Update) -> None:
 
     :param update: Update: The ``update`` object
     """
-    english_users = User.all().where('language', 'en')
-    persian_users = User.all().where('language', 'fa')
-    russian_users = User.all().where('language', 'ru')
-    spanish_users = User.all().where('language', 'es')
-    french_users = User.all().where('language', 'fr')
-    arabic_users = User.all().where('language', 'ar')
+    language_counts = {
+        'en': 0,
+        'fa': 0,
+        'ru': 0,
+        'es': 0,
+        'fr': 0,
+        'ar': 0,
+    }
+    for user in User.all():
+        if user.language in language_counts:
+            language_counts[user.language] += 1
 
     downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(DOWNLOADS_DIT_PATH))
     number_of_downloaded_files = len(os.listdir(DOWNLOADS_DIT_PATH))
     occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = \
         psutil.disk_usage('/')[-3:]
-    total_users = (
-        len(english_users)
-        + len(persian_users)
-        + len(russian_users)
-        + len(spanish_users)
-        + len(french_users)
-        + len(arabic_users)
-    )
+    total_users = sum(language_counts.values())
 
     await update.message.reply_text(
         text=(
             f"👥 {total_users} users are using this bot!\n\n"
-            f"🇬🇧 English users: {len(english_users)}\n"
-            f"🇮🇷 Persian users: {len(persian_users)}\n"
-            f"🇷🇺 Russian users: {len(russian_users)}\n"
-            f"🇪🇸 Spanish users: {len(spanish_users)}\n"
-            f"🇫🇷 French users: {len(french_users)}\n"
-            f"🇸🇦 Arabic users: {len(arabic_users)}\n\n"
+            f"🇬🇧 English users: {language_counts['en']}\n"
+            f"🇮🇷 Persian users: {language_counts['fa']}\n"
+            f"🇷🇺 Russian users: {language_counts['ru']}\n"
+            f"🇪🇸 Spanish users: {language_counts['es']}\n"
+            f"🇫🇷 French users: {language_counts['fr']}\n"
+            f"🇸🇦 Arabic users: {language_counts['ar']}\n\n"
             f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
             f"💽 Occupied disk space: {pretty_print_size(occupied_disk_space_bytes)}, "
             f"available space: {pretty_print_size(available_disk_space_bytes)} "
