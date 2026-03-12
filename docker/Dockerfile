@@ -25,6 +25,7 @@ RUN useradd -ms /bin/bash appuser
 
 ENV DATA_DIR=/data
 RUN mkdir -p "${DATA_DIR}" && chown -R appuser:appuser "${DATA_DIR}"
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app/logs
 RUN chown -R appuser:appuser /app
 
 COPY docker/entrypoint.sh /entrypoint.sh
