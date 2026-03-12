@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import os
 import re
 import sys
 from datetime import datetime
@@ -38,6 +39,7 @@ def main():
 
     now = datetime.now()
     now = re.sub(':', '_', str(now))
+    os.makedirs("logs", exist_ok=True)
 
     output_file_handler = logging.FileHandler(f"logs/{now}.log", encoding='UTF-8')
     stdout_handler = logging.StreamHandler(sys.stdout)
