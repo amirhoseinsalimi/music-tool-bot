@@ -18,7 +18,7 @@ from utils import logger
 
 
 def main():
-    if DEBUGGER.lower() == "true" or DEBUGGER == "1":
+    if DEBUGGER:
         try:
             import pydevd_pycharm as pydevd
 
