@@ -26,5 +26,5 @@ try_run "main.py"
 try_run "app.py"
 try_run "src/main.py"
 
-echo ">> Falling back to running package as a module"
-exec bash -lc "python -m music_tool_bot"
+echo ">> No startup target found. Set START_CMD or provide an explicit command."
+exit 1
