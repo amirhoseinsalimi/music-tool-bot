@@ -111,10 +111,16 @@ You can also run the bot in Docker, without installing Python, Poetry, or ffmpeg
 4. **Start the bot (development mode with hot reload)**
    `docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up`
 
-   In dev mode, Docker Compose starts a local Postgres container and the bot connects to it using your `.env` values.
+   In dev mode, Docker Compose starts a local Postgres container and publishes it on `${DB_PORT:-5432}`.
 
 5. **Start the bot (production mode)**
    `docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d`
+
+6. **Apply migrations in production before first start**
+   ```bash
+   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
+   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
+   ```
 
 ## Contribution
 

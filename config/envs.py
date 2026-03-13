@@ -4,28 +4,44 @@ from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
 
-APP_ENV = os.getenv("APP_ENV") if os.getenv("APP_ENV") else "development"
 
-BOT_USERNAME = os.getenv('BOT_USERNAME')
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+def get_env(name: str, default=None):
+    value = os.getenv(name)
 
-DB_HOST = os.getenv("DB_HOST") if os.getenv("DB_HOST") else 'localhost'
-DB_PORT = int(os.getenv("DB_PORT")) if os.getenv("DB_PORT") else 5432
-DB_DATABASE = os.getenv("DB_DATABASE") if os.getenv("DB_DATABASE") else ''
-DB_USERNAME = os.getenv("DB_USERNAME") if os.getenv("DB_USERNAME") else ''
-DB_PASSWORD = os.getenv("DB_PASSWORD") if os.getenv("DB_PASSWORD") else ''
+    return value if value not in (None, "") else default
 
-OWNER_USER_ID = os.getenv("OWNER_USER_ID") if os.getenv("OWNER_USER_ID") else 0
+
+def get_bool_env(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+
+    if value is None:
+        return default
+
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+APP_ENV = get_env("APP_ENV", "development")
+
+BOT_USERNAME = get_env("BOT_USERNAME")
+BOT_TOKEN = get_env("BOT_TOKEN")
+
+DB_HOST = get_env("DB_HOST", "localhost")
+DB_PORT = int(get_env("DB_PORT", 5432))
+DB_DATABASE = get_env("DB_DATABASE", "")
+DB_USERNAME = get_env("DB_USERNAME", "")
+DB_PASSWORD = get_env("DB_PASSWORD", "")
+
+OWNER_USER_ID = get_env("OWNER_USER_ID", 0)
 OWNER_USER_ID_INT = int(OWNER_USER_ID)
 
-DEBUGGER = os.getenv("DEBUGGER") if os.getenv("DEBUGGER") else False
+DEBUGGER = get_bool_env("DEBUGGER", False)
 
-BTC_WALLET_ADDRESS = os.getenv("BTC_WALLET_ADDRESS") if os.getenv("BTC_WALLET_ADDRESS") else ''
-ETH_WALLET_ADDRESS = os.getenv("ETH_WALLET_ADDRESS") if os.getenv("ETH_WALLET_ADDRESS") else ''
-TRX_WALLET_ADDRESS = os.getenv("TRX_WALLET_ADDRESS") if os.getenv("TRX_WALLET_ADDRESS") else ''
-USDT_TRC20_WALLET_ADDRESS = os.getenv("USDT_TRC20_WALLET_ADDRESS") if os.getenv("USDT_TRC20_WALLET_ADDRESS") else ''
-USDT_ERC20_WALLET_ADDRESS = os.getenv("USDT_ERC20_WALLET_ADDRESS") if os.getenv("USDT_ERC20_WALLET_ADDRESS") else ''
-SHIBA_BEP20_WALLET_ADDRESS = os.getenv("SHIBA_BEP20_WALLET_ADDRESS") if os.getenv("SHIBA_BEP20_WALLET_ADDRESS") else ''
-SHIBA_ERC20_WALLET_ADDRESS = os.getenv("SHIBA_ERC20_WALLET_ADDRESS") if os.getenv("SHIBA_ERC20_WALLET_ADDRESS") else ''
-DOGE_WALLET_ADDRESS = os.getenv("DOGE_WALLET_ADDRESS") if os.getenv("DOGE_WALLET_ADDRESS") else ''
-ZARIN_LINK_ADDRESS = os.getenv("ZARIN_LINK_ADDRESS") if os.getenv("ZARIN_LINK_ADDRESS") else ''
+BTC_WALLET_ADDRESS = get_env("BTC_WALLET_ADDRESS", "")
+ETH_WALLET_ADDRESS = get_env("ETH_WALLET_ADDRESS", "")
+TRX_WALLET_ADDRESS = get_env("TRX_WALLET_ADDRESS", "")
+USDT_TRC20_WALLET_ADDRESS = get_env("USDT_TRC20_WALLET_ADDRESS", "")
+USDT_ERC20_WALLET_ADDRESS = get_env("USDT_ERC20_WALLET_ADDRESS", "")
+SHIBA_BEP20_WALLET_ADDRESS = get_env("SHIBA_BEP20_WALLET_ADDRESS", "")
+SHIBA_ERC20_WALLET_ADDRESS = get_env("SHIBA_ERC20_WALLET_ADDRESS", "")
+DOGE_WALLET_ADDRESS = get_env("DOGE_WALLET_ADDRESS", "")
+ZARIN_LINK_ADDRESS = get_env("ZARIN_LINK_ADDRESS", "")
