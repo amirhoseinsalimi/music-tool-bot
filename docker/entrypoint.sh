@@ -5,7 +5,7 @@ set -euo pipefail
 mkdir -p "${DATA_DIR}"
 
 if [[ $# -gt 0 ]]; then
-  exec bash -lc "$*"
+  exec "$@"
 fi
 
 if [[ -n "${START_CMD:-}" ]]; then
