@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.dev
     environment:
-      - START_CMD=python -m jurigged -v bot.py
+      START_CMD: python -m jurigged -v bot.py
     volumes:
       - ./:/app
       - ./data:/data
