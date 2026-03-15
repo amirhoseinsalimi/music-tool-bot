@@ -24,16 +24,18 @@ from utils import (
     get_message,
     get_user_data,
     get_user_language_or_fallback,
-    logger,
     reset_user_data_context,
     set_current_module,
     t,
     get_file_name,
     upsert_user,
 )
+from utils.logging import get_logger
 from .service import (
     convert_to_voice,
 )
+
+logger = get_logger(__name__)
 
 
 @upsert_user
@@ -44,7 +46,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
 
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
-    :raises TelegramError | BaseException
+    :raises TelegramError | RuntimeError | OSError
     """
     user = context.user_data['user']
     user_id = user.user_id
@@ -58,8 +60,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
 
     input_path = user_data['music_path']
     output_path = f"{input_path}.opus"
-
-    convert_to_voice(input_path, output_path)
+    logger.info("User %s started voice conversion input=%s output=%s", user_id, input_path, output_path)
 
     language = get_user_language_or_fallback(user_data)
     set_current_module(user_data, Module.VOICE_CONVERTER)
@@ -74,6 +75,8 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     music_tags = user_data['tag_editor']
 
     try:
+        convert_to_voice(input_path, output_path)
+
         with open(output_path, 'rb') as voice_file:
             await context.bot.send_voice(
                 voice=voice_file,
@@ -83,13 +86,14 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
-    except TelegramError as error:
+        logger.info("User %s completed voice conversion output=%s", user_id, output_path)
+    except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(
             text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
 
-        logger.exception("Telegram error: %s", error)
+        logger.exception("Voice conversion flow failed for user %s: %s", user_id, error)
 
     delete_file(output_path)
 

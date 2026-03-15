@@ -1,7 +1,7 @@
 from .decorators import upsert_user
 from .fs import delete_all_user_files, delete_file, download_file, get_audio_file_extension
 from .i18n import MISSING_PREFIX, t
-from .logging import logger
+from .logging import ffmpeg_logger, get_logger, logger
 from .misc import (
     get_chat_id,
     get_effective_message_id,
@@ -25,12 +25,14 @@ __all__ = [
     "delete_all_user_files",
     "delete_file",
     "download_file",
+    "ffmpeg_logger",
     "get_audio_file_extension",
     "get_chat_id",
     "get_effective_message_id",
     "get_effective_user_id",
     "get_effective_user_username",
     "get_file_name",
+    "get_logger",
     "get_message",
     "get_message_text",
     "get_user_data",

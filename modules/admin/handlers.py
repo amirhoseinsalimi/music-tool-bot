@@ -8,7 +8,8 @@ from telegram.ext import ConversationHandler
 
 from database.models import User
 from modules.admin.utils import is_admin_owner, is_user_admin
-from utils import get_effective_user_id, get_message_text, logger
+from utils import get_effective_user_id, get_message_text
+from utils.logging import get_logger
 from .service import add_admin, del_admin, list_users, show_stats
 from .utils import get_list_limit
 
@@ -19,6 +20,7 @@ AWAITING_MESSAGE = 1
 CONVERSATION_TIMEOUT = 10
 broadcasting_active = False
 broadcast_thread = None
+logger = get_logger(__name__)
 
 
 async def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
@@ -112,6 +114,7 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     message_to_send = update.message
     admin_chat_id = update.message.chat_id
     loop = asyncio.get_event_loop()
+    logger.info("Admin %s started broadcast to %s users", user_id, len(users))
 
     def broadcast():
         """
@@ -204,10 +207,16 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                 time.sleep(SLEEP_TIME_TO_NEXT_USER_IN_SECONDS)
 
             except Exception as e:
-                logger.warning("Failed to send message to %s: %s", user.user_id, e)
+                logger.warning("Broadcast delivery to user %s failed: %s", user.user_id, e)
                 failed_count += 1
 
         broadcasting_active = False
+        logger.info(
+            "Broadcast finished for admin %s: sent=%s failed=%s",
+            user_id,
+            success_count,
+            failed_count
+        )
 
         asyncio.run_coroutine_threadsafe(
             context.bot.send_message(
@@ -246,6 +255,7 @@ async def cancel_send_to_all(update: Update, context: CallbackContext) -> int:
 
     if broadcasting_active:
         broadcasting_active = False
+        logger.info("Admin %s canceled active broadcast", user_id)
 
         if broadcast_thread and broadcast_thread.is_alive():
             broadcast_thread = None

@@ -15,7 +15,7 @@ def create_user_directory(user_id: int) -> str | None:
     Creates a directory for a user with a given id.
 
     :param user_id: int: The ``user_id`` of the user we want to create directory for
-    :raises OSError | FileNotFoundError | BaseException: Can't create directory for the user
+    :raises OSError | FileNotFoundError: Can't create directory for the user
     :return: str | None: The relative path of the user's directory if succeeds; ``None`` otherwise
     """
     user_download_dir = f"downloads/{user_id}"
@@ -24,7 +24,7 @@ def create_user_directory(user_id: int) -> str | None:
         Path(user_download_dir).mkdir(parents=True, exist_ok=True)
 
         return user_download_dir
-    except (OSError, FileNotFoundError, BaseException) as error:
+    except (OSError, FileNotFoundError) as error:
         raise Exception(f"Can't create directory for user_id: {user_id}") from error
 
 

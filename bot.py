@@ -13,8 +13,9 @@ from modules.cutter import register as register_cutter
 from modules.donation import register as register_donation
 from modules.tag_editor import register as register_tag_editor
 from modules.voice_converter import register as register_voice_converter
-from utils import logger
-from utils.logging import configure_logging
+from utils.logging import configure_logging, get_logger
+
+logger = get_logger(__name__)
 
 
 def resolve_debugger_host() -> str:
@@ -62,8 +63,9 @@ def main():
 
     if APP_ENV == "production":
         logging.getLogger("httpx").setLevel(logging.WARNING)
-        logging.getzLogger("httpcore").setLevel(logging.WARNING)
+        logging.getLogger("httpcore").setLevel(logging.WARNING)
 
+    logger.info("Starting bot polling")
     app.run_polling()
     app.idle()
 

@@ -24,7 +24,6 @@ from utils import (
     get_user_data,
     get_user_language_or_fallback,
     is_user_data_empty,
-    logger,
     reply_default_message,
     reset_user_data_context,
     set_current_module,
@@ -33,6 +32,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
+from utils.logging import get_logger
 from .service import (
     convert_bitrate,
 )
@@ -40,6 +40,8 @@ from .utils import (
     generate_bitrate_selector_keyboard,
     parse_bitrate_number,
 )
+
+logger = get_logger(__name__)
 
 
 @upsert_user
@@ -56,6 +58,7 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     bitrate_selector_keyboard = generate_bitrate_selector_keyboard(language)
 
     set_current_module(user_data, Module.BITRATE_CHANGER)
+    logger.info("User %s entered bitrate changer module", context.user_data['user'].user_id)
 
     await update.message.reply_text(
         text=f"{t(language, 'bitrateChangerHelp')}\n",
@@ -73,7 +76,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
 
     :param update: Update: The ``update`` object
     :param context: Update: The ``context`` object
-    :raises TelegramError | BaseException
+    :raises TelegramError | RuntimeError | OSError
     """
     user = context.user_data['user']
     user_id = user.user_id
@@ -94,6 +97,13 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     music_duration = user_data['music_duration']
     music_tags = user_data['tag_editor']
     possible_art = art_path = music_tags.get('art_path')
+    logger.info(
+        "User %s started bitrate change input=%s output=%s target_bitrate=%sk",
+        user_id,
+        input_path,
+        output_path,
+        output_bitrate
+    )
 
     try:
         convert_bitrate(input_path, output_bitrate, output_path)
@@ -120,13 +130,14 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
-    except (TelegramError, BaseException) as error:
+        logger.info("User %s completed bitrate change output=%s", user_id, output_path)
+    except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(
             text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
 
-        logger.exception("Telegram error: %s", error)
+        logger.exception("Failed to change bitrate for user %s: %s", user_id, error)
 
     delete_file(output_path)
 

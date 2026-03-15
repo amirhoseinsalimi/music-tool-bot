@@ -37,13 +37,13 @@ from utils import (
     get_user_data,
     get_user_language_or_fallback,
     is_user_data_empty,
-    logger,
     reply_default_message,
     reset_user_data_context,
     unset_current_module,
     t,
     upsert_user,
 )
+from utils.logging import get_logger
 from .utils import (
     generate_module_selector_keyboard,
     increment_file_counter_for_user,
@@ -52,6 +52,8 @@ from .utils import (
     does_user_have_music_file,
     get_app_version,
 )
+
+logger = get_logger(__name__)
 
 
 @upsert_user
@@ -71,6 +73,7 @@ async def command_start(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
 
     reset_user_data_context(user_id, user_data)
+    logger.info("User %s issued /start", user_id)
 
     await update.message.reply_text(
         text=t(get_user_language_or_fallback(user_data), 'startMessage'),
@@ -93,6 +96,7 @@ async def start_over(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
 
     reset_user_data_context(user_id, user_data)
+    logger.info("User %s reset current workflow", user_id)
 
     await update.message.reply_text(
         text=t(get_user_language_or_fallback(user_data), 'startOverMessage'),
@@ -199,6 +203,7 @@ async def set_language(update: Update, context: CallbackContext) -> None:
     user = User.where('user_id', '=', user_id).first()
 
     user.update({"language": language})
+    logger.info("User %s changed language to %s", user_id, language)
 
 
 @upsert_user
@@ -242,10 +247,22 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     music_duration = message.audio.duration.total_seconds()
     music_file_size = message.audio.file_size
+    logger.info(
+        "User %s sent audio for processing duration=%ss size=%s",
+        user_id,
+        music_duration,
+        music_file_size
+    )
 
     language = get_user_language_or_fallback(user_data)
 
     if music_duration >= 3600 and music_file_size > 48000000:
+        logger.warning(
+            "Rejected oversized audio from user %s duration=%ss size=%s",
+            user_id,
+            music_duration,
+            music_file_size
+        )
         await message.reply_text(
             text=t(language, 'errTooLargeFile'),
             reply_markup=generate_start_over_keyboard(language)
@@ -263,7 +280,7 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     except OSError:
         await message.reply_text(text=t(language, 'errCreatingUserFolder'))
 
-        logger.error("Couldn't create directory for user %s", user_id, exc_info=True)
+        logger.exception("Failed to create download directory for user %s", user_id)
 
         return
 
@@ -280,23 +297,26 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
             reply_markup=generate_start_over_keyboard(language)
         )
 
-        logger.error("Error on downloading %s's file. File type: Audio", user_id, exc_info=True)
+        logger.exception("Failed to download audio for user %s", user_id)
 
         return
 
     user_data['music_path'] = file_download_path
     user_data['music_message_id'] = message.message_id
     user_data['music_duration'] = music_duration
+    logger.info("Stored audio for user %s at %s", user_id, file_download_path)
 
     try:
         await read_and_store_music_tags(update, user_data)
     except (KeyError, Exception):
         reset_user_data_context(user_id, user_data)
+        logger.exception("Failed to read and store tags for user %s", user_id)
 
         await message.reply_text(text=t(language, 'errOnReadingTags'))
 
         return
 
+    logger.info("Audio intake completed for user %s", user_id)
     await show_module_selector(update, context)
 
 
@@ -327,7 +347,7 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
     music_path = user_data['music_path']
 
-    logger.info(
+    logger.debug(
         "%s:%s:%s",
         user_id,
         username,

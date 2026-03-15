@@ -4,8 +4,10 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from database.models import User
-from .logging import logger
+from .logging import get_logger
 from .misc import get_effective_user_id, get_effective_user_username
+
+logger = get_logger(__name__)
 
 
 def upsert_user(function):
@@ -24,9 +26,10 @@ def upsert_user(function):
                 'number_of_files_sent': 0,
             })
 
-            logger.info("A user with id %s has started using the bot.", user_id)
+            logger.info("User %s started using the bot", user_id)
         else:
             if username and user.username != username:
+                logger.info("User %s changed username from %s to %s", user_id, user.username, username)
                 user.username = username
                 user.save()
 

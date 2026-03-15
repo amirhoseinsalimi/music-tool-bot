@@ -1,5 +1,6 @@
-import subprocess
 from pathlib import Path
+
+from utils.logging import run_ffmpeg
 
 
 def convert_bitrate(input_path: str, output_bitrate: int, output_path: str) -> None:
@@ -45,11 +46,4 @@ def convert_bitrate(input_path: str, output_bitrate: int, output_path: str) -> N
         str(out_path),
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            "ffmpeg failed.\n"
-            f"Command: {' '.join(cmd)}\n\n"
-            f"STDERR:\n{result.stderr}"
-        )
+    run_ffmpeg(cmd, "change audio bitrate")

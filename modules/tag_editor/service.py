@@ -20,9 +20,11 @@ from modules.tag_editor.utils import (
 from utils import (
     get_effective_user_id,
     get_user_language_or_fallback,
-    logger,
     t,
 )
+from utils.logging import get_logger, run_ffmpeg
+
+logger = get_logger(__name__)
 
 
 def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> None:
@@ -171,21 +173,45 @@ async def remove_album_art(update: Update, user_data: UD, language: str) -> None
     :param language: str: The language to ask
     """
     tag_editor_keyboard = generate_tag_editor_keyboard(language)
+    music_path = user_data.get('music_path')
     user_data['tag_editor']['current_tag'] = 'remove_album'
 
-    temp_path = user_data.get('music_path') + "_temp.mp3"
-    return_code = os.system(f"ffmpeg -i {user_data.get('music_path')} -map 0:a -c:a copy {temp_path} -y")
+    temp_path = f"{music_path}_temp.mp3"
+
+    try:
+        run_ffmpeg(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-y",
+                "-i",
+                music_path,
+                "-map",
+                "0:a",
+                "-c:a",
+                "copy",
+                temp_path,
+            ],
+            "remove album art",
+        )
+    except RuntimeError:
+        logger.exception("Failed to remove album art for file %s", music_path)
+        await update.message.reply_text(
+            text=t(language, 'errOnUpdatingTags'),
+            reply_markup=tag_editor_keyboard
+        )
+        return
+
     user_data['tag_editor']['new_art_path'] = None
     user_data['tag_editor']['art_path'] = None
+    os.replace(temp_path, music_path)
+    logger.info("Removed album art for file %s", music_path)
+    reply_message = f"{t(language, 'done')} " \
+                    f"{t(language, 'clickPreviewMessage')} " \
+                    f"{t(language, 'or').upper()}" \
+                    f" {t(language, 'clickDoneMessage').lower()}"
 
-    if return_code == 0:
-        os.replace(temp_path, user_data.get('music_path'))
-        reply_message = f"{t(language, 'done')} " \
-                        f"{t(language, 'clickPreviewMessage')} " \
-                        f"{t(language, 'or').upper()}" \
-                        f" {t(language, 'clickDoneMessage').lower()}"
-
-        await update.message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
+    await update.message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
 
 
 async def ask_for_disknumber(update: Update, user_data: UD, language: str) -> None:
@@ -235,11 +261,10 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             reply_markup=generate_start_over_keyboard(language)
         )
 
-        logger.error(
-            "Error on reading the tags %s's file. File path: %s",
+        logger.exception(
+            "Failed to read tags for user %s file %s",
             user_id,
-            file_download_path,
-            exc_info=True
+            file_download_path
         )
 
         return
@@ -294,3 +319,5 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             art_file.write(art.first.data if hasattr(art, "first") else art)
     else:
         tag_editor_context.pop('art_path', None)
+
+    logger.info("Loaded tags for user %s file %s", user_id, file_download_path)

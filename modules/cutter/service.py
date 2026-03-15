@@ -1,5 +1,6 @@
-import subprocess
 from pathlib import Path
+
+from utils.logging import run_ffmpeg
 
 
 def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) -> None:
@@ -46,11 +47,4 @@ def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) ->
         str(out_path),
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            "ffmpeg failed.\n"
-            f"Command: {' '.join(cmd)}\n\n"
-            f"STDERR:\n{result.stderr}"
-        )
+    run_ffmpeg(cmd, "cut audio")
