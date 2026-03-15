@@ -50,7 +50,10 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    | DB_USERNAME                | `str`     | Database username (for postgres).                                        |
    | DB_PASSWORD                | `str`     | Database password (for postgres).                                        |
    | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.      |
-   | DEBUGGER                   | `boolean` | Attaches a PyCharm's debugger on port `5400`                             |
+   | DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                              |
+   | DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker |
+   | DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `5400`                            |
+   | DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                  |
    | BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                 |
    | ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                 |
    | TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                 |
