@@ -9,7 +9,7 @@ APP_LOGGER_NAME = "music_tool_bot"
 FFMPEG_LOGGER_NAME = f"{APP_LOGGER_NAME}.ffmpeg"
 
 logger = logging.getLogger(APP_LOGGER_NAME)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 ffmpeg_logger = logging.getLogger(FFMPEG_LOGGER_NAME)
 
 LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
