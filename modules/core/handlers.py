@@ -347,14 +347,14 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
     music_path = user_data['music_path']
 
-    logger.debug(
-        "%s:%s:%s",
+    current_module = user_data['current_module']
+    logger.info(
+        "User %s sent message while in module=%s username=%s text=%s",
         user_id,
+        current_module,
         username,
         get_message_text(update)
     )
-
-    current_module = user_data['current_module']
 
     if is_current_module_tag_editor(current_module):
         await handle_tag_editor(update, context)

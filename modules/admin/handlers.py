@@ -87,6 +87,8 @@ async def send_to_all_command(update: Update, _context: CallbackContext) -> int:
     if not is_user_admin(user_id):
         return ConversationHandler.END
 
+    logger.info("Admin %s opened broadcast flow", user_id)
+
     await update.message.reply_text(
         "✅ Now send the message you want to send to all users.\n"
         "❌ Use /cancel_sendtoall to cancel."
@@ -110,6 +112,7 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     global broadcasting_active, broadcast_thread
     broadcasting_active = True
 
+    user_id = update.effective_user.id
     users = User.all()
     message_to_send = update.message
     admin_chat_id = update.message.chat_id
