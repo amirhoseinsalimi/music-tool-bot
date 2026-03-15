@@ -125,6 +125,104 @@ You can also run the bot in Docker, without installing Python, Poetry, or ffmpeg
    docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
    ```
 
+## Shipping Logs To Grafana Cloud
+
+This repo includes an optional Grafana Alloy setup that tails the bot container logs from Docker and forwards them to
+Grafana Cloud Logs.
+
+Why this uses a separate Compose file:
+- Grafana log shipping is optional, so it is kept as an overlay instead of being forced into every local run.
+- This lets you enable or disable log shipping by adding or removing one `-f docker-compose.grafana.yaml`.
+
+### Get your Grafana Cloud credentials
+
+You need three values:
+- Loki push URL
+- Loki username
+- Grafana Cloud API token
+
+How to find them in Grafana Cloud:
+
+1. Sign in to Grafana Cloud and open your stack.
+2. Select **Details** for the stack.
+3. Open the **Loki / Logs** section.
+4. Copy the stack URL and user ID from the Loki details page.
+   The push URL should look similar to:
+   ```dotenv
+   GRAFANA_CLOUD_LOKI_URL=https://logs-xxx.grafana.net/loki/api/v1/push
+   ```
+   The username is the numeric stack user / instance ID.
+5. Create a token:
+   - Open **Administration -> Cloud access policies** inside the stack, or use the Cloud Portal access policies page.
+   - Create an access policy scoped to your stack.
+   - Give it `logs:write` permission.
+   - Add a token under that policy and copy it immediately. Grafana only shows it once.
+
+Add these values to `.env`:
+```dotenv
+GRAFANA_CLOUD_LOKI_URL=https://logs-xxx.grafana.net/loki/api/v1/push
+GRAFANA_CLOUD_LOKI_USERNAME=123456
+GRAFANA_CLOUD_API_KEY=your-token
+```
+
+### Run with Grafana in development
+
+```bash
+docker compose \
+  -f docker-compose.yaml \
+  -f docker-compose.dev.yaml \
+  -f docker-compose.grafana.yaml \
+  up
+```
+
+### Run with Grafana in production
+
+```bash
+docker compose \
+  -f docker-compose.yaml \
+  -f docker-compose.prod.yaml \
+  -f docker-compose.grafana.yaml \
+  up -d
+```
+
+### Check logs in Grafana
+
+Open Grafana Explore and query:
+```logql
+{app="music-tool-bot"}
+```
+
+You can also filter by environment:
+```logql
+{app="music-tool-bot", environment="development"}
+```
+
+or:
+```logql
+{app="music-tool-bot", environment="production"}
+```
+
+### Optional: run the normal stack without Grafana
+
+Development:
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
+```
+
+Production:
+   ```bash
+   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+   ```
+
+The included Alloy config only ships logs from the Compose service named `bot`, and adds these labels:
+- `app="music-tool-bot"`
+- `compose_project`
+- `compose_service`
+- `service_name`
+- `environment`
+
+Alloy's local debug UI is exposed on `http://127.0.0.1:12345`.
+
 ## Contribution
 
 In the beginning, I had written this bot in JavaScript, but due to a lack of quality packages, it was full of bugs. Then

@@ -1,0 +1,62 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+discovery.docker "music_tool_bot" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "music_tool_bot" {
+  targets = discovery.docker.music_tool_bot.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    regex         = "bot"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service_name"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    target_label  = "compose_project"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "compose_service"
+  }
+
+  rule {
+    target_label = "app"
+    replacement  = "music-tool-bot"
+  }
+
+  rule {
+    target_label = "environment"
+    replacement  = sys.env("APP_ENV")
+  }
+}
+
+loki.source.docker "music_tool_bot" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.music_tool_bot.output
+  labels     = {source = "docker"}
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+loki.write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_LOKI_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_LOKI_USERNAME")
+      password = sys.env("GRAFANA_CLOUD_API_KEY")
+    }
+  }
+}
