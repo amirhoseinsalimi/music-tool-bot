@@ -2,10 +2,7 @@
 
 import logging
 import os
-import re
 import socket
-import sys
-from datetime import datetime
 
 from config.envs import APP_ENV, DEBUGGER, DEBUGGER_HOST, DEBUGGER_PORT, DEBUGGER_SUSPEND
 from config.telegram_bot import app
@@ -17,6 +14,7 @@ from modules.donation import register as register_donation
 from modules.tag_editor import register as register_tag_editor
 from modules.voice_converter import register as register_voice_converter
 from utils import logger
+from utils.logging import configure_logging
 
 
 def resolve_debugger_host() -> str:
@@ -35,10 +33,12 @@ def resolve_debugger_host() -> str:
 
 
 def main():
+    configure_logging()
+
     if DEBUGGER:
         debugger_host = resolve_debugger_host()
 
-        print(f"Debugger enabled. Connecting to {debugger_host}:{DEBUGGER_PORT}")
+        logger.info("Debugger enabled. Connecting to %s:%s", debugger_host, DEBUGGER_PORT)
 
         try:
             import pydevd_pycharm as pydevd
@@ -49,29 +49,20 @@ def main():
                 suspend=DEBUGGER_SUSPEND
             )
         except ImportError as e:
-            print("Debugger not attached. pydevd_pycharm not found:", e)
+            logger.warning("Debugger not attached. pydevd_pycharm not found: %s", e)
         except Exception as e:
-            print(
-                f"Debugger not attached. Failed to connect to "
-                f"{debugger_host}:{DEBUGGER_PORT}:",
+            logger.warning(
+                "Debugger not attached. Failed to connect to %s:%s: %s",
+                debugger_host,
+                DEBUGGER_PORT,
                 e
             )
     else:
-        print("Debugger disabled. Set DEBUGGER=true to enable PyCharm attach.")
+        logger.debug("Debugger disabled. Set DEBUGGER=true to enable PyCharm attach.")
 
     if APP_ENV == "production":
         logging.getLogger("httpx").setLevel(logging.WARNING)
-        logging.getLogger("httpcore").setLevel(logging.WARNING)
-
-    now = datetime.now()
-    now = re.sub(':', '_', str(now))
-    os.makedirs("logs", exist_ok=True)
-
-    output_file_handler = logging.FileHandler(f"logs/{now}.log", encoding='UTF-8')
-    stdout_handler = logging.StreamHandler(sys.stdout)
-
-    logger.addHandler(output_file_handler)
-    logger.addHandler(stdout_handler)
+        logging.getzLogger("httpcore").setLevel(logging.WARNING)
 
     app.run_polling()
     app.idle()

@@ -8,7 +8,7 @@ from telegram.ext import ConversationHandler
 
 from database.models import User
 from modules.admin.utils import is_admin_owner, is_user_admin
-from utils import get_effective_user_id, get_message_text
+from utils import get_effective_user_id, get_message_text, logger
 from .service import add_admin, del_admin, list_users, show_stats
 from .utils import get_list_limit
 
@@ -204,8 +204,7 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                 time.sleep(SLEEP_TIME_TO_NEXT_USER_IN_SECONDS)
 
             except Exception as e:
-                print(f"Failed to send message to {user.user_id}: {e}")
-
+                logger.warning("Failed to send message to %s: %s", user.user_id, e)
                 failed_count += 1
 
         broadcasting_active = False
