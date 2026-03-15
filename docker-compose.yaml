@@ -3,6 +3,7 @@ name: music-tool-bot
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: music-tool-bot-postgres
     environment:
       POSTGRES_DB: ${DB_DATABASE:-music_tool_bot_dev}
       POSTGRES_USER: ${DB_USERNAME:-music_tool_bot}
@@ -20,6 +21,7 @@ services:
 
   bot:
     image: music-tool-bot:prod
+    container_name: music-tool-bot-bot
     build:
       context: .
       dockerfile: docker/Dockerfile
