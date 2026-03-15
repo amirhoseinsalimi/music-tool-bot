@@ -27,6 +27,7 @@ services:
       - .env
     environment:
       START_CMD: python bot.py
+      PTB_TIMEDELTA: True
     depends_on:
       postgres:
         condition: service_healthy
