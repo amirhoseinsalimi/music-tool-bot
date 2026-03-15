@@ -1,5 +1,6 @@
-import subprocess
 from pathlib import Path
+
+from utils.logging import run_ffmpeg
 
 
 def convert_to_voice(input_path: str, output_path: str) -> None:
@@ -43,11 +44,4 @@ def convert_to_voice(input_path: str, output_path: str) -> None:
         str(out_path),
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            "ffmpeg failed.\n"
-            f"Command: {' '.join(cmd)}\n\n"
-            f"STDERR:\n{result.stderr}"
-        )
+    run_ffmpeg(cmd, "convert audio to voice")

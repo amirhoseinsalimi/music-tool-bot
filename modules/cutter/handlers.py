@@ -34,7 +34,6 @@ from utils import (
     get_message_text,
     get_user_data,
     get_user_language_or_fallback,
-    logger,
     reset_user_data_context,
     set_current_module,
     t,
@@ -43,6 +42,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
+from utils.logging import get_logger
 from .service import (
     cut,
 )
@@ -54,6 +54,8 @@ from .utils import (
     send_beginning_is_greater_message,
     is_out_of_range,
 )
+
+logger = get_logger(__name__)
 
 
 @upsert_user
@@ -87,7 +89,8 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
 
     try:
         beginning_sec, ending_sec = parse_cutting_range(message_text)
-    except (ValueError, BaseException):
+    except ValueError:
+        logger.warning("User %s submitted malformed cut range: %s", user_id, message_text)
         reply_message = t(language, 'errMalformedRange',
                           note=t(language, 'musicCutterHelp', length=music_duration_formatted))
 
@@ -110,20 +113,26 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     input_path = user_data['music_path']
     output_path = f"{input_path}_cut.mp3"
     diff_sec = ending_sec - beginning_sec
-
-    cut(input_path, beginning_sec, diff_sec, output_path)
-
+    logger.info(
+        "User %s started audio cut input=%s output=%s start=%s duration=%s",
+        user_id,
+        input_path,
+        output_path,
+        beginning_sec,
+        diff_sec
+    )
     music_tags = user_data['tag_editor']
     art_path = music_tags.get('art_path')
     new_art_path = music_tags.get('new_art_path')
 
-    save_tags_to_file(
-        file=output_path,
-        tags=music_tags,
-        new_art_path=new_art_path
-    )
-
     try:
+        cut(input_path, beginning_sec, diff_sec, output_path)
+        save_tags_to_file(
+            file=output_path,
+            tags=music_tags,
+            new_art_path=new_art_path
+        )
+
         possible_art = None
 
         if art_path:
@@ -149,13 +158,14 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
-    except (TelegramError, BaseException) as error:
+        logger.info("User %s completed audio cut output=%s", user_id, output_path)
+    except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(
             text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
 
-        logger.exception("Telegram error: %s", error)
+        logger.exception("Cut audio flow failed for user %s: %s", user_id, error)
 
     delete_file(output_path)
 
@@ -183,6 +193,7 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     back_button_keyboard = generate_back_button_keyboard(language)
 
     set_current_module(user_data, Module.CUTTER)
+    logger.info("User %s entered cutter module", context.user_data['user'].user_id)
     music_duration = convert_seconds_to_human_readable_form(user_data['music_duration'])
 
     message = get_message(update)

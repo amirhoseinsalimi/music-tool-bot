@@ -38,7 +38,6 @@ from utils import (
     get_user_data,
     get_user_language_or_fallback,
     is_user_data_empty,
-    logger,
     reply_default_message,
     reset_user_data_context,
     set_current_module,
@@ -47,6 +46,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
+from utils.logging import get_logger
 from .service import (
     ask_for_title,
     ask_for_year,
@@ -60,6 +60,8 @@ from .service import (
     generate_music_info,
     save_tags_to_file,
 )
+
+logger = get_logger(__name__)
 from .utils import (
     did_user_select_a_tag,
     is_current_tag_album_art,
@@ -111,6 +113,7 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
         user_data=user_data,
         is_number=current_tag in ('year', 'disknumber', 'tracknumber')
     )
+    logger.info("User %s updated tag %s", context.user_data['user'].user_id, current_tag)
 
     reply_message = f"{t(language, 'done')} " \
                     f"{t(language, 'clickPreviewMessage')} " \
@@ -168,20 +171,17 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
         )
 
         user_data['tag_editor']['new_art_path'] = file_download_path
+        logger.info("User %s uploaded replacement album art %s", user_id, file_download_path)
         reply_message = f"{t(language, 'albumArtChanged')} " \
                         f"{t(language, 'clickPreviewMessage')} " \
                         f"{t(language, 'or').upper()}" \
                         f" {t(language, 'clickDoneMessage').lower()}"
 
         await message.reply_text(text=reply_message, reply_markup=tag_editor_keyboard)
-    except (ValueError, BaseException):
+    except Exception:
         await message.reply_text(text=t(language, 'errOnDownloadAudioMessage'))
 
-        logger.error(
-            "Error on downloading %s's file. File type: Photo",
-            user_id,
-            exc_info=True
-        )
+        logger.exception("Failed to download album art for user %s", user_id)
 
         return
 
@@ -207,6 +207,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
         return
 
     set_current_module(user_data, Module.TAG_EDITOR)
+    logger.info("User %s entered tag editor module", context.user_data['user'].user_id)
 
     art_path = tag_editor_context.get('art_path')
     tag_editor_context['current_tag'] = ''
@@ -314,13 +315,13 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             tags=music_tags,
             new_art_path=new_art_path
         )
-    except (OSError, BaseException):
+    except Exception:
         await message.reply_text(
             text=t(language, 'errOnUpdatingTags'),
             reply_markup=start_over_button_keyboard
         )
 
-        logger.error("Error on updating tags for file %s's file.", music_path, exc_info=True)
+        logger.exception("Failed to update tags for file %s", music_path)
 
         return
 
@@ -349,12 +350,13 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data["music_message_id"],
             )
-    except (TelegramError, BaseException) as error:
+        logger.info("User %s finished tag editing for %s", user_id, music_path)
+    except (TelegramError, OSError) as error:
         await message.reply_text(
             text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
-        logger.exception("Telegram error: %s", error)
+        logger.exception("Failed to upload tag-edited audio for user %s: %s", user_id, error)
 
     reset_user_data_context(user_id, user_data)
 

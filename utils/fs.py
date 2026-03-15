@@ -3,6 +3,10 @@ import os
 from telegram import Audio, PhotoSize
 from telegram.ext import CallbackContext
 
+from .logging import get_logger
+
+logger = get_logger(__name__)
+
 
 def delete_all_user_files(user_id: int) -> None:
     """
@@ -53,6 +57,7 @@ async def download_file(
     file_extension = ''
 
     file_id = await context.bot.get_file(file_id=file_to_download.file_id)
+    logger.debug("Resolved telegram file %s for user %s type=%s", file_id.file_id, user_id, file_type)
 
     if file_type == 'audio':
         file_extension = get_audio_file_extension(file_to_download)
@@ -63,9 +68,11 @@ async def download_file(
 
     try:
         await file_id.download_to_drive(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
+        logger.info("Downloaded %s file for user %s to %s", file_type, user_id, file_download_path)
 
         return file_download_path
     except ValueError as error:
+        logger.exception("Failed downloading %s file for user %s", file_type, user_id)
         raise Exception(f"Couldn't download the file with file_id: {file_id}") from error
 
 
