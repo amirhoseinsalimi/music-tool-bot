@@ -44,6 +44,7 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    | BOT_NAME                   | `str`     | The name of the bot                                                      |
    | BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions. |
    | BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                |
+   | DATA_DIR                   | `str`     | Directory for bot file persistence. In Docker this should be `/data` so the pickle survives container restarts. |
    | DB_HOST                    | `str`     | Database host (for postgres).                                            |
    | DB_PORT                    | `int`     | Database port (for postgres).                                            |
    | DB_DATABASE                | `str`     | Database name (for postgres).                                            |
@@ -115,9 +116,11 @@ You can also run the bot in Docker, without installing Python, Poetry, or ffmpeg
    `docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up`
 
    In dev mode, Docker Compose starts a local Postgres container and publishes it on `${DB_PORT:-5432}`.
+   The bot persistence file is stored under `/data` in the container, which maps to `./data` on the host.
 
 5. **Start the bot (production mode)**
    `docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d`
+   The bot persistence file is stored under `/data` in the container, backed by the `bot_data` Docker volume.
 
 6. **Apply migrations in production before first start**
    ```bash

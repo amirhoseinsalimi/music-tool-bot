@@ -143,5 +143,6 @@ dmypy.json
 cython_debug/
 
 data
-*.sqlite3
 TODOS
+*.pickle
+*.pkl

@@ -25,6 +25,8 @@ APP_ENV = get_env("APP_ENV", "development")
 BOT_USERNAME = get_env("BOT_USERNAME")
 BOT_TOKEN = get_env("BOT_TOKEN")
 
+DATA_DIR = get_env("DATA_DIR", "/data")
+
 DB_HOST = get_env("DB_HOST", "localhost")
 DB_PORT = int(get_env("DB_PORT", 5432))
 DB_DATABASE = get_env("DB_DATABASE", "")

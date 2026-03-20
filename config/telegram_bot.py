@@ -1,7 +1,14 @@
-from telegram.constants import ParseMode
-from telegram.ext import Application, Defaults
+from pathlib import Path
 
-from config.envs import BOT_TOKEN
+from telegram.constants import ParseMode
+from telegram.ext import Application, Defaults, PicklePersistence
+
+from config.envs import BOT_TOKEN, DATA_DIR
+
+data_dir = Path(DATA_DIR)
+data_dir.mkdir(parents=True, exist_ok=True)
+
+pickle = PicklePersistence(filepath=str(data_dir / "persistence.pickle"))
 
 defaults = Defaults(parse_mode=ParseMode.HTML)
 
@@ -9,6 +16,7 @@ app = (
     Application.builder()
     .token(BOT_TOKEN)
     .defaults(defaults)
+    .persistence(pickle)
     .concurrent_updates(False)
     .build()
 )
