@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from database.models import User
+from .context import SessionUser
 from .logging import get_logger
 from .misc import get_effective_user_id, get_effective_user_username
 
@@ -33,7 +34,10 @@ def upsert_user(function):
                 user.username = username
                 user.save()
 
-        context.user_data['user'] = user
+        context.user_data['user'] = SessionUser(
+            user_id=user.user_id,
+            username=user.username,
+        )
 
         return await function(update, context, *args, **kwargs)
 
