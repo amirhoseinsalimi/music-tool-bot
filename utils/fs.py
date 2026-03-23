@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 
 from telegram import Audio, PhotoSize
 from telegram.ext import CallbackContext
 
+from config.constants import DOWNLOAD_DIR_PATH
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -14,15 +16,13 @@ def delete_all_user_files(user_id: int) -> None:
 
     :param user_id: int: The user's `id` whom we want to delete files
     """
-    absolute_path = os.getcwd()
-    user_path = f"downloads/{user_id}/"
-    full_path = os.path.join(absolute_path, user_path)
+    full_path = DOWNLOAD_DIR_PATH / str(user_id)
 
-    if not os.path.isdir(full_path):
+    if not full_path.is_dir():
         return
 
-    for f in os.listdir(full_path):
-        delete_file(os.path.join(full_path, f))
+    for file_path in full_path.iterdir():
+        delete_file(str(file_path))
 
 
 def delete_file(file_path: str) -> None:
@@ -53,7 +53,7 @@ async def download_file(
     :raises ValueError: Couldn't download the file
     :return: The path of the downloaded file if the operation succeeds; ``None`` otherwise
     """
-    user_download_dir = f"downloads/{user_id}"
+    user_download_dir = DOWNLOAD_DIR_PATH / str(user_id)
     file_extension = ''
 
     file_id = await context.bot.get_file(file_id=file_to_download.file_id)
@@ -64,14 +64,18 @@ async def download_file(
     elif file_type == 'photo':
         file_extension = 'jpg'
 
-    file_download_path = f"{user_download_dir}/{file_id.file_id}.{file_extension}"
+    file_download_path = user_download_dir / f"{file_id.file_id}.{file_extension}"
 
     try:
-        await file_id.download_to_drive(f"{user_download_dir}/{file_id.file_id}.{file_extension}")
+        Path(user_download_dir).mkdir(parents=True, exist_ok=True)
+
+        await file_id.download_to_drive(str(file_download_path))
+
         logger.info("Downloaded %s file for user %s to %s", file_type, user_id, file_download_path)
 
-        return file_download_path
+        return str(file_download_path)
     except ValueError as error:
+
         logger.exception("Failed downloading %s file for user %s", file_type, user_id)
         raise Exception(f"Couldn't download the file with file_id: {file_id}") from error
 

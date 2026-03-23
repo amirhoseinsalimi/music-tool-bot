@@ -3,6 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from telegram import ReplyKeyboardMarkup
+from config.constants import DOWNLOAD_DIR_PATH
 from database.models import User
 from utils import t
 
@@ -16,14 +17,14 @@ def create_user_directory(user_id: int) -> str | None:
 
     :param user_id: int: The ``user_id`` of the user we want to create directory for
     :raises OSError | FileNotFoundError: Can't create directory for the user
-    :return: str | None: The relative path of the user's directory if succeeds; ``None`` otherwise
+    :return: str | None: The path of the user's directory if succeeds; ``None`` otherwise
     """
-    user_download_dir = f"downloads/{user_id}"
+    user_download_dir = DOWNLOAD_DIR_PATH / str(user_id)
 
     try:
         Path(user_download_dir).mkdir(parents=True, exist_ok=True)
 
-        return user_download_dir
+        return str(user_download_dir)
     except (OSError, FileNotFoundError) as error:
         raise Exception(f"Can't create directory for user_id: {user_id}") from error
 
