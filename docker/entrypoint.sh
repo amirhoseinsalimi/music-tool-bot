@@ -3,6 +3,7 @@ set -euo pipefail
 
 : "${DATA_DIR:=/data}"
 mkdir -p "${DATA_DIR}"
+mkdir -p "${DATA_DIR}/downloads"
 
 if [[ $# -gt 0 ]]; then
   exec "$@"
