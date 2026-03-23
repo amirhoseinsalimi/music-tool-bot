@@ -8,6 +8,8 @@ from telegram import (
     Update,
 )
 
+from config.constants import DOWNLOAD_DIR_PATH
+
 from database.models import (
     Admin,
     User,
@@ -22,7 +24,6 @@ from .utils import (
     pretty_print_size,
 )
 
-DOWNLOADS_DIT_PATH = 'downloads'
 SLEEP_TIME_TO_NEXT_USER_IN_SECONDS = 3
 
 AWAITING_MESSAGE = 1
@@ -95,8 +96,8 @@ async def show_stats(update: Update) -> None:
         if user.language in language_counts:
             language_counts[user.language] += 1
 
-    downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(DOWNLOADS_DIT_PATH))
-    number_of_downloaded_files = len(os.listdir(DOWNLOADS_DIT_PATH))
+    downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(DOWNLOAD_DIR_PATH))
+    number_of_downloaded_files = len(os.listdir(DOWNLOAD_DIR_PATH))
     occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = \
         psutil.disk_usage('/')[-3:]
     total_users = sum(language_counts.values())

@@ -16,7 +16,6 @@ from .handlers import (
     del_admin_if_user_is_owner,
 )
 
-DOWNLOADS_DIT_PATH = 'downloads'
 SLEEP_TIME_TO_NEXT_USER_IN_SECONDS = 3
 
 AWAITING_MESSAGE = 1

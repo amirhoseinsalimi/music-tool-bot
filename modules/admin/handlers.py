@@ -13,7 +13,6 @@ from utils.logging import get_logger
 from .service import add_admin, del_admin, list_users, show_stats
 from .utils import get_list_limit
 
-DOWNLOADS_DIT_PATH = 'downloads'
 SLEEP_TIME_TO_NEXT_USER_IN_SECONDS = 3
 
 AWAITING_MESSAGE = 1
