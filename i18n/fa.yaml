@@ -52,6 +52,7 @@ fa:
   reportBugMessage: "این از من بود! گزارش باگ رو اینجا بفرست: ‎@amirhoseinsalimi"
   errCreatingUserFolder: "خطا موقع شروع… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errOnDownloadAudioMessage: "نتونستم فایل صوتی رو دانلود کنم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
+  errOnConvertingM4a: "نتونستم فایل m4a رو تبدیل کنم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errOnDownloadPhotoMessage: "نتونستم عکس رو دانلود کنم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errTooLargeFile: "فایل زیادی بزرگه و از توان پردازش من خارجه!"
   errOnReadingTags: "نتونستم تگ‌های فایل رو بخونم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"

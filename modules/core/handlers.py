@@ -1,3 +1,6 @@
+import asyncio
+from pathlib import Path
+
 from telegram import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -29,6 +32,7 @@ from modules.tag_editor.utils import (
     is_current_module_tag_editor,
 )
 from utils import (
+    delete_file,
     download_file,
     get_chat_id,
     get_effective_message_id,
@@ -44,6 +48,7 @@ from utils import (
     upsert_user,
 )
 from utils.logging import get_logger
+from .service import convert_m4a_to_mp3
 from .utils import (
     generate_module_selector_keyboard,
     increment_file_counter_for_user,
@@ -300,6 +305,30 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
         logger.exception("Failed to download audio for user %s", user_id)
 
         return
+
+    if Path(file_download_path).suffix.lstrip('.').lower() == 'm4a':
+        m4a_file_download_path = file_download_path
+        file_download_path = str(Path(file_download_path).with_suffix('.mp3'))
+
+        try:
+            await asyncio.to_thread(
+                convert_m4a_to_mp3,
+                m4a_file_download_path,
+                file_download_path,
+            )
+        except Exception:
+            delete_file(m4a_file_download_path)
+
+            await message.reply_text(
+                text=t(language, 'errOnConvertingM4a'),
+                reply_markup=generate_start_over_keyboard(language),
+            )
+
+            logger.exception("Failed to convert m4a to mp3 for user %s", user_id)
+
+            return
+
+        delete_file(m4a_file_download_path)
 
     user_data['music_path'] = file_download_path
     user_data['music_message_id'] = message.message_id

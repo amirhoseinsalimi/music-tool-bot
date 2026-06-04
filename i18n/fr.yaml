@@ -52,6 +52,7 @@ fr:
   reportBugMessage: "C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errCreatingUserFolder: "Erreur au démarrage… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnDownloadAudioMessage: "Désolé, je n’ai pas pu télécharger ton audio… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
+  errOnConvertingM4a: "Désolé, je n’ai pas pu convertir ton fichier m4a… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Désolé, je n’ai pas pu télécharger la photo… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errTooLargeFile: "Le fichier est trop volumineux pour que je puisse le traiter, désolé !"
   errOnReadingTags: "Désolé, je n’ai pas pu lire les tags du fichier… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"

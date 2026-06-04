@@ -52,6 +52,7 @@ en:
   reportBugMessage: "That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errCreatingUserFolder: "Error on starting... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnDownloadAudioMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
+  errOnConvertingM4a: "Sorry, I couldn't convert your m4a file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errTooLargeFile: "This file is too big that I can process, sorry!"
   errOnReadingTags: "Sorry, I couldn't read the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
