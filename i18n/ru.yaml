@@ -52,6 +52,7 @@ ru:
   reportBugMessage: "Это моя ошибка! Отправь отчёт о баге сюда: @amirhoseinsalimi"
   errCreatingUserFolder: "Ошибка при запуске… Это моя ошибка! Отправь отчёт о баге сюда: @amirhoseinsalimi"
   errOnDownloadAudioMessage: "Извини, я не смог скачать твой аудиофайл… Это моя ошибка! Отправь отчёт о баге сюда: @amirhoseinsalimi"
+  errOnConvertingM4a: "Извини, я не смог конвертировать твой m4a файл… Это моя ошибка! Отправь отчёт о баге сюда: @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Извини, я не смог скачать фото… Это моя ошибка! Отправь отчёт о баге сюда: @amirhoseinsalimi"
   errTooLargeFile: "Файл слишком большой для обработки. Извини!"
   errOnReadingTags: "Извини, я не смог прочитать теги файла… Это моя ошибка! Отправь отчёт о баге сюда: @amirhoseinsalimi"

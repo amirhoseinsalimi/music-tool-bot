@@ -52,6 +52,7 @@ es:
   reportBugMessage: "¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errCreatingUserFolder: "Error al iniciar… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnDownloadAudioMessage: "Lo siento, no pude descargar tu audio… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
+  errOnConvertingM4a: "Lo siento, no pude convertir tu archivo m4a… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Lo siento, no pude descargar la foto… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errTooLargeFile: "El archivo es demasiado grande para que pueda procesarlo. ¡Lo siento!"
   errOnReadingTags: "Lo siento, no pude leer las etiquetas del archivo… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"

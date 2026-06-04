@@ -52,6 +52,7 @@ ar:
   reportBugMessage: "هذا خطئي! الرجاء إرسال تقرير بالمشكلة هنا: @amirhoseinsalimi"
   errCreatingUserFolder: "حدث خطأ أثناء البدء... هذا خطئي! الرجاء إرسال تقرير بالمشكلة هنا: @amirhoseinsalimi"
   errOnDownloadAudioMessage: "عذرًا، لم أتمكن من تحميل الملف الصوتي... هذا خطئي! الرجاء إرسال تقرير بالمشكلة هنا: @amirhoseinsalimi"
+  errOnConvertingM4a: "عذرًا، لم أتمكن من تحويل ملف m4a... هذا خطئي! الرجاء إرسال تقرير بالمشكلة هنا: @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "عذرًا، لم أتمكن من تحميل الصورة... هذا خطئي! الرجاء إرسال تقرير بالمشكلة هنا: @amirhoseinsalimi"
   errTooLargeFile: "الملف كبير جدًا ولا يمكنني معالجته، عذرًا!"
   errOnReadingTags: "عذرًا، لم أتمكن من قراءة وسوم (Tags) الملف... هذا خطئي! الرجاء إرسال تقرير بالمشكلة هنا: @amirhoseinsalimi"
