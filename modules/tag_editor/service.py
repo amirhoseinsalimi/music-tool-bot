@@ -303,6 +303,14 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
 
             os.remove(thumbnail_path)
 
+    audio = getattr(update.message, "audio", None)
+    
+    if not artist and audio and audio.performer:
+        artist = audio.performer
+
+    if not title and audio and audio.title:
+        title = audio.title
+
     tag_editor_context = user_data['tag_editor']
     tag_editor_context['artist'] = str(artist or "")
     tag_editor_context['title'] = str(title or "")
