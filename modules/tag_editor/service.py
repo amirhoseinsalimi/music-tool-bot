@@ -45,13 +45,14 @@ def save_tags_to_file(file: str, tags: dict, new_art_path: str) -> None:
     except OSError as error:
         raise Exception("Couldn't set hashtags") from error
 
-    music['artist'] = tags['artist'] if tags['artist'] else ''
-    music['title'] = tags['title'] if tags['title'] else ''
-    music['album'] = tags['album'] if tags['album'] else ''
-    music['genre'] = tags['genre'] if tags['genre'] else ''
-    music['year'] = int(tags['year']) if tags['year'] and tags['year'].isdigit() else 0
-    music['disknumber'] = int(tags['disknumber']) if tags['disknumber'] and tags['disknumber'].isdigit() else 0
-    music['tracknumber'] = int(tags['tracknumber']) if tags['tracknumber'] and tags['tracknumber'].isdigit() else 0
+    for tag in ('artist', 'title', 'album', 'genre'):
+        music[tag] = tags[tag] if tags[tag] else 'Unknown'
+
+    for tag in ('year', 'disknumber', 'tracknumber'):
+        if tags[tag] and tags[tag].isdigit():
+            music[tag] = int(tags[tag])
+        else:
+            music.remove_tag(tag)
 
     music.save()
 
