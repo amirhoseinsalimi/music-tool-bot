@@ -289,6 +289,14 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             art = possible_art
     except KeyError:
         pass
+    except Exception:
+        logger.warning(
+            "Failed to read embedded artwork for user %s file %s; "
+            "falling back to Telegram thumbnail",
+            user_id,
+            file_download_path,
+            exc_info=True,
+        )
 
     if not art:
         thumbnail = getattr(getattr(update.message, "audio", None), "thumbnail", None)
