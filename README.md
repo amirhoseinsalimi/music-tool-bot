@@ -6,9 +6,90 @@ Music Tool Bot is the ultimate bot for managing your music files effortlessly! �
 Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spanish**, **French**, **Arabic**. 
 ([Add more if you want](#contribution))
 
+There are two ways to run the bot:
+
+- **[With Docker](#with-docker-recommended)** — no need to install Python, Poetry, or ffmpeg on your machine.
+- **[Without Docker](#without-docker-python--poetry)** — run it directly with Python + Poetry.
+
+Either way, start by filling in your [configuration](#configuration).
+
 ---
 
-### Requirements to run this bot (without Docker)
+## Configuration
+
+First, **register a Telegram bot** at [BotFather](https://t.me/BotFather) and grab its token. Then create your env
+file with `cp .env.example .env` and fill in your credentials:
+
+| Field                      | Type      | Description |
+| -------------------------- | --------- | -------------------------------------------------------------------------|
+| APP_ENV                    | `str`     | Defines app's environment. Valid values: `production` \| `development`   |
+| BOT_NAME                   | `str`     | The name of the bot                                                      |
+| BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions. |
+| BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                |
+| DATA_DIR                   | `str`     | Directory for bot file persistence. In Docker this should be `/data` so the pickle and downloaded files survive container restarts. |
+| DB_HOST                    | `str`     | Database host (for postgres).                                            |
+| DB_PORT                    | `int`     | Database port (for postgres).                                            |
+| DB_DATABASE                | `str`     | Database name (for postgres).                                            |
+| DB_USERNAME                | `str`     | Database username (for postgres).                                        |
+| DB_PASSWORD                | `str`     | Database password (for postgres).                                        |
+| OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.      |
+| DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                              |
+| DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker |
+| DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `5400`                            |
+| DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                  |
+| BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                 |
+| ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                 |
+| TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                 |
+| USDT_TRC20_WALLET_ADDRESS  | `str`     | USDT (TRC20) wallet address to receive donations.                        |
+| USDT_ERC20_WALLET_ADDRESS  | `str`     | USDT (ERC20) wallet address to receive donations.                        |
+| SHIBA_BEP20_WALLET_ADDRESS | `str`     | SHIBA (BEP20) wallet address to receive donations.                       |
+| SHIBA_ERC20_WALLET_ADDRESS | `str`     | SHIBA (ERC20) wallet address to receive donations.                       |
+| DOGE_WALLET_ADDRESS        | `str`     | DOGE wallet address to receive donations.                                |
+| ZARIN_LINK_ADDRESS         | `str`     | ZarinLink address to receive donations.                                  |
+
+---
+
+## Running the Bot
+
+### With Docker (recommended)
+
+Run the bot without installing Python, Poetry, or ffmpeg on your machine.
+
+**Requirements:** Docker and Docker Compose.
+
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot
+   cd music-tool-bot
+   ```
+
+2. **Prepare your environment file** — see [Configuration](#configuration) (`cp .env.example .env` and fill it in).
+
+3. **Run database migrations and seeds**
+   ```bash
+   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml run --rm bot make db-migrate
+   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml run --rm bot make db-seed
+   ```
+   (For production, swap `docker-compose.dev.yaml` for `docker-compose.prod.yaml`.)
+
+4. **Development (hot reload)**
+   ```bash
+   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
+   ```
+   In dev mode, Docker Compose starts a local Postgres container and publishes it on `${DB_PORT:-5432}`.
+   The bot persistence file and downloaded files are stored under `/data` in the container, which maps to `./data` on the host.
+
+5. **Production**
+   ```bash
+   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+   ```
+   The bot persistence file and downloaded files are stored under `/data` in the container, backed by the `bot_data` Docker volume.
+
+   To ship a new version afterwards, see [Deploying a New Version](#with-docker-near-zero-downtime).
+
+### Without Docker (Python + Poetry)
+
+**Requirements:**
 
 1. Python 3.8 or higher (Preferably)
 2. `ffmpeg`
@@ -18,118 +99,37 @@ Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spa
    install `pm2` and run convenient script runners using `make`. If you want to run the bot using other process
    managers, that's fine.
 
----
+**Setup:**
 
-### Project setup (without Docker)
+1. **Clone this repo:**<br />
+   `git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot && cd music-tool-bot`
 
-1. **Register for a Telegram Bot**:<br />
-   Register a new bot at [Bot Father](https://t.me/BotFather) and get a bot token.
-
-2. **Clone this repo:**<br />
-   Run `git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot && cd music-tool-bot`
-
-3. **Install Poetry (if not installed):**<br />
+2. **Install Poetry (if not installed):**<br />
    Follow [Poetry’s official installation guide](https://python-poetry.org/docs/#installation).
 
-4. **Install dependencies:**<br />
+3. **Install dependencies:**<br />
    Run `poetry install`.<br />
    This will also create a virtual environment for the project.
    Run commands inside this virtual environment with: `poetry run <command>`
 
-5. **Setup environment variables:**<br />
-   Run `cp .env.example .env`. Then put your credentials there:
-   | Field                      | Type      | Description |
-   | -------------------------- | --------- | -------------------------------------------------------------------------|
-   | APP_ENV                    | `str`     | Defines app's environment. Valid values: `production` | `development`    |
-   | BOT_NAME                   | `str`     | The name of the bot                                                      |
-   | BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions. |
-   | BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                |
-   | DATA_DIR                   | `str`     | Directory for bot file persistence. In Docker this should be `/data` so the pickle and downloaded files survive container restarts. |
-   | DB_HOST                    | `str`     | Database host (for postgres).                                            |
-   | DB_PORT                    | `int`     | Database port (for postgres).                                            |
-   | DB_DATABASE                | `str`     | Database name (for postgres).                                            |
-   | DB_USERNAME                | `str`     | Database username (for postgres).                                        |
-   | DB_PASSWORD                | `str`     | Database password (for postgres).                                        |
-   | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.      |
-   | DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                              |
-   | DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker |
-   | DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `5400`                            |
-   | DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                  |
-   | BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                 |
-   | ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                 |
-   | TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                 |
-   | USDT_TRC20_WALLET_ADDRESS  | `str`     | USDT (TRC20) wallet address to receive donations.                        |
-   | USDT_ERC20_WALLET_ADDRESS  | `str`     | USDT (ERC20) wallet address to receive donations.                        |
-   | SHIBA_BEP20_WALLET_ADDRESS | `str`     | SHIBA (BEP20) wallet address to receive donations.                       |
-   | SHIBA_ERC20_WALLET_ADDRESS | `str`     | SHIBA (ERC20) wallet address to receive donations.                       |
-   | DOGE_WALLET_ADDRESS        | `str`     | DOGE wallet address to receive donations.                                |
-   | ZARIN_LINK_ADDRESS         | `str`     | ZarinLink address to receive donations.                                  |
+4. **Configure your environment** — see [Configuration](#configuration).
 
-6. **Set up the database:**<br />
-   This bot persists users/admins in PostgreSQL. Run migrations:<br />
-   `make db-migrate`.<br />
-   Then run seeds to populate the `admins` table with an owner-level
-   access:<br />
-   `make db-seed`.
+5. **Set up the database:**<br />
+   This bot persists users/admins in PostgreSQL. Run migrations with `make db-migrate`, then seed the `admins` table
+   with an owner-level access using `make db-seed`.
 
-7. **Run the bot**<br />
-   a. Start the bot `make start`<br />
-   b. Restart the bot `make restart`<br /><br />
+**Run:**
 
-See below for all possible commands:
-| Command `make <cmd>` | Description |
-| -------------------- | ------------------------------------------------------------------------------------------ |
-| `dev`                | Start the bot for development with hot reload thanks to `jurigged`                         |
-| `start`              | Start the bot for production using `pm2` module. Creates a process called `music-tool-bot` |
-| `restart`            | Restarts the bot process with the name `music-tool-bot`                                    |
-| `stop`               | Stops the bot process with the name `music-tool-bot`                                       |
-| `deploy`             | Build the new Docker image, then recreate only the bot with near-zero downtime             |
-| `db:migrate`         | Run migrations                                                                             |
-| `db:refresh`         | Rollback all migration and re-run them (Use with caution)                                  |
-| `db:status`          | Print the status of migrations                                                             |
-| `db:seed`            | Run seeds to create a user with owner privileges                                           |
-| `test`               | Run tests (Not implemented yet)                                                            |
-| `t`                  | Alias for `test` command                                                                   |
+- Start the bot: `make start`
+- Restart the bot: `make restart`
+
+See [Make Commands](#make-commands) for the full list.
 
 ---
 
-## Running with Docker
+## Deploying a New Version
 
-You can also run the bot in Docker, without installing Python, Poetry, or ffmpeg on your machine.
-
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot
-   cd music-tool-bot
-   ```
-
-2. **Prepare your environment file**
-   `cp .env.example .env`
-   Fill in your bot credentials as explained above.
-
-3. **Run database migrations**
-   ```bash
-   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml run --rm bot make db-migrate
-   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml run --rm bot make db-seed
-   ```
-
-4. **Start the bot (development mode with hot reload)**
-   `docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up`
-
-   In dev mode, Docker Compose starts a local Postgres container and publishes it on `${DB_PORT:-5432}`.
-   The bot persistence file and downloaded files are stored under `/data` in the container, which maps to `./data` on the host.
-
-5. **Start the bot (production mode)**
-   `docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d`
-   The bot persistence file and downloaded files are stored under `/data` in the container, backed by the `bot_data` Docker volume.
-
-6. **Apply migrations in production before first start**
-   ```bash
-   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
-   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
-   ```
-
-## Deploying a New Version (Near-Zero Downtime)
+### With Docker (near-zero downtime)
 
 To ship a code change, **do not** stop the stack and rebuild — that takes the bot
 down for the whole build. Instead, build the new image while the old container
@@ -161,6 +161,40 @@ If the new version includes database migrations, apply them before recreating:
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
 make deploy
 ```
+
+### Without Docker (pm2)
+
+Pull the new code, update dependencies, apply any migrations, then restart the
+process:
+
+```bash
+git pull
+poetry install
+make db-migrate   # only if the new version adds migrations
+make restart
+```
+
+---
+
+## Make Commands
+
+| Command `make <cmd>` | Description |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `dev`                | Start the bot for development with hot reload thanks to `jurigged`                         |
+| `start`              | Start the bot for production using `pm2` module. Creates a process called `music-tool-bot` |
+| `restart`            | Restarts the bot process with the name `music-tool-bot`                                    |
+| `stop`               | Stops the bot process with the name `music-tool-bot`                                       |
+| `deploy`             | Build the new Docker image, then recreate only the bot with near-zero downtime             |
+| `db-migrate`         | Run migrations                                                                             |
+| `db-refresh`         | Rollback all migrations and re-run them (Use with caution)                                 |
+| `db-status`          | Print the status of migrations                                                             |
+| `db-seed`            | Run seeds to create a user with owner privileges                                           |
+| `test`               | Run tests (Not implemented yet)                                                            |
+| `t`                  | Alias for `test` command                                                                   |
+
+Run `make help` to see this list from the terminal.
+
+---
 
 ## Shipping Logs To Grafana Cloud
 
@@ -202,8 +236,11 @@ GRAFANA_CLOUD_LOKI_USERNAME=123456
 GRAFANA_CLOUD_API_KEY=your-token
 ```
 
-### Run with Grafana in development
+### Run with Grafana
 
+Add the `-f docker-compose.grafana.yaml` overlay to your normal run command.
+
+Development:
 ```bash
 docker compose \
   -f docker-compose.yaml \
@@ -212,8 +249,7 @@ docker compose \
   up
 ```
 
-### Run with Grafana in production
-
+Production:
 ```bash
 docker compose \
   -f docker-compose.yaml \
@@ -239,18 +275,6 @@ or:
 {app="music-tool-bot", environment="production"}
 ```
 
-### Optional: run the normal stack without Grafana
-
-Development:
-```bash
-docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
-```
-
-Production:
-   ```bash
-   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
-   ```
-
 The included Alloy config only ships logs from the Compose service named `bot`, and adds these labels:
 - `app="music-tool-bot"`
 - `compose_project`
@@ -259,6 +283,8 @@ The included Alloy config only ships logs from the Compose service named `bot`, 
 - `environment`
 
 Alloy's local debug UI is exposed on `http://127.0.0.1:12345`.
+
+---
 
 ## Contribution
 
