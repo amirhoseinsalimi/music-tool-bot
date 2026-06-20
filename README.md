@@ -83,6 +83,7 @@ See below for all possible commands:
 | `start`              | Start the bot for production using `pm2` module. Creates a process called `music-tool-bot` |
 | `restart`            | Restarts the bot process with the name `music-tool-bot`                                    |
 | `stop`               | Stops the bot process with the name `music-tool-bot`                                       |
+| `deploy`             | Build the new Docker image, then recreate only the bot with near-zero downtime             |
 | `db:migrate`         | Run migrations                                                                             |
 | `db:refresh`         | Rollback all migration and re-run them (Use with caution)                                  |
 | `db:status`          | Print the status of migrations                                                             |
@@ -127,6 +128,39 @@ You can also run the bot in Docker, without installing Python, Poetry, or ffmpeg
    docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
    docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
    ```
+
+## Deploying a New Version (Near-Zero Downtime)
+
+To ship a code change, **do not** stop the stack and rebuild — that takes the bot
+down for the whole build. Instead, build the new image while the old container
+keeps running, then recreate only the bot in one fast step:
+
+```bash
+make deploy
+# equivalent to:
+# docker compose -f docker-compose.yaml -f docker-compose.prod.yaml build bot
+# docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d bot
+```
+
+`build` runs against the still-running bot, so the only outage is the recreate
+itself — a few seconds. On recreate the old container gets `SIGTERM`; PTB stops
+polling and lets the in-flight update (e.g. an ffmpeg job) finish within the
+`stop_grace_period` (30s) before exiting. Postgres is untouched.
+
+> **Why only "near-zero", not truly zero:** the bot runs in **polling** mode, and
+> Telegram allows only one `getUpdates` consumer per token — so two bot instances
+> can't poll at once, and the new container must wait for the old one to stop. The
+> few-second gap is handed off cleanly: updates that arrive meanwhile are queued by
+> Telegram and delivered once the new instance starts polling, so nothing is lost.
+> True overlapping (blue-green) deploys would require switching to webhooks behind a
+> reverse proxy.
+
+If the new version includes database migrations, apply them before recreating:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
+make deploy
+```
 
 ## Shipping Logs To Grafana Cloud
 
