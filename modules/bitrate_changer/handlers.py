@@ -1,5 +1,9 @@
 from telegram import (
+    ReplyKeyboardRemove,
     Update,
+)
+from telegram.constants import (
+    ChatAction,
 )
 from telegram.error import (
     TelegramError,
@@ -91,6 +95,16 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
 
     start_over_button_keyboard = generate_start_over_keyboard(language)
 
+    uploading_message = await message.reply_text(
+        text=t(language, 'uploading'),
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    await context.bot.send_chat_action(
+        chat_id=get_chat_id(update),
+        action=ChatAction.UPLOAD_VOICE
+    )
+
     input_path = user_data['music_path']
     output_path = f"{input_path}_bitrate.mp3"
     output_bitrate = parse_bitrate_number(message.text)
@@ -130,6 +144,9 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
+
+        await uploading_message.delete()
+
         logger.info("User %s completed bitrate change output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(

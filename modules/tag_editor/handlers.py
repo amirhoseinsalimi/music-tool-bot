@@ -309,6 +309,16 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
 
     start_over_button_keyboard = generate_start_over_keyboard(language)
 
+    uploading_message = await message.reply_text(
+        text=t(language, 'uploading'),
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+    await context.bot.send_chat_action(
+        chat_id=get_chat_id(update),
+        action=ChatAction.UPLOAD_VOICE
+    )
+
     try:
         save_tags_to_file(
             file=music_path,
@@ -350,6 +360,9 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data["music_message_id"],
             )
+
+        await uploading_message.delete()
+
         logger.info("User %s finished tag editing for %s", user_id, music_path)
     except (TelegramError, OSError) as error:
         await message.reply_text(

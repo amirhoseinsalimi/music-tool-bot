@@ -153,5 +153,6 @@ en:
     Here's my ZarinLink: <a href="{zarin_link_address}">ZarinLink</a> 
 
     Thank you in advance for your support.
+  uploading: "Uploading... Please wait."
   done: Done!
   or: or
