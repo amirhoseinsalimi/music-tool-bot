@@ -74,35 +74,55 @@ async def list_users_if_user_is_admin(update: Update, _context: CallbackContext)
     await list_users(update, get_list_limit(message=get_message_text(update)))
 
 
-async def send_to_all_command(update: Update, _context: CallbackContext) -> int:
+async def send_to_all_command(update: Update, context: CallbackContext) -> int:
     """
-    Starts the process of sending a message to all users.
+    Starts the process of sending a message to all users, optionally filtered by language.
+
+    Usage:
+        /sendtoall      - broadcast to all users
+        /sendtoall en   - broadcast only to users with language 'en'
+        /sendtoall ru   - broadcast only to users with language 'ru'
+
+    The language code should be an ISO-639-1 (two-letter) code.
 
     :param update: Update: The ``update`` object
-    :param _context: CallbackContext: Unused
+    :param context: CallbackContext: The ``context`` object (uses ``context.args`` for language code)
     """
     user_id = update.effective_user.id
 
     if not is_user_admin(user_id):
         return ConversationHandler.END
 
-    logger.info("Admin %s opened broadcast flow", user_id)
+    language_code = context.args[0].lower() if context.args else None
+    context.user_data['broadcast_language'] = language_code
 
-    await update.message.reply_text(
-        "✅ Now send the message you want to send to all users.\n"
-        "❌ Use /cancel_sendtoall to cancel."
+    logger.info(
+        "Admin %s opened broadcast flow%s",
+        user_id,
+        f" for language: {language_code}" if language_code else "",
     )
+
+    msg = "✅ Now send the message you want to send to all users."
+    if language_code:
+        msg += f"\n🌐 Broadcast will be limited to users with language: <code>{language_code}</code>"
+    msg += "\n\n❌ Use /cancel_sendtoall to cancel."
+
+    await update.message.reply_text(msg, parse_mode="HTML")
 
     return AWAITING_MESSAGE
 
 
 async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     """
-    Starts a new thread to broadcast the message to all users without blocking the bot.
+    Starts a new thread to broadcast the message to users (optionally filtered by language)
+    without blocking the bot.
 
-    This function retrieves all bot users and starts broadcasting a message to them
+    If a language filter was set via ``/sendtoall <lang>``, the broadcast will only be sent
+    to users whose stored language code matches. Otherwise, it broadcasts to all users.
+
+    This function retrieves the target users and starts broadcasting the message to them
     in a background thread. The broadcasting process can be canceled at any time
-    using `/cancel_sendtoall`. Messages will stop sending as soon as cancellation is triggered.
+    using ``/cancel_sendtoall``. Messages will stop sending as soon as cancellation is triggered.
 
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
@@ -112,18 +132,30 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     broadcasting_active = True
 
     user_id = update.effective_user.id
-    users = User.all()
+    language_code = context.user_data.pop("broadcast_language", None)
+
+    if language_code:
+        users = User.where("language", "=", language_code).get()
+    else:
+        users = User.all()
+
     message_to_send = update.message
     admin_chat_id = update.message.chat_id
     loop = asyncio.get_event_loop()
-    logger.info("Admin %s started broadcast to %s users", user_id, len(users))
+
+    logger.info(
+        "Admin %s started broadcast%s to %s users",
+        user_id,
+        f" (language: {language_code})" if language_code else "",
+        len(users),
+    )
 
     def broadcast():
         """
         Runs the broadcast process in a separate thread.
 
-        This function iterates through all users and sends the provided message.
-        Messages are sent using `asyncio.run_coroutine_threadsafe()` to ensure
+        This function iterates through the target users and sends the provided message.
+        Messages are sent using ``asyncio.run_coroutine_threadsafe()`` to ensure
         they execute safely in the main event loop. A delay is added between
         messages to avoid hitting Telegram's rate limits.
 
@@ -253,7 +285,7 @@ async def cancel_send_to_all(update: Update, context: CallbackContext) -> int:
     """
     Cancels the broadcasting process immediately.
 
-    This function sets `broadcasting_active` to False, signaling the broadcast
+    This function sets ``broadcasting_active`` to False, signaling the broadcast
     thread to stop processing further messages. It also ensures that no further
     messages are sent. If no broadcast is active, it informs the admin.
 
@@ -267,6 +299,9 @@ async def cancel_send_to_all(update: Update, context: CallbackContext) -> int:
         return -1
 
     global broadcasting_active, broadcast_thread
+
+    # Clean up any lingering language filter
+    context.user_data.pop("broadcast_language", None)
 
     if broadcasting_active:
         broadcasting_active = False
