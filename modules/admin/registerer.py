@@ -32,7 +32,7 @@ def registry() -> list[BaseHandler]:
         ConversationHandler(
             entry_points=[CommandHandler('sendtoall', send_to_all_command)],
             states={
-                AWAITING_MESSAGE: [MessageHandler(filters.ALL & filters.ChatType.PRIVATE, handle_admin_message)]
+                AWAITING_MESSAGE: [MessageHandler(filters.ALL & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_message)]
             },
             fallbacks=[CommandHandler('cancel_sendtoall', cancel_send_to_all)],
             conversation_timeout=CONVERSATION_TIMEOUT
