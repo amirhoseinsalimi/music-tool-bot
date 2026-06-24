@@ -126,17 +126,30 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
         Messages are sent using `asyncio.run_coroutine_threadsafe()` to ensure
         they execute safely in the main event loop. A delay is added between
         messages to avoid hitting Telegram's rate limits.
+
+        If the admin's message is forwarded, it re-forwards it to each user.
+        If it's an original message, it sends the content directly.
         """
         global broadcasting_active
         success_count = 0
         failed_count = 0
+        is_forwarded = message_to_send.forward_origin is not None
 
         for user in users:
             if not broadcasting_active:
                 break
 
             try:
-                if message_to_send.text:
+                if is_forwarded:
+                    asyncio.run_coroutine_threadsafe(
+                        context.bot.forward_message(
+                            chat_id=user.user_id,
+                            from_chat_id=message_to_send.chat_id,
+                            message_id=message_to_send.message_id,
+                        ),
+                        loop
+                    ).result()
+                elif message_to_send.text:
                     asyncio.run_coroutine_threadsafe(
                         context.bot.send_message(
                             chat_id=user.user_id,
