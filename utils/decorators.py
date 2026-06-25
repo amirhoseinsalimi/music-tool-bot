@@ -25,13 +25,24 @@ def upsert_user(function):
                 'username': username,
                 'language': 'en',
                 'number_of_files_sent': 0,
+                'user_status_id': 1,
             })
 
             logger.info("User %s started using the bot", user_id)
         else:
+            needs_save = False
+
             if username and user.username != username:
                 logger.info("User %s changed username from %s to %s", user_id, user.username, username)
                 user.username = username
+                needs_save = True
+
+            if user.user_status_id != 1:
+                logger.info("User %s is interacting again. Resetting status to active.", user_id)
+                user.user_status_id = 1
+                needs_save = True
+
+            if needs_save:
                 user.save()
 
         context.user_data['user'] = SessionUser(

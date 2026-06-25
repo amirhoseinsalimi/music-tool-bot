@@ -3,10 +3,11 @@ import threading
 import time
 
 from telegram import Update
+from telegram.error import Forbidden, BadRequest
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
 
-from database.models import User
+from database.models import User, UserStatus
 from modules.admin.utils import is_admin_owner, is_user_admin
 from utils import get_effective_user_id, get_message_text
 from utils.logging import get_logger
@@ -161,11 +162,19 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
 
         If the admin's message is forwarded, it re-forwards it to each user.
         If it's an original message, it sends the content directly.
+
+        When a delivery fails, the user's status is updated accordingly:
+        - ``Forbidden`` with "user is deactivated" → status set to ``deleted``
+        - ``Forbidden`` (other) → status set to ``blocked``
+        - ``BadRequest`` → logged but no status change
         """
         global broadcasting_active
         success_count = 0
         failed_count = 0
         is_forwarded = message_to_send.forward_origin is not None
+
+        blocked_status = UserStatus.where('slug', 'blocked').first()
+        deleted_status = UserStatus.where('slug', 'deleted').first()
 
         for user in users:
             if not broadcasting_active:
@@ -253,8 +262,35 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
                 success_count += 1
                 time.sleep(SLEEP_TIME_TO_NEXT_USER_IN_SECONDS)
 
-            except Exception as e:
-                logger.warning("Broadcast delivery to user %s failed: %s", user.user_id, e)
+            except Forbidden as error:
+                failed_count += 1
+                error_message = str(error).lower()
+
+                if "user is deactivated" in error_message:
+                    logger.warning(
+                        "User %s has deleted their account. Marking as deleted.",
+                        user.user_id,
+                    )
+
+                    if deleted_status:
+                        user.user_status_id = deleted_status.id
+                        user.save()
+                else:
+                    logger.warning(
+                        "User %s has blocked the bot. Marking as blocked.",
+                        user.user_id,
+                    )
+
+                    if blocked_status:
+                        user.user_status_id = blocked_status.id
+                        user.save()
+
+            except BadRequest as error:
+                logger.warning("Broadcast delivery to user %s failed: %s", user.user_id, error)
+                failed_count += 1
+
+            except Exception as error:
+                logger.warning("Broadcast delivery to user %s failed: %s", user.user_id, error)
                 failed_count += 1
 
         broadcasting_active = False
@@ -300,7 +336,6 @@ async def cancel_send_to_all(update: Update, context: CallbackContext) -> int:
 
     global broadcasting_active, broadcast_thread
 
-    # Clean up any lingering language filter
     context.user_data.pop("broadcast_language", None)
 
     if broadcasting_active:
