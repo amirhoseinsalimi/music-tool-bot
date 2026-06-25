@@ -13,6 +13,7 @@ from config.constants import DOWNLOAD_DIR_PATH
 from database.models import (
     Admin,
     User,
+    UserStatus,
 )
 from utils import (
     get_message_text,
@@ -84,7 +85,7 @@ async def show_stats(update: Update) -> None:
 
     :param update: Update: The ``update`` object
     """
-    language_counts = {
+    language_counts: dict[str, int] = {
         'en': 0,
         'fa': 0,
         'ru': 0,
@@ -92,9 +93,35 @@ async def show_stats(update: Update) -> None:
         'fr': 0,
         'ar': 0,
     }
+
+    active_status = UserStatus.where('slug', 'active').first()
+    blocked_status = UserStatus.where('slug', 'blocked').first()
+    deleted_status = UserStatus.where('slug', 'deleted').first()
+
+    status_by_language: dict[str, dict[str, int]] = {
+        lang: {'active': 0, 'blocked': 0, 'deleted': 0}
+        for lang in language_counts
+    }
+    status_totals: dict[str, int] = {'active': 0, 'blocked': 0, 'deleted': 0}
+
     for user in User.all():
-        if user.language in language_counts:
-            language_counts[user.language] += 1
+        lang = user.language if user.language in language_counts else None
+        user_status_id = getattr(user, 'user_status_id', None)
+
+        if user_status_id == (active_status.id if active_status else None):
+            status = 'active'
+        elif user_status_id == (blocked_status.id if blocked_status else None):
+            status = 'blocked'
+        elif user_status_id == (deleted_status.id if deleted_status else None):
+            status = 'deleted'
+        else:
+            status = 'active'
+
+        if lang:
+            language_counts[lang] += 1
+            status_by_language[lang][status] += 1
+
+        status_totals[status] += 1
 
     downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(DOWNLOAD_DIR_PATH))
     number_of_downloaded_files = len(os.listdir(DOWNLOAD_DIR_PATH))
@@ -102,15 +129,31 @@ async def show_stats(update: Update) -> None:
         psutil.disk_usage('/')[-3:]
     total_users = sum(language_counts.values())
 
+    language_labels = {
+        'en': '🇬🇧 English',
+        'fa': '🇮🇷 Persian',
+        'ru': '🇷🇺 Russian',
+        'es': '🇪🇸 Spanish',
+        'fr': '🇫🇷 French',
+        'ar': '🇸🇦 Arabic',
+    }
+
+    language_lines = '\n'.join(
+        f"  {language_labels[lang]}: {status_by_language[lang]['active']} ✅"
+        f" / {status_by_language[lang]['blocked']} 🚫"
+        f" / {status_by_language[lang]['deleted']} 🗑"
+        for lang in language_counts
+    )
+
     await update.message.reply_text(
         text=(
             f"👥 {total_users} users are using this bot!\n\n"
-            f"🇬🇧 English users: {language_counts['en']}\n"
-            f"🇮🇷 Persian users: {language_counts['fa']}\n"
-            f"🇷🇺 Russian users: {language_counts['ru']}\n"
-            f"🇪🇸 Spanish users: {language_counts['es']}\n"
-            f"🇫🇷 French users: {language_counts['fr']}\n"
-            f"🇸🇦 Arabic users: {language_counts['ar']}\n\n"
+            f"📊 User status breakdown ({total_users} total):\n"
+            f"  ✅ Active: {status_totals['active']}\n"
+            f"  🚫 Blocked: {status_totals['blocked']}\n"
+            f"  🗑 Deleted: {status_totals['deleted']}\n\n"
+            f"🌐 By language:\n"
+            f"{language_lines}\n\n"
             f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
             f"💽 Occupied disk space: {pretty_print_size(occupied_disk_space_bytes)}, "
             f"available space: {pretty_print_size(available_disk_space_bytes)} "
