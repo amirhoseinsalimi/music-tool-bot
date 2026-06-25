@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "music-tool-bot"
-version = "2.6.0"
+version = "2.7.0"
 description = "Music Tool Bot is the ultimate bot for managing your music files effortlessly! 🎵✨"
 readme = "README.md"
 authors = ["Amir Hosein Salimi <iamirhoseinsalimi@gmail.com>"]
