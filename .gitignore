@@ -143,6 +143,7 @@ dmypy.json
 cython_debug/
 
 data
+backups/
 TODOS
 *.pickle
 *.pkl

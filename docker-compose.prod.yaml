@@ -1,2 +1,27 @@
 services:
   postgres: {}
+
+  backup:
+    image: postgres:16-alpine
+    container_name: music-tool-bot-backup
+    entrypoint: ["/bin/bash", "/scripts/backup.sh"]
+    env_file:
+      - .env
+    environment:
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION: ${BACKUP_RETENTION}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DATA_DIR: ${DATA_DIR}
+      BACKUP_INTERVAL: ${BACKUP_INTERVAL}
+    volumes:
+      - ./docker/backup/backup.sh:/scripts/backup.sh:ro
+      - ./backups:/backups
+      - bot_data:/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
