@@ -20,32 +20,34 @@ Either way, start by filling in your [configuration](#configuration).
 First, **register a Telegram bot** at [BotFather](https://t.me/BotFather) and grab its token. Then create your env
 file with `cp .env.example .env` and fill in your credentials:
 
-| Field                      | Type      | Description |
-| -------------------------- | --------- | -------------------------------------------------------------------------|
-| APP_ENV                    | `str`     | Defines app's environment. Valid values: `production` \| `development`   |
-| BOT_NAME                   | `str`     | The name of the bot                                                      |
-| BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions. |
-| BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                |
+| Field                      | Type      | Description                                                                                                                         |
+|----------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------|
+| APP_ENV                    | `str`     | Defines app's environment. Valid values: `production` \| `development`                                                              |
+| BOT_NAME                   | `str`     | The name of the bot                                                                                                                 |
+| BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions.                                                            |
+| BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                                                                           |
 | DATA_DIR                   | `str`     | Directory for bot file persistence. In Docker this should be `/data` so the pickle and downloaded files survive container restarts. |
-| DB_HOST                    | `str`     | Database host (for postgres).                                            |
-| DB_PORT                    | `int`     | Database port (for postgres).                                            |
-| DB_DATABASE                | `str`     | Database name (for postgres).                                            |
-| DB_USERNAME                | `str`     | Database username (for postgres).                                        |
-| DB_PASSWORD                | `str`     | Database password (for postgres).                                        |
-| OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.      |
-| DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                              |
-| DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker |
-| DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `5400`                            |
-| DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                  |
-| BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                 |
-| ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                 |
-| TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                 |
-| USDT_TRC20_WALLET_ADDRESS  | `str`     | USDT (TRC20) wallet address to receive donations.                        |
-| USDT_ERC20_WALLET_ADDRESS  | `str`     | USDT (ERC20) wallet address to receive donations.                        |
-| SHIBA_BEP20_WALLET_ADDRESS | `str`     | SHIBA (BEP20) wallet address to receive donations.                       |
-| SHIBA_ERC20_WALLET_ADDRESS | `str`     | SHIBA (ERC20) wallet address to receive donations.                       |
-| DOGE_WALLET_ADDRESS        | `str`     | DOGE wallet address to receive donations.                                |
-| ZARIN_LINK_ADDRESS         | `str`     | ZarinLink address to receive donations.                                  |
+| DB_HOST                    | `str`     | Database host (for postgres).                                                                                                       |
+| DB_PORT                    | `int`     | Database port (for postgres).                                                                                                       |
+| DB_DATABASE                | `str`     | Database name (for postgres).                                                                                                       |
+| DB_USERNAME                | `str`     | Database username (for postgres).                                                                                                   |
+| DB_PASSWORD                | `str`     | Database password (for postgres).                                                                                                   |
+| OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.                                                                 |
+| DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                                                                                         |
+| DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker                      |
+| DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `5400`                                                                                       |
+| DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                                                                             |
+| BACKUP_RETENTION           | `int`     | Days to keep daily backups. Defaults to `7`.                                                                                        |
+| BACKUP_INTERVAL            | `int`     | Seconds between backups. Defaults to `86400` (24 hours).                                                                            |
+| BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                                                                            |
+| ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                                                                            |
+| TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                                                                            |
+| USDT_TRC20_WALLET_ADDRESS  | `str`     | USDT (TRC20) wallet address to receive donations.                                                                                   |
+| USDT_ERC20_WALLET_ADDRESS  | `str`     | USDT (ERC20) wallet address to receive donations.                                                                                   |
+| SHIBA_BEP20_WALLET_ADDRESS | `str`     | SHIBA (BEP20) wallet address to receive donations.                                                                                  |
+| SHIBA_ERC20_WALLET_ADDRESS | `str`     | SHIBA (ERC20) wallet address to receive donations.                                                                                  |
+| DOGE_WALLET_ADDRESS        | `str`     | DOGE wallet address to receive donations.                                                                                           |
+| ZARIN_LINK_ADDRESS         | `str`     | ZarinLink address to receive donations.                                                                                             |
 
 ---
 
@@ -283,6 +285,81 @@ The included Alloy config only ships logs from the Compose service named `bot`, 
 - `environment`
 
 Alloy's local debug UI is exposed on `http://127.0.0.1:12345`.
+
+---
+
+## Daily Backups
+
+A backup service is included in `docker-compose.prod.yaml` that automatically creates daily backups of:
+
+- **PostgreSQL database** — full dump (`pg_dump --clean`) of users, admins, and all data.
+- **Bot data** — compressed archive of the `DATA_DIR` volume (downloaded files, pickles, etc.).
+
+### How it works
+
+The backup service runs a dedicated container (`postgres:16-alpine`) that:
+1. Connects to the `postgres` container and dumps the database → gzipped.
+2. Archives the `bot_data` volume content → tar.gz.
+3. Saves both files to `./backups/` on the host machine.
+4. Deletes files older than `BACKUP_RETENTION` days (default: 7).
+
+The first backup runs immediately when the container starts, then repeats every `BACKUP_INTERVAL` seconds (default: 86400 = 24 hours).
+
+### Start the backup service
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d backup
+```
+
+Check the logs:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml logs -f backup
+```
+
+Example output:
+```
+[2026-06-27 11:25:00] Backup service started
+[2026-06-27 11:25:00]   Interval:  86400s (24h)
+[2026-06-27 11:25:00]   Retention: 7 days
+[2026-06-27 11:25:00] === Starting backup: 2026-06-27_11-25-00 ===
+[2026-06-27 11:25:02] PostgreSQL backup completed: 1.2M
+[2026-06-27 11:25:03] Bot data archive completed: 3.5M
+[2026-06-27 11:25:03] === Backup completed successfully ===
+```
+
+### Backup files
+
+Backups are written to `./backups/` on the host machine:
+
+```
+backups/
+├── postgres_2026-06-27_11-25-00.sql.gz    (database dump)
+└── bot_data_2026-06-27_11-25-00.tar.gz    (bot data archive)
+```
+
+This directory is on the **host filesystem** (not a Docker volume), so backups survive `docker system prune --volumes` and can be accessed, copied, or uploaded directly.
+
+> **Note:** `backups/` is gitignored to prevent sensitive data from being committed to version control.
+
+### Configuration
+
+| Env Variable       | Default | Description |
+|--------------------|---------|-------------|
+| `BACKUP_RETENTION` | `7`     | Days to keep backup files before automatic cleanup |
+| `BACKUP_INTERVAL`  | `86400` | Seconds between backups (86400 = 24 hours) |
+
+### Restoring from a backup
+
+See [docker/backup/RESTORE.md](docker/backup/RESTORE.md) for step-by-step restore instructions covering:
+
+- Restoring the PostgreSQL database
+- Restoring bot data files
+- Full disaster recovery on a fresh machine
+
+### Why not in development?
+
+The backup service is only included in `docker-compose.prod.yaml` to avoid running unnecessary containers during local development. When running `docker-compose.dev.yaml`, the backup service is not started.
 
 ---
 
