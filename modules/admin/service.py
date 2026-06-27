@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta, timezone
 from typing import (
     Optional,
 )
@@ -31,6 +32,10 @@ AWAITING_MESSAGE = 1
 CONVERSATION_TIMEOUT = 10
 broadcasting_active = False
 broadcast_thread = None
+
+ACTIVE_DAYS = 90
+MONTHLY_ACTIVE_DAYS = 30
+CHURN_DAYS = 90
 
 
 async def add_admin(update: Update) -> None:
@@ -82,6 +87,7 @@ async def show_stats(update: Update) -> None:
      - The number of English and Persian users
      - The number & size of the files on the disk
      - How much disk space is occupied.
+     - Active / inactive / monthly active / churned user counts
 
     :param update: Update: The ``update`` object
     """
@@ -104,6 +110,16 @@ async def show_stats(update: Update) -> None:
     }
     status_totals: dict[str, int] = {'active': 0, 'blocked': 0, 'deleted': 0}
 
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    active_cutoff = now - timedelta(days=ACTIVE_DAYS)
+    monthly_active_cutoff = now - timedelta(days=MONTHLY_ACTIVE_DAYS)
+
+    total_users = 0
+    active_users_90d = 0
+    inactive_users = 0
+    monthly_active_users = 0
+    churned_users = 0
+
     for user in User.all():
         lang = user.language if user.language in language_counts else None
         user_status_id = getattr(user, 'user_status_id', None)
@@ -122,12 +138,32 @@ async def show_stats(update: Update) -> None:
             status_by_language[lang][status] += 1
 
         status_totals[status] += 1
+        total_users += 1
+
+        updated_at = getattr(user, 'updated_at', None)
+        number_of_files = getattr(user, 'number_of_files_sent', 0)
+
+        if number_of_files == 0:
+            inactive_users += 1
+        elif updated_at and isinstance(updated_at, datetime):
+            if updated_at.tzinfo is not None:
+                updated_at = updated_at.replace(tzinfo=None)
+
+            if updated_at >= monthly_active_cutoff:
+                monthly_active_users += 1
+                active_users_90d += 1
+            elif updated_at >= active_cutoff:
+                active_users_90d += 1
+            else:
+                churned_users += 1
+        elif number_of_files > 0:
+            active_users_90d += 1
+            monthly_active_users += 1
 
     downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(DOWNLOAD_DIR_PATH))
     number_of_downloaded_files = len(os.listdir(DOWNLOAD_DIR_PATH))
     occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = \
         psutil.disk_usage('/')[-3:]
-    total_users = sum(language_counts.values())
 
     language_labels = {
         'en': '🇬🇧 English',
@@ -152,6 +188,11 @@ async def show_stats(update: Update) -> None:
             f"  ✅ Active: {status_totals['active']}\n"
             f"  🚫 Blocked: {status_totals['blocked']}\n"
             f"  🗑 Deleted: {status_totals['deleted']}\n\n"
+            f"📈 Usage stats:\n"
+            f"  🟢 Active (90d): {active_users_90d}\n"
+            f"  🔵 Monthly Active (30d): {monthly_active_users}\n"
+            f"  ⚪ Inactive (0 files): {inactive_users}\n"
+            f"  🔴 Churned (90d+ idle): {churned_users}\n\n"
             f"🌐 By language:\n"
             f"{language_lines}\n\n"
             f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
