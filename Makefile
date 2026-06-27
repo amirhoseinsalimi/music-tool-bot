@@ -9,7 +9,7 @@ COMPOSE_PROD  ?= $(COMPOSE) -f docker-compose.yaml -f docker-compose.prod.yaml
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev start restart stop deploy db-migrate db-refresh db-status db-seed test t show-python
+.PHONY: help install dev deploy db-migrate db-refresh db-status db-seed test t show-python
 
 help:
 	@echo "Available commands:"
@@ -24,15 +24,6 @@ show-python: ## Print the Python interpreter Poetry resolves to
 
 dev: ## Run the bot locally with hot reload (jurigged)
 	poetry run jurigged -v $(ENTRYPOINT)
-
-start: ## Start the bot in production via pm2
-	pm2 start --name "$(BOT_NAME)" $(ENTRYPOINT) --time --interpreter python
-
-restart: ## Restart the pm2 bot process
-	pm2 restart "$(BOT_NAME)"
-
-stop: ## Stop the pm2 bot process
-	pm2 stop "$(BOT_NAME)"
 
 deploy: ## Deploy a new version (Docker): build the new image, then recreate only the bot with near-zero downtime
 	$(COMPOSE_PROD) build bot
