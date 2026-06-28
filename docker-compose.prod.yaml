@@ -25,3 +25,14 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+
+  sweeper:
+    image: postgres:16-alpine
+    container_name: music-tool-bot-sweeper
+    entrypoint: ["/bin/bash", "/scripts/sweeper.sh"]
+    env_file:
+      - .env
+    volumes:
+      - ./docker/sweeper/sweeper.sh:/scripts/sweeper.sh:ro
+      - bot_data:/data:rw
+    restart: unless-stopped

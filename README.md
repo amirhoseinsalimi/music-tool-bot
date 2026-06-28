@@ -36,6 +36,8 @@ file with `cp .env.example .env` and fill in your credentials:
 | DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                                                                             |
 | BACKUP_RETENTION           | `int`     | Days to keep daily backups. Defaults to `7`.                                                                                        |
 | BACKUP_INTERVAL            | `int`     | Seconds between backups. Defaults to `86400` (24 hours).                                                                            |
+| SWEEPER_RETENTION_DAYS     | `int`     | Days to keep downloaded user files before automatic cleanup. Defaults to `30`.                                                      |
+| SWEEPER_INTERVAL           | `int`     | Seconds between sweeps. Defaults to `86400` (24 hours).                                                                             |
 | BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                                                                            |
 | ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                                                                            |
 | TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                                                                            |
@@ -304,6 +306,40 @@ See [docker/backup/RESTORE.md](docker/backup/RESTORE.md) for step-by-step restor
 The backup service is only included in `docker-compose.prod.yaml` to avoid running unnecessary containers during local development. When running `docker-compose.dev.yaml`, the backup service is not started.
 
 ---
+
+## File Retention & Sweeper
+
+The bot doesn't delete downloaded user files immediately after processing. Instead, files are preserved on disk for a configurable retention period (default: **30 days**) and cleaned up by a dedicated **sweeper** service that runs daily.
+
+### How it works
+
+The sweeper service runs a separate container (`sweeper`) that:
+
+1. Scans the `DATA_DIR/downloads/` directory for files.
+2. Deletes any file older than `SWEEPER_RETENTION_DAYS` (default: 30).
+3. Removes empty user directories after deletion.
+4. Runs the first sweep immediately on startup, then repeats every `SWEEPER_INTERVAL` seconds (default: 86400 = 24 hours).
+
+### Start the sweeper service
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d sweeper
+```
+
+Check the logs:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml logs -f sweeper
+```
+
+### Processing artifacts
+
+Temporary output files generated during processing (e.g., `_bitrate.mp3`, `_cut.mp3`, `.opus`, intermediate `.m4a`) are still deleted immediately after upload - only the original downloaded files are retained by the sweeper.
+
+### Why not in development?
+
+Like the backup service, the sweeper is only defined in `docker-compose.prod.yaml` to avoid unnecessary containers during local development.
+
 
 ## Contribution
 
