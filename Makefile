@@ -25,9 +25,10 @@ show-python: ## Print the Python interpreter Poetry resolves to
 dev: ## Run the bot locally with hot reload (jurigged)
 	poetry run jurigged -v $(ENTRYPOINT)
 
-deploy: ## Deploy a new version (Docker): build the new image, then recreate only the bot with near-zero downtime
+deploy: ## Deploy a new version (Docker): rebuild and recreate the bot (near-zero downtime), then refresh the sidecar services
 	$(COMPOSE_PROD) build bot
 	$(COMPOSE_PROD) up -d bot
+	$(COMPOSE_PROD) up -d --force-recreate sweeper backup
 
 db-migrate: ## Run database migrations
 	poetry run masonite-orm migrate -d $(MIGRATIONS_DIR)

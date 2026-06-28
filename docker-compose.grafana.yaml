@@ -3,7 +3,7 @@ services:
     image: grafana/alloy:latest
     container_name: music-tool-bot-alloy
     environment:
-      APP_ENV: ${APP_ENV:-development}
+      APP_ENV: ${APP_ENV}
       GRAFANA_CLOUD_LOKI_URL: ${GRAFANA_CLOUD_LOKI_URL}
       GRAFANA_CLOUD_LOKI_USERNAME: ${GRAFANA_CLOUD_LOKI_USERNAME}
       GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY}
