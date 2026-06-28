@@ -2,6 +2,7 @@
 set -euo pipefail
 
 DATA_DIR="${DATA_DIR:-/data}"
+DOWNLOADS_DIR="${DATA_DIR}/downloads"
 SWEEPER_RETENTION_DAYS="${SWEEPER_RETENTION_DAYS:-30}"
 SWEEPER_INTERVAL="${SWEEPER_INTERVAL:-86400}"
 
@@ -11,8 +12,6 @@ log() {
 
 do_sweep() {
     log "=== Starting sweep cycle ==="
-
-    DOWNLOADS_DIR="${DATA_DIR}/downloads"
 
     if [[ ! -d "${DOWNLOADS_DIR}" ]]; then
         log "Downloads directory '${DOWNLOADS_DIR}' does not exist — nothing to sweep"
