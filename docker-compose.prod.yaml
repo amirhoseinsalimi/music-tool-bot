@@ -5,18 +5,16 @@ services:
     image: postgres:16-alpine
     container_name: music-tool-bot-backup
     entrypoint: ["/bin/bash", "/scripts/backup.sh"]
-    env_file:
-      - .env
     environment:
       BACKUP_DIR: /backups
       BACKUP_RETENTION: ${BACKUP_RETENTION}
+      BACKUP_INTERVAL: ${BACKUP_INTERVAL}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DATA_DIR: ${DATA_DIR}
-      BACKUP_INTERVAL: ${BACKUP_INTERVAL}
     volumes:
       - ./docker/backup/backup.sh:/scripts/backup.sh:ro
       - ./backups:/backups
@@ -30,8 +28,10 @@ services:
     image: postgres:16-alpine
     container_name: music-tool-bot-sweeper
     entrypoint: ["/bin/bash", "/scripts/sweeper.sh"]
-    env_file:
-      - .env
+    environment:
+      DATA_DIR: ${DATA_DIR}
+      SWEEPER_RETENTION_DAYS: ${SWEEPER_RETENTION_DAYS}
+      SWEEPER_INTERVAL: ${SWEEPER_INTERVAL}
     volumes:
       - ./docker/sweeper/sweeper.sh:/scripts/sweeper.sh:ro
       - bot_data:/data:rw
