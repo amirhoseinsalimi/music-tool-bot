@@ -4,7 +4,6 @@ from telegram.ext import CallbackContext
 from telegram.ext._utils.types import UD
 
 from config.modules import Module
-from utils.fs import delete_all_user_files
 from .i18n import t
 
 
@@ -129,15 +128,14 @@ def unset_current_module(user_data: UD) -> None:
 
 def reset_user_data_context(user_id: int, user_data: UD) -> None:
     """
-    Resets the user data session. It deletes all files that were created by the bot for this user, and resets all
-    values in the ``user_data`` dictionary. The language value is not reset, as it should be kept between sessions.
+    Resets the user data session. Resets all values in the ``user_data`` dictionary.
+    The language value is not reset, as it should be kept between sessions.
+    User files are preserved on disk and cleaned up periodically by the sweeper service.
 
     :param user_id: int: The user's ``user_id``
     :param user_data: UD: The ``user_data`` object
     """
     language = get_user_language_or_fallback(user_data) if ('language' in user_data) else 'en'
-
-    delete_all_user_files(user_id)
 
     new_user_data = {
         'tag_editor': {},
