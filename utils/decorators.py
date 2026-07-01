@@ -6,6 +6,8 @@ from telegram.ext import ContextTypes
 from database.models import User
 from .context import SessionUser
 from .logging import get_logger
+from datetime import datetime, timezone
+
 from .misc import get_effective_user_id, get_effective_user_username
 
 logger = get_logger(__name__)
@@ -30,20 +32,16 @@ def upsert_user(function):
 
             logger.info("User %s started using the bot", user_id)
         else:
-            needs_save = False
-
             if username and user.username != username:
                 logger.info("User %s changed username from %s to %s", user_id, user.username, username)
                 user.username = username
-                needs_save = True
 
             if user.user_status_id != 1:
                 logger.info("User %s is interacting again. Resetting status to active.", user_id)
                 user.user_status_id = 1
-                needs_save = True
 
-            if needs_save:
-                user.save()
+            user.last_interaction_at = datetime.now(timezone.utc)
+            user.save()
 
         context.user_data['user'] = SessionUser(
             user_id=user.user_id,
