@@ -87,7 +87,7 @@ async def show_stats(update: Update) -> None:
      - The number of English and Persian users
      - The number & size of the files on the disk
      - How much disk space is occupied.
-     - Active / inactive / monthly active / churned user counts
+     - Daily / weekly / monthly active / active / inactive / churned user counts
 
     :param update: Update: The ``update`` object
     """
@@ -111,13 +111,17 @@ async def show_stats(update: Update) -> None:
     status_totals: dict[str, int] = {'active': 0, 'blocked': 0, 'deleted': 0}
 
     now = datetime.now(timezone.utc).replace(tzinfo=None)
-    active_cutoff = now - timedelta(days=ACTIVE_DAYS)
+    daily_cutoff = now - timedelta(hours=24)
+    weekly_cutoff = now - timedelta(hours=168)
     monthly_active_cutoff = now - timedelta(days=MONTHLY_ACTIVE_DAYS)
+    active_cutoff = now - timedelta(days=ACTIVE_DAYS)
 
     total_users = 0
+    daily_users = 0
+    weekly_users = 0
+    monthly_active_users = 0
     active_users_90d = 0
     inactive_users = 0
-    monthly_active_users = 0
     churned_users = 0
 
     for user in User.all():
@@ -140,25 +144,30 @@ async def show_stats(update: Update) -> None:
         status_totals[status] += 1
         total_users += 1
 
-        updated_at = getattr(user, 'updated_at', None)
-        number_of_files = getattr(user, 'number_of_files_sent', 0)
+        last_interaction_at = getattr(user, 'last_interaction_at', None)
 
-        if number_of_files == 0:
+        if last_interaction_at is None:
             inactive_users += 1
-        elif updated_at and isinstance(updated_at, datetime):
-            if updated_at.tzinfo is not None:
-                updated_at = updated_at.replace(tzinfo=None)
+        elif isinstance(last_interaction_at, datetime):
+            if last_interaction_at.tzinfo is not None:
+                last_interaction_at = last_interaction_at.replace(tzinfo=None)
 
-            if updated_at >= monthly_active_cutoff:
+            if last_interaction_at >= daily_cutoff:
+                daily_users += 1
+                weekly_users += 1
                 monthly_active_users += 1
                 active_users_90d += 1
-            elif updated_at >= active_cutoff:
+            elif last_interaction_at >= weekly_cutoff:
+                weekly_users += 1
+                monthly_active_users += 1
+                active_users_90d += 1
+            elif last_interaction_at >= monthly_active_cutoff:
+                monthly_active_users += 1
+                active_users_90d += 1
+            elif last_interaction_at >= active_cutoff:
                 active_users_90d += 1
             else:
                 churned_users += 1
-        elif number_of_files > 0:
-            active_users_90d += 1
-            monthly_active_users += 1
 
     downloads_dir_size = pretty_print_size(get_dir_size_in_bytes(DOWNLOAD_DIR_PATH))
     number_of_downloaded_files = len(os.listdir(DOWNLOAD_DIR_PATH))
@@ -189,9 +198,11 @@ async def show_stats(update: Update) -> None:
             f"  🚫 Blocked: {status_totals['blocked']}\n"
             f"  🗑 Deleted: {status_totals['deleted']}\n\n"
             f"📈 Usage stats:\n"
-            f"  🟢 Active (90d): {active_users_90d}\n"
+            f"  🟢 Daily (24h): {daily_users}\n"
+            f"  🟡 Weekly (7d): {weekly_users}\n"
             f"  🔵 Monthly Active (30d): {monthly_active_users}\n"
-            f"  ⚪ Inactive (0 files): {inactive_users}\n"
+            f"  🟣 Active (90d): {active_users_90d}\n"
+            f"  ⚪ Inactive (no interaction): {inactive_users}\n"
             f"  🔴 Churned (90d+ idle): {churned_users}\n\n"
             f"🌐 By language:\n"
             f"{language_lines}\n\n"
