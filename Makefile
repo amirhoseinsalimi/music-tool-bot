@@ -2,7 +2,6 @@ BOT_NAME      ?= music-tool-bot
 ENTRYPOINT    ?= bot.py
 MIGRATIONS_DIR?= database/migrations
 SEEDS_DIR     ?= database/seeds
-SEED_CLASS    ?= Owner
 
 COMPOSE       ?= docker compose
 COMPOSE_PROD  ?= $(COMPOSE) -f docker-compose.yaml -f docker-compose.prod.yaml
@@ -39,8 +38,8 @@ db-refresh: ## Roll back all migrations and re-run them (destructive)
 db-status: ## Print the status of migrations
 	poetry run masonite-orm migrate:status -d $(MIGRATIONS_DIR)
 
-db-seed: ## Seed the owner-level admin row
-	poetry run masonite-orm seed:run $(SEED_CLASS) -d $(SEEDS_DIR)
+db-seed: ## Run all database seeders (DatabaseSeeder)
+	poetry run masonite-orm seed:run -d $(SEEDS_DIR)
 
 test: ## Run the test suite (not implemented yet)
 	@echo "Not implemented yet"
