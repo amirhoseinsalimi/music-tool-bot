@@ -26,7 +26,7 @@ do_backup() {
         DB_DUMP_FILE="${BACKUP_DIR}/postgres_${TIMESTAMP}.sql.gz"
         log "Backing up PostgreSQL database '${DB_DATABASE}' -> ${DB_DUMP_FILE}"
 
-        PGPASSWORD="${DB_PASSWORD}" pg_dump \
+        if PGPASSWORD="${DB_PASSWORD}" pg_dump \
             -h "${DB_HOST}" \
             -p "${DB_PORT}" \
             -U "${DB_USERNAME}" \
@@ -35,10 +35,12 @@ do_backup() {
             --if-exists \
             --no-owner \
             --no-privileges \
-            2>/dev/null \
-            | gzip > "${DB_DUMP_FILE}"
-
-        log "PostgreSQL backup completed: $(du -h "${DB_DUMP_FILE}" | cut -f1)"
+            | gzip > "${DB_DUMP_FILE}"; then
+            log "PostgreSQL backup completed: $(du -h "${DB_DUMP_FILE}" | cut -f1)"
+        else
+            log "ERROR: PostgreSQL backup failed — removing partial dump"
+            rm -f "${DB_DUMP_FILE}"
+        fi
     else
         log "WARNING: DB_DATABASE, DB_USERNAME, or DB_PASSWORD not set — skipping PostgreSQL backup"
     fi
@@ -47,12 +49,21 @@ do_backup() {
     if [[ -d "${DATA_DIR}" && -n "$(ls -A "${DATA_DIR}" 2>/dev/null)" ]]; then
         log "Archiving bot data '${DATA_DIR}' -> ${DATA_ARCHIVE}"
 
-        tar -czf "${DATA_ARCHIVE}" \
-            --transform="s|^/|bot_data/|" \
-            -C / \
-            "${DATA_DIR#/}" 2>/dev/null
+        # NOTE: this image is Alpine (postgres:16-alpine) and ships BusyBox tar,
+        # which does NOT support GNU options like --transform. Archive the
+        # directory contents directly (-C "${DATA_DIR}" .) instead. Success is
+        # judged by "archive exists and is non-empty", not by exit code, since
+        # tar exit-code semantics differ between BusyBox and GNU and a live data
+        # dir can make tar exit non-zero even when the archive is fine.
+        tar -czf "${DATA_ARCHIVE}" -C "${DATA_DIR}" . 2>/dev/null \
+            && tar_status=0 || tar_status=$?
 
-        log "Bot data archive completed: $(du -h "${DATA_ARCHIVE}" | cut -f1)"
+        if [[ -s "${DATA_ARCHIVE}" ]]; then
+            log "Bot data archive completed (tar exit ${tar_status}): $(du -h "${DATA_ARCHIVE}" | cut -f1)"
+        else
+            log "ERROR: bot data archive failed (tar exit ${tar_status}) — removing partial archive"
+            rm -f "${DATA_ARCHIVE}"
+        fi
     else
         log "WARNING: '${DATA_DIR}' is empty or does not exist — skipping bot data archive"
     fi
@@ -73,11 +84,11 @@ log "  DB host:    ${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 log "  Data dir:   ${DATA_DIR}"
 echo
 
-do_backup
+do_backup || log "ERROR: backup cycle failed — will retry next interval"
 
 while true; do
     log "Next backup in $(( BACKUP_INTERVAL / 3600 )) hour(s)..."
     sleep "${BACKUP_INTERVAL}"
     TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
-    do_backup
+    do_backup || log "ERROR: backup cycle failed — will retry next interval"
 done
