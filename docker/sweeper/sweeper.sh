@@ -44,10 +44,10 @@ log "  Data dir:     ${DATA_DIR}"
 log "  Downloads:    ${DOWNLOADS_DIR}"
 echo
 
-do_sweep
+do_sweep || log "ERROR: sweep cycle failed — will retry next interval"
 
 while true; do
     log "Next sweep in $(( SWEEPER_INTERVAL / 3600 )) hour(s)..."
     sleep "${SWEEPER_INTERVAL}"
-    do_sweep
+    do_sweep || log "ERROR: sweep cycle failed — will retry next interval"
 done
