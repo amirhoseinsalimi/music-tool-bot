@@ -75,14 +75,14 @@ async def list_users_if_user_is_admin(update: Update, _context: CallbackContext)
     await list_users(update, get_list_limit(message=get_message_text(update)))
 
 
-async def send_to_all_command(update: Update, context: CallbackContext) -> int:
+async def broadcast_command(update: Update, context: CallbackContext) -> int:
     """
     Starts the process of sending a message to all users, optionally filtered by language.
 
     Usage:
-        /sendtoall      - broadcast to all users
-        /sendtoall en   - broadcast only to users with language 'en'
-        /sendtoall ru   - broadcast only to users with language 'ru'
+        /broadcast      - broadcast to all users
+        /broadcast en   - broadcast only to users with language 'en'
+        /broadcast ru   - broadcast only to users with language 'ru'
 
     The language code should be an ISO-639-1 (two-letter) code.
 
@@ -106,7 +106,7 @@ async def send_to_all_command(update: Update, context: CallbackContext) -> int:
     msg = "✅ Now send the message you want to send to all users."
     if language_code:
         msg += f"\n🌐 Broadcast will be limited to users with language: <code>{language_code}</code>"
-    msg += "\n\n❌ Use /cancel_sendtoall to cancel."
+    msg += "\n\n❌ Use /cancel_broadcast to cancel."
 
     await update.message.reply_text(msg, parse_mode="HTML")
 
@@ -118,12 +118,12 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     Starts a new thread to broadcast the message to users (optionally filtered by language)
     without blocking the bot.
 
-    If a language filter was set via ``/sendtoall <lang>``, the broadcast will only be sent
+    If a language filter was set via ``/broadcast <lang>``, the broadcast will only be sent
     to users whose stored language code matches. Otherwise, it broadcasts to all users.
 
     This function retrieves the target users and starts broadcasting the message to them
     in a background thread. The broadcasting process can be canceled at any time
-    using ``/cancel_sendtoall``. Messages will stop sending as soon as cancellation is triggered.
+    using ``/cancel_broadcast``. Messages will stop sending as soon as cancellation is triggered.
 
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
@@ -317,7 +317,7 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-async def cancel_send_to_all(update: Update, context: CallbackContext) -> int:
+async def cancel_broadcast(update: Update, context: CallbackContext) -> int:
     """
     Cancels the broadcasting process immediately.
 
