@@ -7,9 +7,9 @@ from telegram.ext import (
 )
 
 from .handlers import (
-    send_to_all_command,
+    broadcast_command,
     handle_admin_message,
-    cancel_send_to_all,
+    cancel_broadcast,
     add_admin_if_user_is_owner,
     list_users_if_user_is_admin,
     show_stats_if_user_is_admin,
@@ -30,18 +30,18 @@ def registry() -> list[BaseHandler]:
     """
     return [
         ConversationHandler(
-            entry_points=[CommandHandler('sendtoall', send_to_all_command)],
+            entry_points=[CommandHandler('broadcast', broadcast_command)],
             states={
                 AWAITING_MESSAGE: [MessageHandler(filters.ALL & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_message)]
             },
-            fallbacks=[CommandHandler('cancel_sendtoall', cancel_send_to_all)],
+            fallbacks=[CommandHandler('cancel_broadcast', cancel_broadcast)],
             conversation_timeout=CONVERSATION_TIMEOUT
         ),
         CommandHandler('addadmin', add_admin_if_user_is_owner),
         CommandHandler('deladmin', del_admin_if_user_is_owner),
         CommandHandler('stats', show_stats_if_user_is_admin),
         CommandHandler('listusers', list_users_if_user_is_admin),
-        CommandHandler('cancel_sendtoall', cancel_send_to_all),
+        CommandHandler('cancel_broadcast', cancel_broadcast),
     ]
 
 
