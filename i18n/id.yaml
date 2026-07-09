@@ -1,0 +1,158 @@
+id:
+  startMessage: |
+    Halo! 👋
+    Ayo mulai. Kirimkan saja sebuah musik dan lihat betapa hebatnya aku!
+  chooseLanguage: "Silakan pilih bahasa:"
+  startOverMessage: Kirimkan aku sebuah musik dan lihat betapa hebatnya aku!
+  helpMessage: |
+    Mudah saja! Cukup kirim atau teruskan sebuah trek audio, berkas MP3, atau musik kepadaku. Aku menunggu… 😁
+
+    Omong-omong, jika kamu mengalami masalah saat memproses berkasmu, kirim perintah /new untuk memulai dari awal.
+  aboutMessage: |
+    Bot ini dibuat oleh @amirhoseinsalimi menggunakan Python.
+    Kode sumber proyek ini tersedia di <a href="https://github.com/amirhoseinsalimi/music-tool-bot">GitHub</a>.
+    Versi: {version}
+
+    Jika kamu punya pertanyaan atau masukan, jangan ragu mengirim pesan kepadaku di Telegram.
+    Jika kamu seorang pengembang dan punya ide untuk menyempurnakan bot ini, aku menyambut pull request-mu.
+  defaultMessage: "Kirim atau teruskan sebuah trek audio, berkas MP3, atau musik kepadaku. Aku menunggu… 😁"
+  askWhichModule: Apa yang ingin kamu lakukan dengan berkas ini?
+  askWhichTag: Tag mana yang ingin kamu sunting?
+  askForAlbum: |
+    Masukkan nama album:
+  askForArtist: |
+    Masukkan nama artis:
+  askForTitle: |
+    Masukkan judul:
+  askForGenre: |
+    Masukkan genre:
+  askForYear: |
+    Masukkan tahun rilis:
+  askForAlbumArt: |
+    Kirimkan aku sebuah foto:
+  askForDiskNumber: |
+    Masukkan nomor disk:
+  askForTrackNumber: |
+    Masukkan nomor trek:
+  albumArtChanged: Sampul album telah diubah
+  expectedNumberMessage: |
+    Kamu memasukkan teks alih-alih angka. Meski ini bukan masalah, sepertinya kamu memasukkannya karena keliru.
+  musicMetadataTemplate: |
+    <b>🗣 Artis:</b> {artist}
+    <b>🎵 Judul:</b> {title}
+    <b>🎼 Album:</b> {album}
+    <b>🎹 Genre:</b> {genre}
+    <b>📅 Tahun:</b> {year}
+    <b>💿 Nomor Disk:</b> {disknumber}
+    <b>▶️ Nomor Trek:</b> {tracknumber}
+  clickPreviewMessage: Jika ingin melihat pratinjau perubahanmu, klik /preview.
+  clickDoneMessage: Klik /done untuk menyimpan perubahanmu.
+  languageChanged: Bahasa telah diubah. Jika nanti ingin mengubah bahasa, gunakan perintah /language.
+  musicLength: "Durasi berkas adalah {length}."
+  reportBugMessage: "Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
+  errCreatingUserFolder: "Terjadi kesalahan saat memulai… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
+  errOnDownloadAudioMessage: "Maaf, aku tidak bisa mengunduh berkasmu… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
+  errOnConvertingM4a: "Maaf, aku tidak bisa mengonversi berkas m4a-mu… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
+  errOnDownloadPhotoMessage: "Maaf, aku tidak bisa mengunduh berkasmu… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
+  errTooLargeFile: "Berkas ini terlalu besar untuk bisa kuproses, maaf!"
+  errOnReadingTags: "Maaf, aku tidak bisa membaca tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
+  errOnUpdatingTags: "Maaf, aku tidak bisa memperbarui tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
+  errOnUploading: "Maaf, karena masalah jaringan, aku tidak bisa mengunggah berkasmu. Silakan coba lagi."
+  errNotImplemented: "Fitur ini belum diimplementasikan. Maaf!"
+  errOutOfRange: "Rentang yang kamu masukkan melebihi durasi berkas yang sebenarnya. Durasi berkas adalah {length}."
+  errMalformedRange: "Kamu memasukkan pola yang tidak valid. Silakan coba lagi. {note}"
+  errBeginningPointIsGreater: Titik akhir harus lebih besar daripada titik awal.
+  btnTagAndArtEditor: "🎵 Editor Tag/Sampul"
+  btnMusicToVoiceConverter: "🗣 Konverter Musik ke Suara"
+  btnMusicCutter: "✂️ Pemotong Musik"
+  btnBitrateChanger: "🎙 Pengubah Bitrate"
+  btnArtist: "🗣 Artis"
+  btnTitle: "🎵 Judul"
+  btnAlbum: "🎼 Album"
+  btnGenre: "🎹 Genre"
+  btnYear: "📅 Tahun"
+  btnAlbumArt: "🖼 Sampul Album"
+  btnRemoveAlbumArt: "🧹 Hapus Sampul Album"
+  btnDiskNumber: "💿 Nomor Disk"
+  btnTrackNumber: "▶️ Nomor Trek"
+  btnBack: "🔙 Kembali"
+  btnNewFile: "🆕 Berkas Baru"
+  musicCutterHelp: |
+    Sekarang beri tahu aku <b>bagian musik mana</b> yang ingin kamu potong?
+
+    Durasi berkas adalah <code>{length}</code> detik.
+
+    <b>Pola yang valid:</b>
+    <code>mm:ss-mm:ss</code>
+    misalnya <code>00:10-02:30</code>
+
+    <code>ss-ss</code>
+    misalnya <code>75-120</code>
+
+    <b>Catatan:</b>
+    - m = menit, s = detik
+    - Angka nol di depan bersifat opsional
+    - Spasi berlebih akan diabaikan
+    - Hanya angka Inggris yang valid
+  fromTo: |
+    <b>Dari</b>: {fromSecond}
+    <b>Sampai</b>: {toSecond}
+  bitrateChangerHelp: |
+    Sekarang beri tahu aku bitrate yang kamu inginkan untuk berkasmu.
+    Kamu bisa memilih bitrate yang diinginkan dari menu di bawah ini.
+  donationMessage: |
+    Terima kasih atas ketertarikanmu untuk mendukung karyaku. Aku seorang pengembang dan menjalankan bot Telegram ini sebagai hobi.
+    Donasimu akan membantuku terus mengembangkan dan menyempurnakan bot ini. Jika kamu ingin berdonasi, kamu bisa menggunakan metode berikut. Terima kasih sebelumnya atas dukunganmu.
+  donateMessageBitcoin: |
+    Ini dompet BTC-ku.
+
+    <code>{btc_wallet_address}</code>
+
+    Terima kasih sebelumnya atas dukunganmu.
+  donateMessageEthereum: |
+    Ini dompet ETH-ku.
+
+    <code>{eth_wallet_address}</code>
+
+    Terima kasih sebelumnya atas dukunganmu.
+  donateMessageTron: |
+    Ini dompet TRX-ku.
+
+    <code>{trx_wallet_address}</code>
+
+    Terima kasih sebelumnya atas dukunganmu.
+  donateMessageTether: |
+    Ini dompet-dompet USDT-ku.
+
+    TRC20:
+    <code>{usdt_trc20_wallet_address}</code>
+
+    ERC20:
+    <code>{usdt_erc20_wallet_address}</code>
+
+    Terima kasih sebelumnya atas dukunganmu.
+  donateMessageShiba: |
+    Ini dompet-dompet SHIB-ku.
+
+    BEP20:
+    <code>{shiba_bep20_wallet_address}</code>
+
+    ERC20:
+    <code>{shiba_erc20_wallet_address}</code>
+
+    Terima kasih sebelumnya atas dukunganmu.
+  donateMessageDogeCoin: |
+    Ini dompet DOGE-ku.
+
+    <code>{doge_wallet_address}</code>
+
+    Terima kasih sebelumnya atas dukunganmu.
+  donateMessageZarinPal: |
+    Ini hanya ditujukan untuk pengguna dari Iran. Jika kamu berada di luar negeri dan ingin berdonasi, kamu bisa memilih opsi kripto.
+
+    Ini ZarinLink-ku: <a href="{zarin_link_address}">ZarinLink</a>
+
+    Terima kasih sebelumnya atas dukunganmu.
+  uploading: "Mengunggah… Mohon tunggu."
+  done: Selesai!
+  or: atau

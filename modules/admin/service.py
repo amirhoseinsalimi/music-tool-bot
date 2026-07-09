@@ -97,6 +97,8 @@ async def show_stats(update: Update) -> None:
         'es': 0,
         'fr': 0,
         'ar': 0,
+        'hi': 0,
+        'id': 0,
     }
 
     active_status = UserStatus.where('slug', 'active').first()
@@ -182,6 +184,8 @@ async def show_stats(update: Update) -> None:
         'es': '🇪🇸 Spanish',
         'fr': '🇫🇷 French',
         'ar': '🇸🇦 Arabic',
+        'hi': '🇮🇳 Hindi',
+        'id': '🇮🇩 Indonesian',
     }
 
     language_lines = '\n'.join(

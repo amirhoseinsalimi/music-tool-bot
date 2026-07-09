@@ -65,7 +65,9 @@ def registry() -> list[BaseHandler]:
              filters.Regex('^(🔙 Назад)$') |
              filters.Regex('^(🔙 Atrás)$') |
              filters.Regex('^(🔙 Retour)$') |
-             filters.Regex('^(🔙 رجوع)$')),
+             filters.Regex('^(🔙 رجوع)$') |
+             filters.Regex('^(🔙 वापस)$') |
+             filters.Regex('^(🔙 Kembali)$')),
             show_module_selector),
         MessageHandler(
             (filters.Regex('^(🆕 New File)$') |
@@ -73,7 +75,9 @@ def registry() -> list[BaseHandler]:
              filters.Regex('^(🆕 Новый файл)$') |
              filters.Regex('^(🆕 Nuevo Archivo)$') |
              filters.Regex('^(🆕 Nouveau fichier)$') |
-             filters.Regex('^(🆕 ملف جديد)$')),
+             filters.Regex('^(🆕 ملف جديد)$') |
+             filters.Regex('^(🆕 नई फ़ाइल)$') |
+             filters.Regex('^(🆕 Berkas Baru)$')),
             start_over),
 
         MessageHandler(filters.AUDIO, handle_music_message),
