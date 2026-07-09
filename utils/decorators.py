@@ -1,16 +1,22 @@
+from datetime import datetime, timezone
 from functools import wraps
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from database.models import User
+from database.models import Language, User
 from .context import SessionUser
 from .logging import get_logger
-from datetime import datetime, timezone
-
 from .misc import get_effective_user_id, get_effective_user_username
 
 logger = get_logger(__name__)
+
+
+def _get_default_language_id() -> int | None:
+    """Get the ID of the default language, or ``None`` if none is marked as default."""
+    default_language = Language.where('is_default', True).first()
+
+    return default_language.id if default_language else None
 
 
 def upsert_user(function):
@@ -25,7 +31,7 @@ def upsert_user(function):
             user = User.create({
                 'user_id': user_id,
                 'username': username,
-                'language': 'en',
+                'language_id': _get_default_language_id(),
                 'number_of_files_sent': 0,
                 'user_status_id': 1,
             })
