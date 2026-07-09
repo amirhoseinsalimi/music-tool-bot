@@ -15,7 +15,9 @@ def registry() -> list[BaseHandler]:
                 filters.Regex('^(✂️ Обрезка музыки)$') |
                 filters.Regex('^(✂️ Cortador de Música)$') |
                 filters.Regex('^(✂️ Découpe Musique)$') |
-                filters.Regex('^(✂️ قصّ المقطع الموسيقي)$')
+                filters.Regex('^(✂️ قصّ المقطع الموسيقي)$') |
+                filters.Regex('^(✂️ म्यूज़िक कटर)$') |
+                filters.Regex('^(✂️ Pemotong Musik)$')
             ),
             show_cutter_help
         )

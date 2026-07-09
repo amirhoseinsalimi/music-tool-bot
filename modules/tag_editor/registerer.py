@@ -29,39 +29,31 @@ def registry() -> list[BaseHandler]:
                     filters.Regex('^(🎵 Редактор тегов/обложки)$') |
                     filters.Regex('^(🎵 Editor de Etiquetas/Portada)$') |
                     filters.Regex('^(🎵 Éditeur Tags/Pochette)$') |
-                    filters.Regex('^(🎵 محرّر الوسوم/الصور)$')
+                    filters.Regex('^(🎵 محرّر الوسوم/الصور)$') |
+                    filters.Regex('^(🎵 टैग/आर्ट एडिटर)$') |
+                    filters.Regex('^(🎵 Editor Tag/Sampul)$')
             ),
             ask_which_tag_to_edit
         ),
         MessageHandler(
             (
-                    filters.Regex('^(🎵 Title)$') | filters.Regex('^(🎵 عنوان)$') | filters.Regex(
-                '^(🎵 Название)$') | filters.Regex('^(🎵 Título)$') | filters.Regex('^(🎵 Titre)$') | filters.Regex(
-                '^(🎵 العنوان)$') |
-                    filters.Regex('^(🗣 Artist)$') | filters.Regex('^(🗣 آرتیست)$') | filters.Regex(
-                '^(🗣 Исполнитель)$') | filters.Regex('^(🗣 Artista)$') | filters.Regex('^(🗣 Artiste)$') | filters.Regex(
-                '^(🗣 الفنان)$') |
-                    filters.Regex('^(🎼 Album)$') | filters.Regex('^(🎼 آلبوم)$') | filters.Regex(
-                '^(🎼 Альбом)$') | filters.Regex('^(🎼 Álbum)$') | filters.Regex('^(🎼 Album)$') | filters.Regex(
-                '^(🎼 الألبوم)$') |
-                    filters.Regex('^(🎹 Genre)$') | filters.Regex('^(🎹 سبک)$') | filters.Regex(
-                '^(🎹 Жанр)$') | filters.Regex('^(🎹 Género)$') | filters.Regex('^(🎹 Genre)$') | filters.Regex(
-                '^(🎹 النوع)$') |
-                    filters.Regex('^(🖼 Album Art)$') | filters.Regex('^(🖼 عکس آلبوم)$') | filters.Regex(
-                '^(🖼 Обложка альбома)$') | filters.Regex('^(🖼 Portada del Álbum)$') | filters.Regex(
-                '^(🖼 Pochette)$') | filters.Regex('^(🖼 صورة الألبوم)$') |
-                    filters.Regex('^(🧹 Remove Album Art)$') | filters.Regex('^(🧹 حذف عکس آلبوم)$') | filters.Regex(
-                '^(🧹 Удалить обложку)$') | filters.Regex('^(🧹 Eliminar Portada)$') | filters.Regex(
-                '^(🧹 Supprimer la pochette)$') | filters.Regex('^(🧹 إزالة صورة الألبوم)$') |
-                    filters.Regex('^(📅 Year)$') | filters.Regex('^(📅 سال)$') | filters.Regex(
-                '^(📅 Год)$') | filters.Regex('^(📅 Año)$') | filters.Regex('^(📅 Année)$') | filters.Regex(
-                '^(📅 السنة)$') |
-                    filters.Regex('^(💿 Disk Number)$') | filters.Regex('^(💿 شماره دیسک)$') | filters.Regex(
-                '^(💿 Номер диска)$') | filters.Regex('^(💿 Número de Disco)$') | filters.Regex(
-                '^(💿 Numéro de disque)$') | filters.Regex('^(💿 رقم القرص)$') |
-                    filters.Regex('^(▶️ Track Number)$') | filters.Regex('^(▶️ شماره ترک)$') | filters.Regex(
-                '^(▶️ Номер трека)$') | filters.Regex('^(▶️ Número de Pista)$') | filters.Regex(
-                '^(▶️ Numéro de piste)$') | filters.Regex('^(▶️ رقم المقطع)$')
+                    filters.Regex('^(🎵 Title|🎵 عنوان|🎵 Название|🎵 Título|🎵 Titre|🎵 العنوان|🎵 शीर्षक|🎵 Judul)$') |
+                    filters.Regex('^(🗣 Artist|🗣 آرتیست|🗣 Исполнитель|🗣 Artista|🗣 Artiste|🗣 الفنان|🗣 कलाकार|🗣 Artis)$') |
+                    filters.Regex('^(🎼 Album|🎼 آلبوم|🎼 Альбом|🎼 Álbum|🎼 Album|🎼 الألبوم|🎼 एल्बम|🎼 Album)$') |
+                    filters.Regex('^(🎹 Genre|🎹 سبک|🎹 Жанр|🎹 Género|🎹 Genre|🎹 النوع|🎹 शैली|🎹 Genre)$') |
+                    filters.Regex(
+                        '^(🖼 Album Art|🖼 عکس آلبوم|🖼 Обложка альбома|🖼 Portada del Álbum|🖼 Pochette|🖼 صورة الألبوم'
+                        '|🖼 एल्बम आर्ट|🖼 Sampul Album)$') |
+                    filters.Regex(
+                        '^(🧹 Remove Album Art|🧹 حذف عکس آلبوم|🧹 Удалить обложку|🧹 Eliminar Portada'
+                        '|🧹 Supprimer la pochette|🧹 إزالة صورة الألبوم|🧹 एल्बम आर्ट हटाएँ|🧹 Hapus Sampul Album)$') |
+                    filters.Regex('^(📅 Year|📅 سال|📅 Год|📅 Año|📅 Année|📅 السنة|📅 वर्ष|📅 Tahun)$') |
+                    filters.Regex(
+                        '^(💿 Disk Number|💿 شماره دیسک|💿 Номер диска|💿 Número de Disco|💿 Numéro de disque'
+                        '|💿 رقم القرص|💿 डिस्क नंबर|💿 Nomor Disk)$') |
+                    filters.Regex(
+                        '^(▶️ Track Number|▶️ شماره ترک|▶️ Номер трека|▶️ Número de Pista|▶️ Numéro de piste'
+                        '|▶️ رقم المقطع|▶️ ट्रैक नंबर|▶️ Nomor Trek)$')
             ),
             ask_for_tag
         )

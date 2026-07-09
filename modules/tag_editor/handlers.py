@@ -395,43 +395,47 @@ async def ask_for_tag(update: Update, context: CallbackContext) -> None:
 
     message_text = get_message_text(update)
 
-    if re.match('^(🎵 Title|🎵 عنوان|🎵 Название|🎵 Título|🎵 Titre|🎵 العنوان)$', message_text):
+    if re.match('^(🎵 Title|🎵 عنوان|🎵 Название|🎵 Título|🎵 Titre|🎵 العنوان|🎵 शीर्षक|🎵 Judul)$', message_text):
         await ask_for_title(update, user_data, language)
         return
 
-    if re.match('^(🗣 Artist|🗣 آرتیست|🗣 Исполнитель|🗣 Artista|🗣 Artiste|🗣 الفنان)$', message_text):
+    if re.match('^(🗣 Artist|🗣 آرتیست|🗣 Исполнитель|🗣 Artista|🗣 Artiste|🗣 الفنان|🗣 कलाकार|🗣 Artis)$', message_text):
         await ask_for_artist(update, user_data, language)
         return
 
-    if re.match('^(🎼 Album|🎼 آلبوم|🎼 Альбом|🎼 Álbum|🎼 Album|🎼 الألبوم)$', message_text):
+    if re.match('^(🎼 Album|🎼 آلبوم|🎼 Альбом|🎼 Álbum|🎼 Album|🎼 الألبوم|🎼 एल्बम|🎼 Album)$', message_text):
         await ask_for_album(update, user_data, language)
         return
 
-    if re.match('^(🖼 Album Art|🖼 عکس آلبوم|🖼 Обложка альбома|🖼 Portada del Álbum|🖼 Pochette|🖼 صورة الألبوم)$',
+    if re.match('^(🖼 Album Art|🖼 عکس آلبوم|🖼 Обложка альбома|🖼 Portada del Álbum|🖼 Pochette|🖼 صورة الألبوم'
+                '|🖼 एल्बम आर्ट|🖼 Sampul Album)$',
                 message_text):
         await ask_for_album_art(update, user_data, language)
         return
 
     if re.match(
-            '^(🧹 Remove Album Art|🧹 حذف عکس آلبوم|🧹 Удалить обложку|🧹 Eliminar Portada|🧹 Supprimer la pochette|🧹 إزالة صورة الألبوم)$',
+            '^(🧹 Remove Album Art|🧹 حذف عکس آلبوم|🧹 Удалить обложку|🧹 Eliminar Portada|🧹 Supprimer la pochette|🧹 إزالة صورة الألبوم'
+            '|🧹 एल्बम आर्ट हटाएँ|🧹 Hapus Sampul Album)$',
             message_text):
         await remove_album_art(update, user_data, language)
         return
 
-    if re.match('^(🎹 Genre|🎹 سبک|🎹 Жанр|🎹 Género|🎹 Genre|🎹 النوع)$', message_text):
+    if re.match('^(🎹 Genre|🎹 سبک|🎹 Жанр|🎹 Género|🎹 Genre|🎹 النوع|🎹 शैली|🎹 Genre)$', message_text):
         await ask_for_genre(update, user_data, language)
         return
 
-    if re.match('^(📅 Year|📅 سال|📅 Год|📅 Año|📅 Année|📅 السنة)$', message_text):
+    if re.match('^(📅 Year|📅 سال|📅 Год|📅 Año|📅 Année|📅 السنة|📅 वर्ष|📅 Tahun)$', message_text):
         await ask_for_year(update, user_data, language)
         return
 
-    if re.match('^(💿 Disk Number|💿 شماره دیسک|💿 Номер диска|💿 Número de Disco|💿 Numéro de disque|💿 رقم القرص)$',
+    if re.match('^(💿 Disk Number|💿 شماره دیسک|💿 Номер диска|💿 Número de Disco|💿 Numéro de disque|💿 رقم القرص'
+                '|💿 डिस्क नंबर|💿 Nomor Disk)$',
                 message_text):
         await ask_for_disknumber(update, user_data, language)
         return
 
-    if re.match('^(▶️ Track Number|▶️ شماره ترک|▶️ Номер трека|▶️ Número de Pista|▶️ Numéro de piste|▶️ رقم المقطع)$',
+    if re.match('^(▶️ Track Number|▶️ شماره ترک|▶️ Номер трека|▶️ Número de Pista|▶️ Numéro de piste|▶️ رقم المقطع'
+                '|▶️ ट्रैक नंबर|▶️ Nomor Trek)$',
                 message_text):
         await ask_for_tracknumber(update, user_data, language)
         return

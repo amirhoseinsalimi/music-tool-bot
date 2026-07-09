@@ -17,7 +17,9 @@ def registry() -> list[BaseHandler]:
              filters.Regex('^(🎙 Изменение битрейта)$') |
              filters.Regex('^(🎙 Cambiador de Bitrate)$') |
              filters.Regex('^(🎙 Modificateur de Bitrate)$') |
-             filters.Regex('^(🎙 تغيير معدل البت)$')),
+             filters.Regex('^(🎙 تغيير معدل البت)$') |
+             filters.Regex('^(🎙 बिटरेट चेंजर)$') |
+             filters.Regex('^(🎙 Pengubah Bitrate)$')),
             show_bitrate_changer_keyboard),
     ]
 

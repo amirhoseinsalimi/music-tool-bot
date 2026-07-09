@@ -1,0 +1,158 @@
+hi:
+  startMessage: |
+    नमस्ते! 👋
+    चलिए शुरू करते हैं। बस मुझे कोई म्यूज़िक भेजिए और देखिए मैं कितना कमाल का हूँ!
+  chooseLanguage: "कृपया एक भाषा चुनें:"
+  startOverMessage: मुझे कोई म्यूज़िक भेजिए और देखिए मैं कितना कमाल का हूँ!
+  helpMessage: |
+    बहुत आसान है! बस मुझे कोई ऑडियो ट्रैक, MP3 फ़ाइल या म्यूज़िक भेजिए या फ़ॉरवर्ड कीजिए। मैं इंतज़ार कर रहा हूँ… 😁
+
+    वैसे, अगर आपकी फ़ाइल प्रोसेस करने में कोई दिक़्क़त आ रही है, तो दोबारा शुरू करने के लिए /new कमांड भेजिए।
+  aboutMessage: |
+    यह बॉट @amirhoseinsalimi ने Python से बनाया है।
+    इस प्रोजेक्ट का सोर्स कोड <a href="https://github.com/amirhoseinsalimi/music-tool-bot">GitHub</a> पर उपलब्ध है।
+    वर्ज़न: {version}
+
+    अगर आपके कोई सवाल या सुझाव हों, तो मुझे Telegram पर बेझिझक संदेश भेजिए।
+    अगर आप डेवलपर हैं और इस बॉट को बेहतर बनाने के विचार रखते हैं, तो आपके पुल रिक्वेस्ट का स्वागत है।
+  defaultMessage: "मुझे कोई ऑडियो ट्रैक, MP3 फ़ाइल या म्यूज़िक भेजिए या फ़ॉरवर्ड कीजिए। मैं इंतज़ार कर रहा हूँ… 😁"
+  askWhichModule: आप इस फ़ाइल के साथ क्या करना चाहते हैं?
+  askWhichTag: आप कौन सा टैग एडिट करना चाहते हैं?
+  askForAlbum: |
+    एल्बम का नाम दर्ज करें:
+  askForArtist: |
+    कलाकार का नाम दर्ज करें:
+  askForTitle: |
+    शीर्षक दर्ज करें:
+  askForGenre: |
+    शैली दर्ज करें:
+  askForYear: |
+    प्रकाशन वर्ष दर्ज करें:
+  askForAlbumArt: |
+    मुझे एक फ़ोटो भेजें:
+  askForDiskNumber: |
+    डिस्क नंबर दर्ज करें:
+  askForTrackNumber: |
+    ट्रैक नंबर दर्ज करें:
+  albumArtChanged: एल्बम आर्ट बदल दिया गया
+  expectedNumberMessage: |
+    आपने संख्या की जगह टेक्स्ट दर्ज किया है। हालाँकि यह कोई समस्या नहीं है, मुझे लगता है कि यह ग़लती से दर्ज हुआ है।
+  musicMetadataTemplate: |
+    <b>🗣 कलाकार:</b> {artist}
+    <b>🎵 शीर्षक:</b> {title}
+    <b>🎼 एल्बम:</b> {album}
+    <b>🎹 शैली:</b> {genre}
+    <b>📅 वर्ष:</b> {year}
+    <b>💿 डिस्क नंबर:</b> {disknumber}
+    <b>▶️ ट्रैक नंबर:</b> {tracknumber}
+  clickPreviewMessage: अपने बदलाव देखने के लिए /preview पर क्लिक करें।
+  clickDoneMessage: अपने बदलाव सहेजने के लिए /done पर क्लिक करें।
+  languageChanged: भाषा बदल दी गई है। बाद में भाषा बदलने के लिए /language कमांड का उपयोग करें।
+  musicLength: "फ़ाइल की अवधि {length} है।"
+  reportBugMessage: "यह मेरी ग़लती है! कृपया बग रिपोर्ट यहाँ भेजें: @amirhoseinsalimi"
+  errCreatingUserFolder: "शुरू करने में त्रुटि… यह मेरी ग़लती है! कृपया बग रिपोर्ट यहाँ भेजें: @amirhoseinsalimi"
+  errOnDownloadAudioMessage: "क्षमा करें, मैं आपकी फ़ाइल डाउनलोड नहीं कर सका… यह मेरी ग़लती है! कृपया बग रिपोर्ट यहाँ भेजें: @amirhoseinsalimi"
+  errOnConvertingM4a: "क्षमा करें, मैं आपकी m4a फ़ाइल कन्वर्ट नहीं कर सका… यह मेरी ग़लती है! कृपया बग रिपोर्ट यहाँ भेजें: @amirhoseinsalimi"
+  errOnDownloadPhotoMessage: "क्षमा करें, मैं आपकी फ़ाइल डाउनलोड नहीं कर सका… यह मेरी ग़लती है! कृपया बग रिपोर्ट यहाँ भेजें: @amirhoseinsalimi"
+  errTooLargeFile: "यह फ़ाइल इतनी बड़ी है कि मैं इसे प्रोसेस नहीं कर सकता, क्षमा करें!"
+  errOnReadingTags: "क्षमा करें, मैं फ़ाइल के टैग नहीं पढ़ सका… यह मेरी ग़लती है! कृपया बग रिपोर्ट यहाँ भेजें: @amirhoseinsalimi"
+  errOnUpdatingTags: "क्षमा करें, मैं फ़ाइल के टैग अपडेट नहीं कर सका… यह मेरी ग़लती है! कृपया बग रिपोर्ट यहाँ भेजें: @amirhoseinsalimi"
+  errOnUploading: "क्षमा करें, नेटवर्क समस्या के कारण मैं आपकी फ़ाइल अपलोड नहीं कर सका। कृपया दोबारा कोशिश करें।"
+  errNotImplemented: "यह सुविधा अभी लागू नहीं की गई है। क्षमा करें!"
+  errOutOfRange: "आपने जो रेंज दर्ज की है वह फ़ाइल की वास्तविक अवधि से बाहर है। फ़ाइल की अवधि {length} है।"
+  errMalformedRange: "आपने ग़लत पैटर्न दर्ज किया है। कृपया दोबारा कोशिश करें। {note}"
+  errBeginningPointIsGreater: समाप्ति बिंदु प्रारंभ बिंदु से बड़ा होना चाहिए।
+  btnTagAndArtEditor: "🎵 टैग/आर्ट एडिटर"
+  btnMusicToVoiceConverter: "🗣 म्यूज़िक से वॉइस कन्वर्टर"
+  btnMusicCutter: "✂️ म्यूज़िक कटर"
+  btnBitrateChanger: "🎙 बिटरेट चेंजर"
+  btnArtist: "🗣 कलाकार"
+  btnTitle: "🎵 शीर्षक"
+  btnAlbum: "🎼 एल्बम"
+  btnGenre: "🎹 शैली"
+  btnYear: "📅 वर्ष"
+  btnAlbumArt: "🖼 एल्बम आर्ट"
+  btnRemoveAlbumArt: "🧹 एल्बम आर्ट हटाएँ"
+  btnDiskNumber: "💿 डिस्क नंबर"
+  btnTrackNumber: "▶️ ट्रैक नंबर"
+  btnBack: "🔙 वापस"
+  btnNewFile: "🆕 नई फ़ाइल"
+  musicCutterHelp: |
+    अब मुझे बताइए कि आप म्यूज़िक का <b>कौन सा हिस्सा</b> काटना चाहते हैं?
+
+    फ़ाइल की अवधि <code>{length}</code> सेकंड है।
+
+    <b>मान्य पैटर्न:</b>
+    <code>mm:ss-mm:ss</code>
+    जैसे <code>00:10-02:30</code>
+
+    <code>ss-ss</code>
+    जैसे <code>75-120</code>
+
+    <b>ध्यान दें:</b>
+    - m = मिनट, s = सेकंड
+    - शुरुआती शून्य वैकल्पिक हैं
+    - अतिरिक्त स्पेस अनदेखे कर दिए जाते हैं
+    - केवल अंग्रेज़ी अंक मान्य हैं
+  fromTo: |
+    <b>से</b>: {fromSecond}
+    <b>तक</b>: {toSecond}
+  bitrateChangerHelp: |
+    अब मुझे बताइए कि आप अपनी फ़ाइल किस बिटरेट पर चाहते हैं।
+    आप नीचे दिए गए मेनू से अपना मनचाहा बिटरेट चुन सकते हैं।
+  donationMessage: |
+    मेरे काम को समर्थन देने में रुचि दिखाने के लिए धन्यवाद। मैं एक डेवलपर हूँ और यह Telegram बॉट शौक़ के तौर पर चलाता हूँ।
+    आपका दान मुझे इस बॉट को विकसित और बेहतर बनाते रहने में मदद करेगा। अगर आप दान करना चाहें, तो नीचे दिए गए तरीक़ों का उपयोग कर सकते हैं। आपके समर्थन के लिए पहले से धन्यवाद।
+  donateMessageBitcoin: |
+    यह रहा मेरा BTC वॉलेट।
+
+    <code>{btc_wallet_address}</code>
+
+    आपके समर्थन के लिए पहले से धन्यवाद।
+  donateMessageEthereum: |
+    यह रहा मेरा ETH वॉलेट।
+
+    <code>{eth_wallet_address}</code>
+
+    आपके समर्थन के लिए पहले से धन्यवाद।
+  donateMessageTron: |
+    यह रहा मेरा TRX वॉलेट।
+
+    <code>{trx_wallet_address}</code>
+
+    आपके समर्थन के लिए पहले से धन्यवाद।
+  donateMessageTether: |
+    ये रहे मेरे USDT वॉलेट।
+
+    TRC20:
+    <code>{usdt_trc20_wallet_address}</code>
+
+    ERC20:
+    <code>{usdt_erc20_wallet_address}</code>
+
+    आपके समर्थन के लिए पहले से धन्यवाद।
+  donateMessageShiba: |
+    ये रहे मेरे SHIB वॉलेट।
+
+    BEP20:
+    <code>{shiba_bep20_wallet_address}</code>
+
+    ERC20:
+    <code>{shiba_erc20_wallet_address}</code>
+
+    आपके समर्थन के लिए पहले से धन्यवाद।
+  donateMessageDogeCoin: |
+    यह रहा मेरा DOGE वॉलेट।
+
+    <code>{doge_wallet_address}</code>
+
+    आपके समर्थन के लिए पहले से धन्यवाद।
+  donateMessageZarinPal: |
+    यह केवल ईरानी उपयोगकर्ताओं के लिए है। अगर आप देश से बाहर हैं और दान करना चाहते हैं, तो क्रिप्टो विकल्प चुन सकते हैं।
+
+    यह रहा मेरा ZarinLink: <a href="{zarin_link_address}">ZarinLink</a>
+
+    आपके समर्थन के लिए पहले से धन्यवाद।
+  uploading: "अपलोड हो रहा है… कृपया प्रतीक्षा करें।"
+  done: हो गया!
+  or: या
