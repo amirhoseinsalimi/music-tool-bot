@@ -7,7 +7,7 @@ from telegram.error import Forbidden, BadRequest
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
 
-from database.models import User, UserStatus
+from database.models import Language, User, UserStatus
 from modules.admin.utils import is_admin_owner, is_user_admin
 from utils import get_effective_user_id, get_message_text
 from utils.logging import get_logger
@@ -136,7 +136,8 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     language_code = context.user_data.pop("broadcast_language", None)
 
     if language_code:
-        users = User.where("language", "=", language_code).get()
+        language = Language.where('iso', '=', language_code).first()
+        users = User.where('language_id', '=', language.id).get() if language else []
     else:
         users = User.all()
 

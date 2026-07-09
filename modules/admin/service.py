@@ -10,7 +10,6 @@ from telegram import (
 )
 
 from config.constants import DOWNLOAD_DIR_PATH
-
 from database.models import (
     Admin,
     User,
@@ -125,7 +124,9 @@ async def show_stats(update: Update) -> None:
     churned_users = 0
 
     for user in User.all():
-        lang = user.language if user.language in language_counts else None
+        language = user.language
+        lang = language.iso if language and language.iso in language_counts else None
+
         user_status_id = getattr(user, 'user_status_id', None)
 
         if user_status_id == (active_status.id if active_status else None):
