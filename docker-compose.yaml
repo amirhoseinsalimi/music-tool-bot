@@ -9,7 +9,9 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-music_tool_bot}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-music_tool_bot_dev}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      # Bind to loopback only. Without the host IP Docker publishes on 0.0.0.0 and writes its own
+      # iptables rules, which bypass UFW and expose Postgres to the internet.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
