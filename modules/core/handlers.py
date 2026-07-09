@@ -14,6 +14,7 @@ from telegram.ext import (
 )
 
 from database.models import (
+    Language,
     User,
 )
 from modules.cutter.handlers import (
@@ -146,25 +147,17 @@ async def show_language_selector(update: Update, _context: CallbackContext) -> N
     :param update: Update: The ``update`` object
     :param _context: CallbackContext: The ``context`` object
     """
+    languages = Language.ordered()
+    labels = [language.label for language in languages]
+
     language_button_keyboard = ReplyKeyboardMarkup(
-        keyboard=[
-            ['🇬🇧 English', '🇮🇷 فارسی'],
-            ['🇷🇺 Русский', '🇪🇸 Español'],
-            ['🇫🇷 Français', '🇸🇦 العربية'],
-        ],
+        keyboard=[labels[index:index + 2] for index in range(0, len(labels), 2)],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
 
     await update.message.reply_text(
-        text="\n\n".join([
-            t("en", "chooseLanguage"),
-            t("fa", "chooseLanguage"),
-            t("ru", "chooseLanguage"),
-            t("es", "chooseLanguage"),
-            t("fr", "chooseLanguage"),
-            t("ar", "chooseLanguage"),
-        ]),
+        text="\n\n".join(t(language.iso, 'chooseLanguage') for language in languages),
         reply_markup=language_button_keyboard
     )
 
@@ -177,38 +170,29 @@ async def set_language(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    user = context.user_data['user']
-    user_id = user.user_id
-    new_language = get_message_text(update).lower()
+    user_id = context.user_data['user'].user_id
     user_data = get_user_data(context)
+    selected_label = (get_message_text(update) or '').strip()
 
-    match new_language:
-        case language if "english" in language:
-            user_data['language'] = 'en'
-        case language if "فارسی" in language:
-            user_data['language'] = 'fa'
-        case language if "русский" in language:
-            user_data['language'] = 'ru'
-        case language if "español" in language:
-            user_data['language'] = 'es'
-        case language if "français" in language:
-            user_data['language'] = 'fr'
-        case language if "العربية" in language:
-            user_data['language'] = 'ar'
+    language = next((candidate for candidate in Language.ordered() if candidate.label == selected_label), None)
 
-    language = get_user_language_or_fallback(user_data)
+    if not language:
+        logger.warning("User %s sent an unrecognized language button '%s'", user_id, selected_label)
 
-    await update.message.reply_text(text=t(language, 'languageChanged'))
+        return
+
+    user_data['language'] = language.iso
+
+    await update.message.reply_text(text=t(language.iso, 'languageChanged'))
 
     await update.message.reply_text(
-        text=t(language, 'startOverMessage'),
+        text=t(language.iso, 'startOverMessage'),
         reply_markup=ReplyKeyboardRemove()
     )
 
-    user = User.where('user_id', '=', user_id).first()
+    User.where('user_id', '=', user_id).first().update({'language_id': language.id})
 
-    user.update({"language": language})
-    logger.info("User %s changed language to %s", user_id, language)
+    logger.info("User %s changed language to %s", user_id, language.iso)
 
 
 @upsert_user
