@@ -1,3 +1,5 @@
+import re
+
 from telegram.ext import (
     CommandHandler,
     filters,
@@ -5,6 +7,8 @@ from telegram.ext import (
     BaseHandler,
 )
 
+from database.models import Language
+from utils.logging import get_logger
 from .handlers import (
     command_start,
     start_over,
@@ -18,25 +22,43 @@ from .handlers import (
     handle_music_message,
 )
 
+logger = get_logger(__name__)
+
+
+def build_language_button_filter() -> filters.BaseFilter | None:
+    """
+    Build a filter matching every language button label in the ``languages`` table.
+
+    Returns ``None`` when the table is empty, so the bot still boots on an unseeded database.
+    """
+    labels = [language.label for language in Language.ordered()]
+
+    if not labels:
+        return None
+
+    return filters.Regex('^(' + '|'.join(re.escape(label) for label in labels) + ')$')
+
 
 def registry() -> list[BaseHandler]:
     """
     Build and return this module's handlers.
     """
-    return [
+    handlers: list[BaseHandler] = [
         CommandHandler('start', command_start),
         CommandHandler('new', start_over),
         CommandHandler('language', show_language_selector),
         CommandHandler('help', command_help),
         CommandHandler('about', command_about),
+    ]
 
-        MessageHandler(filters.Regex('^(🇬🇧 English)$'), set_language),
-        MessageHandler(filters.Regex('^(🇮🇷 فارسی)$'), set_language),
-        MessageHandler(filters.Regex('^(🇷🇺 Русский)$'), set_language),
-        MessageHandler(filters.Regex('^(🇪🇸 Español)$'), set_language),
-        MessageHandler(filters.Regex('^(🇫🇷 Français)$'), set_language),
-        MessageHandler(filters.Regex('^(🇸🇦 العربية)$'), set_language),
+    language_button_filter = build_language_button_filter()
 
+    if language_button_filter:
+        handlers.append(MessageHandler(language_button_filter, set_language))
+    else:
+        logger.warning("The languages table is empty; language buttons will not be handled. Run `make db-seed`.")
+
+    handlers.extend([
         MessageHandler(
             (filters.Regex('^(🔙 Back)$') |
              filters.Regex('^(🔙 برگشت)$') |
@@ -60,7 +82,9 @@ def registry() -> list[BaseHandler]:
             (filters.VIDEO | filters.Document.ALL | filters.CONTACT & (
                     ~filters.AUDIO | ~filters.PHOTO | ~filters.Document.IMAGE | ~filters.Document.JPG | ~filters.Document.MP3)),
             ignore_file),
-    ]
+    ])
+
+    return handlers
 
 
 def register(add_handler):
