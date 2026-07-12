@@ -12,6 +12,7 @@ from telegram import (
 from config.constants import DOWNLOAD_DIR_PATH
 from database.models import (
     Admin,
+    Language,
     User,
     UserStatus,
 )
@@ -105,6 +106,10 @@ async def show_stats(update: Update) -> None:
     blocked_status = UserStatus.where('slug', 'blocked').first()
     deleted_status = UserStatus.where('slug', 'deleted').first()
 
+    language_iso_by_id: dict[int, str] = {
+        language.id: language.iso for language in Language.all()
+    }
+
     status_by_language: dict[str, dict[str, int]] = {
         lang: {'active': 0, 'blocked': 0, 'deleted': 0}
         for lang in language_counts
@@ -126,8 +131,8 @@ async def show_stats(update: Update) -> None:
     churned_users = 0
 
     for user in User.all():
-        language = user.language
-        lang = language.iso if language and language.iso in language_counts else None
+        iso = language_iso_by_id.get(getattr(user, 'language_id', None))
+        lang = iso if iso in language_counts else None
 
         user_status_id = getattr(user, 'user_status_id', None)
 
