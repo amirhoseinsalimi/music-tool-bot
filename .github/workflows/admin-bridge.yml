@@ -1,0 +1,32 @@
+name: Admin bridge checks
+
+on:
+  push:
+    branches: [master, develop]
+    paths: [admin_bridge/**, tests/bridge/**, .github/workflows/admin-bridge.yml]
+  pull_request:
+    branches: [master, develop]
+    paths: [admin_bridge/**, tests/bridge/**, .github/workflows/admin-bridge.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bridge-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Create isolated environment
+        run: python3 -m venv .venv
+      - name: Install PostgreSQL adapter for isolated repository tests
+        run: .venv/bin/python -m pip install psycopg2-binary==2.9.10
+      - name: Run bridge tests
+        run: .venv/bin/python -m unittest discover -s tests/bridge -v
