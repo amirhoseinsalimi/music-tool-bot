@@ -1,0 +1,69 @@
+name: Admin bridge checks
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - admin_bridge/**
+      - tests/bridge/**
+      - config/envs.py
+      - .env.example
+      - Makefile
+      - pyproject.toml
+      - poetry.lock
+      - .pylintrc
+      - .github/workflows/admin-bridge.yml
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - admin_bridge/**
+      - tests/bridge/**
+      - config/envs.py
+      - .env.example
+      - Makefile
+      - pyproject.toml
+      - poetry.lock
+      - .pylintrc
+      - .github/workflows/admin-bridge.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bridge-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Create isolated environment
+        run: python3 -m venv .venv
+      - name: Install bridge test and style dependencies from project constraints
+        run: |
+          .venv/bin/python - <<'PY'
+          from pathlib import Path
+          import tomllib
+
+          project = tomllib.loads(Path('pyproject.toml').read_text())['tool']['poetry']
+          core = project['dependencies']
+          development = project['group']['dev']['dependencies']
+          requirements = [
+              'psycopg2-binary' + core['psycopg2-binary'],
+              'autopep8' + development['autopep8'],
+              'pylint' + development['pylint'],
+          ]
+          Path('/tmp/bridge-requirements.txt').write_text('\n'.join(requirements) + '\n')
+          PY
+          .venv/bin/python -m pip install -r /tmp/bridge-requirements.txt
+      - name: Check formatting
+        run: .venv/bin/python -m autopep8 --exit-code --diff --max-line-length 100 --recursive admin_bridge tests/bridge
+      - name: Check bridge code conventions
+        run: .venv/bin/python -m pylint --persistent=no --disable=useless-option-value,unknown-option-value admin_bridge tests/bridge
+      - name: Run bridge tests
+        run: .venv/bin/python -m unittest discover -s tests/bridge -v
