@@ -41,6 +41,11 @@ DEBUGGER_HOST = get_env("DEBUGGER_HOST")
 DEBUGGER_PORT = int(get_env("DEBUGGER_PORT", 5400))
 DEBUGGER_SUSPEND = get_bool_env("DEBUGGER_SUSPEND", False)
 
+# The optional bridge is started separately from the polling bot.
+ADMIN_BRIDGE_TOKEN = get_env("ADMIN_BRIDGE_TOKEN", "")
+# Parse and validate the port only when starting the bridge.
+ADMIN_BRIDGE_PORT = get_env("ADMIN_BRIDGE_PORT", "5001")
+
 BTC_WALLET_ADDRESS = get_env("BTC_WALLET_ADDRESS", "")
 ETH_WALLET_ADDRESS = get_env("ETH_WALLET_ADDRESS", "")
 TRX_WALLET_ADDRESS = get_env("TRX_WALLET_ADDRESS", "")

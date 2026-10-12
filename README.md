@@ -135,10 +135,25 @@ make deploy
 | `db-refresh`         | Rollback all migrations and re-run them (Use with caution)                                 |
 | `db-status`          | Print the status of migrations                                                             |
 | `db-seed`            | Run seeds to create a user with owner privileges                                           |
+| `admin-bridge`       | Start the optional read-only administrative bridge on loopback                            |
+| `test-admin-bridge`  | Run isolated administrative bridge regression tests                                       |
 | `test`               | Run tests (Not implemented yet)                                                            |
 | `t`                  | Alias for `test` command                                                                   |
 
 Run `make help` to see this list from the terminal.
+
+---
+
+## Optional Administrative Bridge
+
+The admin web API can read existing core users and current admin membership through a
+separate authenticated bridge process. The bot does not start this process automatically,
+and ordinary bot operation does not depend on it. Configure `ADMIN_BRIDGE_TOKEN` and,
+optionally, `ADMIN_BRIDGE_PORT` in the existing environment, then run `make admin-bridge`.
+
+See [bridge setup and protocol](admin_bridge/README.md) for supported reads and the trust
+boundary. Use `make test-admin-bridge` for its isolated regression suite. These commands
+neither deploy a server nor change core schemas or user records.
 
 ---
 
