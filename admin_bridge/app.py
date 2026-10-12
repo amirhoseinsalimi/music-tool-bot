@@ -3,14 +3,16 @@
 import hmac
 import json
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
+from urllib.parse import quote
 
 from .exceptions import BridgeError
+from .files import FileDownload
 from .service import CoreRepository, connect_core
 from .utils import parse_query_string, validate_telegram_id
 
 StartResponse = Callable[[str, list[tuple[str, str]]], object]
-WSGIApplication = Callable[[dict[str, Any], StartResponse], list[bytes]]
+WSGIApplication = Callable[[dict[str, Any], StartResponse], Iterable[bytes]]
 HTTP_STATUS_LABELS = {
     200: 'OK',
     400: 'Bad Request',
@@ -56,7 +58,7 @@ def create_app(token: str, repository: CoreRepository | None = None) -> WSGIAppl
 
     repository = repository or CoreRepository(connect=connect_core)
 
-    def app(environ: dict[str, Any], start_response: StartResponse) -> list[bytes]:
+    def app(environ: dict[str, Any], start_response: StartResponse) -> Iterable[bytes]:
         """Handles one authenticated read and returns a bounded JSON response."""
         try:
             actor_id, params = _validate_request(environ=environ, token=token)
@@ -65,6 +67,23 @@ def create_app(token: str, repository: CoreRepository | None = None) -> WSGIAppl
                 path=environ.get('PATH_INFO', ''),
                 params=params,
             )
+            if isinstance(data, FileDownload):
+                headers = [
+                    ('Content-Type', 'application/octet-stream'),
+                    ('Content-Length', str(data.size)),
+                    ('Content-Disposition', "attachment; filename*=UTF-8''" + quote(data.basename)),
+                    ('Cache-Control', 'no-store'),
+                    ('X-Content-Type-Options', 'nosniff'),
+                ]
+
+                try:
+                    start_response('200 OK', headers)
+                except BaseException:
+                    data.close()
+                    raise
+
+                return data
+
             status = 200
         except BridgeError as error:
             status = error.status

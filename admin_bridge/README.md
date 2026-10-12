@@ -25,10 +25,12 @@ Every request requires `Authorization: Bearer <ADMIN_BRIDGE_TOKEN>` and `X-Admin
 | `/v1/users/<telegram_id>` | Available core user profile |
 | `/v1/overview` | User total, Active status count, audio submissions and language counts |
 | `/v1/users/export` | All matching profiles, bounded to 20000 rows; narrow filters beyond that |
+| `/v1/files` | Current retained files, filtered and paginated from the filesystem |
+| `/v1/files/download` | Authorized binary attachment for an exact Telegram ID and basename |
 
 User filters are `q`, `status` (`active`, `blocked`, `deleted`), `language` (ISO), `page` and `pageSize` (1–100). Username and Telegram ID search is parameterized literal matching. Duplicate/unknown filters, malformed IDs and out-of-range pagination return 400. Unauthorized tokens return 401, revoked/non-admin actors return 403, missing profiles return 404, oversized exports return 413 and core failures return 503. Failure is never an empty successful collection.
 
-IDs cross the JSON boundary as strings. Missing interaction/status/language relations remain missing, without invented inactivity or Active status. Naive core ORM timestamps are interpreted as UTC and exposed with an offset; verify the historical database's timestamp convention when connecting an existing deployment. Counts describe current records, not daily activity/history. File inventory/downloads are outside this increment.
+IDs cross the JSON boundary as strings. Missing interaction/status/language relations remain missing, without invented inactivity or Active status. Naive core ORM timestamps are interpreted as UTC and exposed with an offset; verify the historical database's timestamp convention when connecting an existing deployment. Counts describe current records, not daily activity/history. File inventory comes from `DATA_DIR/downloads/<Telegram ID>/`, never from submission counters.
 
 ## Verification
 
@@ -36,7 +38,7 @@ IDs cross the JSON boundary as strings. Missing interaction/status/language rela
 make test-admin-bridge
 ```
 
-The nine tests run the real bridge/repository with a SQLite adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
+The sixteen tests run the real bridge/repository with a SQLite adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
 
 ## Code organization
 
@@ -65,3 +67,27 @@ The Pylint command ignores only obsolete diagnostics from the existing `.pylintr
 the project configuration itself is unchanged. Specific inline exceptions describe the
 single authorized repository entry point and unittest fixture lifecycle. CI checks these
 same files with dependency constraints read from `pyproject.toml`.
+
+## Retained file reads
+
+`/v1/files` accepts `q` (literal, case-insensitive basename or Telegram ID search),
+`telegramId` (exact owner), `page` and `pageSize` (1–100). Results contain `basename`,
+`telegramId`, `bytes` and `modifiedAt`, sorted newest modification first. Timestamps are
+filesystem modification times, not upload times. Empty directories are not files; removed
+files disappear on the next scan. A missing/unreadable storage root is an error, not an
+empty successful collection. The scan is bounded to 100000 entries/five seconds; an exact
+owner filter avoids scanning unrelated users.
+
+`/v1/files/download?telegramId=42&basename=<stored basename>` returns a no-store,
+`application/octet-stream` attachment. Both operations check current admin membership
+before storage access. Only direct regular files are served. Path separators, traversal,
+control characters, symlinks, multiply linked files and special files are rejected. Linux
+non-following directory/file descriptors prevent directory replacement from redirecting a
+read outside the configured root. The descriptor is opened before headers, streamed in
+64 KiB chunks and closed on completion or cancellation. A file removed before opening
+returns 404. In-place modification/truncation during transfer may interrupt the download;
+this does not introduce retention leases or change the bot's cleanup policy.
+
+Mount the bot's `/data` volume read-only in the bridge. The private admin API receives
+neither a storage mount nor database credentials; it proxies authorized binary transfers.
+There are no new core tables, polling dependencies or file mutations.

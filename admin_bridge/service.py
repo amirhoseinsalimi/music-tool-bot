@@ -1,6 +1,7 @@
 """Core-owned database reads for the optional administrative bridge."""
 
 from contextlib import closing
+from pathlib import Path
 from typing import Any, Callable, Mapping
 
 import psycopg2
@@ -11,6 +12,7 @@ from psycopg2.extensions import (
 from psycopg2.extras import RealDictCursor
 
 from .exceptions import BridgeError
+from .files import FileDownload, FileStore
 from .utils import (
     parse_user_filters,
     serialize_user_profile,
@@ -34,20 +36,26 @@ USER_COLUMNS = (
 class CoreRepository:  # pylint: disable=too-few-public-methods
     """Reads existing core records in transactions authorized by current admin membership."""
 
-    def __init__(self, connect: Callable[[], PostgresConnection]) -> None:
+    def __init__(
+        self,
+        connect: Callable[[], PostgresConnection],
+        files: FileStore | None = None,
+    ) -> None:
         """
         Creates the repository with a connection factory.
 
         :param connect: Callable: Creates a core connection that this repository will close
+        :param files: FileStore | None: An optional retained storage adapter for isolated tests
         """
         self.connect = connect
+        self.files = files
 
     def dispatch(
         self,
         actor_id: str,
         path: str,
         params: Mapping[str, str],
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | FileDownload:
         """
         Authorizes the actor and performs one read in the same database transaction.
 
@@ -55,7 +63,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         :param path: str: The requested v1 bridge endpoint
         :param params: Mapping[str, str]: The endpoint's query parameters
         :raises BridgeError: The actor is not an admin or the requested read is invalid
-        :return: dict[str, Any]: The endpoint's JSON-compatible response
+        :return: dict[str, Any] | FileDownload: JSON data or an authorized retained file
         """
         with closing(self.connect()) as connection:
             connection.set_session(readonly=True, isolation_level='REPEATABLE READ')
@@ -91,10 +99,18 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         admin: Mapping[str, Any],
         path: str,
         params: Mapping[str, str],
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | FileDownload:
         """Routes an authorized read without opening another transaction."""
         if path == '/v1/session':
             return dict(admin)
+
+        if path in {'/v1/files', '/v1/files/download'}:
+            files = self.files or create_file_store()
+
+            if path.endswith('/download'):
+                return files.open_download(params=params)
+
+            return files.list_files(params=params)
 
         if path == '/v1/overview':
             return self._get_overview(cursor=cursor)
@@ -191,6 +207,17 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
             raise BridgeError(status=404, message='User not found')
 
         return serialize_user_profile(row=row)
+
+
+def create_file_store() -> FileStore:
+    """
+    Selects the existing core downloads directory without importing polling configuration.
+
+    :return: FileStore: The read-only filesystem adapter for retained inputs
+    """
+    from config.envs import DATA_DIR  # pylint: disable=import-outside-toplevel
+
+    return FileStore(root=Path(DATA_DIR) / 'downloads')
 
 
 def connect_core() -> PostgresConnection:

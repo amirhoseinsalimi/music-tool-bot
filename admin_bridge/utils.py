@@ -17,6 +17,61 @@ USER_FILTER_NAMES = {'q', 'status', 'language', 'page', 'pageSize'}
 USER_STATUS_SLUGS = {'active', 'blocked', 'deleted'}
 
 
+def validate_basename(value: str) -> str:
+    """
+    Validates one stored filename, excluding paths and header control characters.
+
+    :param value: str: The exact basename from a retained file listing
+    :raises BridgeError: The name is empty, unsafe or not valid UTF-8 text
+    :return: str: The unchanged safe basename
+    """
+    if not value or value in {'.', '..'} or any(
+        character in '/\\' or ord(character) < 32 or ord(character) == 127
+        for character in value
+    ):
+        raise BridgeError(status=400, message='Invalid stored basename')
+
+    try:
+        if len(value.encode('utf-8')) > 255:
+            raise BridgeError(status=400, message='Invalid stored basename')
+    except UnicodeError as error:
+        raise BridgeError(status=400, message='Invalid stored basename') from error
+
+    return value
+
+
+def parse_file_filters(params: Mapping[str, str]) -> tuple[str, str, int, int]:
+    """
+    Validates filesystem search, an exact owner filter and bounded pagination.
+
+    :param params: Mapping[str, str]: Search, Telegram ID, page and page size
+    :raises BridgeError: A filter is unknown, malformed or outside supported bounds
+    :return: tuple[str, str, int, int]: Casefolded search, owner ID, page and page size
+    """
+    if set(params) - {'q', 'telegramId', 'page', 'pageSize'}:
+        raise BridgeError(status=400, message='Unknown filter')
+
+    query = params.get('q', '').strip()
+    telegram_id = params.get('telegramId', '')
+
+    if len(query) > MAX_SEARCH_LENGTH:
+        raise BridgeError(status=400, message='Invalid file search')
+
+    if telegram_id:
+        telegram_id = validate_telegram_id(value=telegram_id)
+
+    try:
+        page = int(params.get('page', '1'))
+        page_size = int(params.get('pageSize', str(DEFAULT_PAGE_SIZE)))
+    except ValueError as error:
+        raise BridgeError(status=400, message='Invalid pagination') from error
+
+    if not 1 <= page <= MAX_PAGE_NUMBER or not 1 <= page_size <= MAX_PAGE_SIZE:
+        raise BridgeError(status=400, message='Invalid pagination')
+
+    return query.casefold(), telegram_id, page, page_size
+
+
 def validate_telegram_id(value: str) -> str:
     """
     Validates and normalizes a positive Telegram ID for a core lookup.
