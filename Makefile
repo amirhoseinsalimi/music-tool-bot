@@ -9,6 +9,7 @@ COMPOSE_PROD  ?= $(COMPOSE) -f docker-compose.yaml -f docker-compose.prod.yaml
 .DEFAULT_GOAL := help
 
 .PHONY: help install dev deploy db-migrate db-refresh db-status db-seed test t show-python
+.PHONY: admin-bridge test-admin-bridge
 
 help:
 	@echo "Available commands:"
@@ -45,3 +46,9 @@ test: ## Run the test suite (not implemented yet)
 	@echo "Not implemented yet"
 
 t: test
+
+admin-bridge: ## Run the optional read-only admin bridge on loopback
+	poetry run python -m admin_bridge
+
+test-admin-bridge: ## Run isolated administrative bridge regression tests
+	poetry run python -m unittest discover -s tests/bridge -v

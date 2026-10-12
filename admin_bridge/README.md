@@ -7,7 +7,7 @@ Read-only, core-owned WSGI service for authorized admin membership, user search/
 Use the bot's existing Poetry environment and core database configuration. Add a separately generated `ADMIN_BRIDGE_TOKEN` (at least 32 random characters) to the bot environment. The private API must have the identical bridge token. Do not use `BOT_TOKEN` as the bridge secret.
 
 ```sh
-poetry run python -m admin_bridge
+make admin-bridge
 ```
 
 This development entry point listens only on `127.0.0.1:5001` by default; `ADMIN_BRIDGE_PORT` overrides the port. For later hosted use, run `create_app(token)` under a production WSGI server and keep it on a private network/HTTPS boundary. No host deployment has been installed here.
@@ -33,7 +33,35 @@ IDs cross the JSON boundary as strings. Missing interaction/status/language rela
 ## Verification
 
 ```sh
-poetry run python -m unittest discover -s tests/bridge -v
+make test-admin-bridge
 ```
 
-The five tests run the real bridge/repository with a SQLite adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
+The nine tests run the real bridge/repository with a SQLite adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
+
+## Code organization
+
+This remains a standalone WSGI package rather than a Telegram handler module. It has no
+registration in `bot.py`. Its layers follow the bot's service/helper separation:
+
+- `app.py`: request authentication, HTTP handling and safe JSON responses.
+- `service.py`: authorized, read-only core database operations.
+- `utils.py`: ID/query validation and timestamp/profile serialization.
+- `exceptions.py`: public bridge errors with HTTP status codes.
+- `__main__.py`: the explicit entry point, using the bot's environment and logging setup.
+
+Public functions have type hints and `:param` / `:return` / `:raises` docstrings matching
+existing helpers. Imports, named arguments and line breaks follow the surrounding Python
+code, including the repository's 100-character line limit. Refactoring these layers does
+not change the v1 endpoint paths or response field names consumed by the private API.
+
+Run the existing development tools in the Poetry environment:
+
+```sh
+poetry run autopep8 --diff --max-line-length 100 --recursive admin_bridge tests/bridge
+poetry run pylint --persistent=no --disable=useless-option-value,unknown-option-value admin_bridge tests/bridge
+```
+
+The Pylint command ignores only obsolete diagnostics from the existing `.pylintrc`;
+the project configuration itself is unchanged. Specific inline exceptions describe the
+single authorized repository entry point and unittest fixture lifecycle. CI checks these
+same files with dependency constraints read from `pyproject.toml`.
