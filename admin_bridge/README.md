@@ -38,7 +38,7 @@ IDs cross the JSON boundary as strings. Missing interaction/status/language rela
 make test-admin-bridge
 ```
 
-The sixteen tests run the real bridge/repository with a SQLite adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
+The seventeen tests run the real bridge/repository with a SQLite adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
 
 ## Code organization
 
