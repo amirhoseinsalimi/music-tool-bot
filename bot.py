@@ -14,6 +14,7 @@ from modules.donation import register as register_donation
 from modules.tag_editor import register as register_tag_editor
 from modules.voice_converter import register as register_voice_converter
 from utils.logging import configure_logging, get_logger
+from utils.extensions import register_optional_extension
 
 logger = get_logger(__name__)
 
@@ -77,6 +78,7 @@ if __name__ == '__main__':
     register_donation(app.add_handler)
     register_tag_editor(app.add_handler)
     register_voice_converter(app.add_handler)
+    register_optional_extension(app)
     register_core(app.add_handler)
 
     main()
