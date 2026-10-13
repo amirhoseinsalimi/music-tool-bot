@@ -150,7 +150,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         return {
             'totalUsers': counts['total'],
             'activeStatus': active_status_count,
-            'audioSubmissions': counts['audio'],
+            'audioSubmissions': int(counts['audio']),
             'languages': list(cursor.fetchall()),
         }
 
