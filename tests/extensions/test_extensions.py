@@ -13,6 +13,20 @@ spec.loader.exec_module(module)
 
 
 class ExtensionTests(unittest.TestCase):
+    def test_standalone_keyboard_has_no_extension_rows(self):
+        with patch.dict(module._keyboard_providers, {}, clear=True):
+            self.assertEqual(module.optional_keyboard_rows("en", 42), [])
+
+    def test_keyboard_provider_receives_language_and_user_and_replaces_itself(self):
+        with patch.dict(module._keyboard_providers, {}, clear=True):
+            old = Mock(return_value=[["old"]])
+            provider = Mock(return_value=[["extra"]])
+            module.register_keyboard_provider("example", old)
+            module.register_keyboard_provider("example", provider)
+            self.assertEqual(module.optional_keyboard_rows("fa", 42), [["extra"]])
+            provider.assert_called_once_with("fa", 42)
+            old.assert_not_called()
+
     def test_disabled_does_not_import_private_package(self):
         with patch.dict(os.environ, {}, clear=True), patch.object(module.importlib, "import_module") as imported:
             module.register_optional_extension(Mock())

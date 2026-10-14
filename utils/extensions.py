@@ -4,6 +4,21 @@ import importlib
 import os
 import re
 
+_keyboard_providers = {}
+
+
+def register_keyboard_provider(name, provider):
+    """Let an installed extension contribute user-specific feature rows."""
+    if not callable(provider):
+        raise ValueError("Keyboard provider must be callable")
+    _keyboard_providers[name] = provider
+
+
+def optional_keyboard_rows(language, user_id=None):
+    """The standalone bot has no extra rows unless an extension registers them."""
+    return [row for provider in _keyboard_providers.values()
+            for row in provider(language, user_id)]
+
 
 def register_optional_extension(application):
     """Call ``module:function`` only when BOT_EXTENSION is explicitly configured.

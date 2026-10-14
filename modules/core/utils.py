@@ -7,6 +7,7 @@ from telegram import ReplyKeyboardMarkup
 from config.constants import DOWNLOAD_DIR_PATH
 from database.models import User
 from utils import t
+from utils.extensions import optional_keyboard_rows
 
 PYPROJECT_PATH = Path(__file__).resolve().parents[2] / 'pyproject.toml'
 VERSION_PATTERN = re.compile(r'^\s*version\s*=\s*"([^"]+)"\s*$')
@@ -66,7 +67,7 @@ def generate_back_button_keyboard(language: str) -> ReplyKeyboardMarkup:
     )
 
 
-def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
+def generate_module_selector_keyboard(language: str, user_id=None) -> ReplyKeyboardMarkup:
     """
     Creates and returns an instance of ``module_selector_keyboard`` with the specified language
 
@@ -84,7 +85,7 @@ def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
                     t(language, 'btnMusicCutter'),
                     t(language, 'btnBitrateChanger')
                 ]
-            ],
+            ] + optional_keyboard_rows(language, user_id),
             resize_keyboard=True,
             one_time_keyboard=True,
         )
