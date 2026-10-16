@@ -257,7 +257,7 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
     try:
         music = music_tag.load_file(file_download_path)
     except (OSError, NotImplementedError):
-        await update.message.reply_text(
+        await update.effective_message.reply_text(
             text=t(language, 'errOnReadingTags'),
             reply_markup=generate_start_over_keyboard(language)
         )
@@ -299,7 +299,7 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
         )
 
     if not art:
-        thumbnail = getattr(getattr(update.message, "audio", None), "thumbnail", None)
+        thumbnail = getattr(getattr(update.effective_message, "audio", None), "thumbnail", None)
 
         if thumbnail:
             thumbnail_path = f"{file_download_path}.thumb.jpg"
@@ -312,7 +312,7 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
 
             os.remove(thumbnail_path)
 
-    audio = getattr(update.message, "audio", None)
+    audio = getattr(update.effective_message, "audio", None)
     
     if not artist and audio and audio.performer:
         artist = audio.performer

@@ -9,7 +9,7 @@ services:
       GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY}
     command:
       - run
-      - --server.http.listen-addr=0.0.0.0:12345
+      - --server.http.listen-addr=0.0.0.0:6010
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
     volumes:
@@ -17,7 +17,7 @@ services:
       - ./docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data
     ports:
-      - "127.0.0.1:12345:12345"
+      - "127.0.0.1:6010:6010"
     restart: unless-stopped
 
 volumes:

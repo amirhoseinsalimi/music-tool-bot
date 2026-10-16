@@ -5,6 +5,7 @@ import sqlite3
 import tempfile
 import unittest
 from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock
@@ -270,3 +271,20 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(status, 503)
         self.assertEqual(response, {'error': 'Core data unavailable'})
         self.assertNotIn('credentials', ''.join(logs.output))
+
+
+class PostgreSQLCounterTests(unittest.TestCase):
+    """Exercise driver-specific aggregate values absent from SQLite fixtures."""
+
+    def test_numeric_submission_sum_is_json_serializable(self) -> None:
+        """PostgreSQL SUM(bigint) returns Decimal even for small submission counts."""
+        cursor = Mock()
+        cursor.fetchone.side_effect = [
+            {'total': 1, 'audio': Decimal('3')},
+            {'total': 1},
+        ]
+        cursor.fetchall.return_value = [{'name': 'English', 'count': 1}]
+        overview = CoreRepository._get_overview(cursor=cursor)  # pylint: disable=protected-access
+
+        self.assertEqual(json.loads(json.dumps(overview))['audioSubmissions'], 3)
+        self.assertIsInstance(overview['audioSubmissions'], int)

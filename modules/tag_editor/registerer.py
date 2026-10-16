@@ -5,6 +5,10 @@ from telegram.ext import (
     filters,
 )
 
+import re
+
+from utils import t
+
 from .handlers import (
     finish_editing_tags,
     display_preview,
@@ -14,6 +18,11 @@ from .handlers import (
 )
 
 
+def localized_button_filter(key: str):
+    labels = (re.escape(t(language, key)) for language in ('en', 'fa', 'ru', 'es', 'fr', 'ar', 'hi', 'id'))
+    return filters.Regex('^(?:' + '|'.join(labels) + ')$')
+
+
 def registry() -> list[BaseHandler]:
     """
     Build and return this module's handlers.
@@ -21,6 +30,8 @@ def registry() -> list[BaseHandler]:
     return [
         CommandHandler('done', finish_editing_tags),
         CommandHandler('preview', display_preview),
+        MessageHandler(localized_button_filter('btnPreviewTags'), display_preview),
+        MessageHandler(localized_button_filter('btnSaveTags'), finish_editing_tags),
         MessageHandler(filters.PHOTO, handle_photo_message),
         MessageHandler(
             (

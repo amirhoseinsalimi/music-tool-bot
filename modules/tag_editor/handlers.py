@@ -1,3 +1,4 @@
+from runtime_controls import feature_gate
 import re
 
 from persiantools import (
@@ -71,6 +72,7 @@ from .utils import (
 )
 
 
+@feature_gate('tag_editor')
 @upsert_user
 async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     """
@@ -125,6 +127,7 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     unset_current_tag(user_data)
 
 
+@feature_gate('tag_editor')
 @upsert_user
 async def handle_photo_message(update: Update, context: CallbackContext) -> None:
     """
@@ -186,6 +189,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
         return
 
 
+@feature_gate('tag_editor')
 @upsert_user
 async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
     """
@@ -232,6 +236,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
         )
 
 
+@feature_gate('tag_editor')
 @upsert_user
 async def display_preview(update: Update, context: CallbackContext) -> None:
     """
@@ -241,7 +246,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    message = get_message(update)
+    message = update.effective_message
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
@@ -259,21 +264,24 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
             await message.reply_photo(
                 photo=art_file,
                 caption=f"{generate_music_info(tag_editor_context, language)}"
-                        f"\n\n{t(language, 'clickDoneMessage')}"
+                        f"\n\n{t(language, 'tagPreviewSaveHint')}"
                         f"\n\n🆔 {BOT_USERNAME}",
                 reply_to_message_id=get_effective_message_id(update),
+                reply_markup=generate_tag_editor_keyboard(language),
             )
 
         return
 
     await message.reply_text(
         text=f"{generate_music_info(tag_editor_context, language)}"
-             f"\n\n{t(language, 'clickDoneMessage')}"
+             f"\n\n{t(language, 'tagPreviewSaveHint')}"
              f"\n\n🆔 {BOT_USERNAME}",
         reply_to_message_id=get_effective_message_id(update),
+        reply_markup=generate_tag_editor_keyboard(language),
     )
 
 
+@feature_gate('tag_editor')
 @upsert_user
 async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     """
@@ -370,10 +378,12 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             reply_markup=start_over_button_keyboard
         )
         logger.exception("Failed to upload tag-edited audio for user %s: %s", user_id, error)
+        return  # Keep the draft so a failed Telegram upload can be retried.
 
     reset_user_data_context(user_id, user_data)
 
 
+@feature_gate('tag_editor')
 @upsert_user
 async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     """

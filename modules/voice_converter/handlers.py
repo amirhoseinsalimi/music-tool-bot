@@ -1,3 +1,4 @@
+from runtime_controls import feature_gate
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -41,6 +42,7 @@ from .service import (
 logger = get_logger(__name__)
 
 
+@feature_gate('voice_converter')
 @upsert_user
 async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     """

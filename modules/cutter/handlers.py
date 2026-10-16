@@ -1,3 +1,4 @@
+from runtime_controls import feature_gate
 from persiantools import (
     digits,
 )
@@ -62,6 +63,7 @@ from .utils import (
 logger = get_logger(__name__)
 
 
+@feature_gate('cutter')
 @upsert_user
 async def handle_cutter(update: Update, context: CallbackContext) -> None:
     """
@@ -189,6 +191,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(user_id, user_data)
 
 
+@feature_gate('cutter')
 @upsert_user
 async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """

@@ -25,14 +25,14 @@ file with `cp .env.example .env` and fill in your credentials:
 | BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                                                                           |
 | DATA_DIR                   | `str`     | Directory for bot file persistence. In Docker this should be `/data` so the pickle and downloaded files survive container restarts. |
 | DB_HOST                    | `str`     | Database host (for postgres).                                                                                                       |
-| DB_PORT                    | `int`     | Database port (for postgres).                                                                                                       |
+| DB_PORT                    | `int`     | Database port (for postgres), default `6003`.                                                                                                       |
 | DB_DATABASE                | `str`     | Database name (for postgres).                                                                                                       |
 | DB_USERNAME                | `str`     | Database username (for postgres).                                                                                                   |
 | DB_PASSWORD                | `str`     | Database password (for postgres).                                                                                                   |
 | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.                                                                 |
 | DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                                                                                         |
 | DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker                      |
-| DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `5400`                                                                                       |
+| DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `6011`                                                                                       |
 | DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                                                                             |
 | BACKUP_RETENTION           | `int`     | Days to keep daily backups. Defaults to `7`.                                                                                        |
 | BACKUP_INTERVAL            | `int`     | Seconds between backups. Defaults to `86400` (24 hours).                                                                            |
@@ -51,6 +51,12 @@ file with `cp .env.example .env` and fill in your credentials:
 ---
 
 ## Running the Bot (Docker needed)
+
+Stack ports default to the dedicated 6000–6100 range. PostgreSQL listens on 6003
+inside Docker and publishes to IPv4 loopback on 6003. Compose sets the bot and
+backup database endpoint to `postgres:6003`; for a host Python process use
+`DB_HOST=127.0.0.1` and `DB_PORT=6003`. See [workspace networking](../docs/networking.md)
+for the local hosts entry and other services. Existing named volumes remain unchanged.
 
 Run the bot without installing Python, Poetry, or ffmpeg on your machine.
 
@@ -75,7 +81,7 @@ Run the bot without installing Python, Poetry, or ffmpeg on your machine.
    ```bash
    docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
    ```
-   In dev mode, Docker Compose starts a local Postgres container and publishes it on `${DB_PORT:-5432}`.
+   In dev mode, Docker Compose starts a local Postgres container and publishes it on `${DB_PORT:-6003}`.
    The bot persistence file and downloaded files are stored under `/data` in the container, which maps to `./data` on the host.
 
 5. **Production**
@@ -243,7 +249,7 @@ The included Alloy config only ships logs from the Compose service named `bot`, 
 - `service_name`
 - `environment`
 
-Alloy's local debug UI is exposed on `http://127.0.0.1:12345`.
+Alloy's local debug UI is exposed on `http://local.musictoolbot.com:6010`.
 
 ---
 
