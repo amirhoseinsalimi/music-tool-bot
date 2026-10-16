@@ -1,11 +1,67 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
+# Routine updates are reviewed in develop. GitHub security updates use the default branch.
+# Major upgrades remain separate PRs; minor and patch upgrades are grouped.
 version: 2
 updates:
-  - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "weekly"
+- package-ecosystem: pip
+  directory: /
+  target-branch: develop
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 3
+  commit-message:
+    prefix: chore(deps)
+  groups:
+    minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
+- package-ecosystem: docker
+  directory: /docker
+  target-branch: develop
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 3
+  commit-message:
+    prefix: chore(deps)
+  groups:
+    minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
+- package-ecosystem: docker-compose
+  directory: /
+  target-branch: develop
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 3
+  commit-message:
+    prefix: chore(deps)
+  groups:
+    minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
+  ignore:
+  - dependency-name: music-tool-bot
+  - dependency-name: musictoolbot-private-bot
+- package-ecosystem: github-actions
+  directory: /
+  target-branch: develop
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 3
+  commit-message:
+    prefix: chore(deps)
+  groups:
+    minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
