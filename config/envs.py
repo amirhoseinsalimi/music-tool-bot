@@ -28,7 +28,7 @@ BOT_TOKEN = get_env("BOT_TOKEN")
 DATA_DIR = get_env("DATA_DIR", "/data")
 
 DB_HOST = get_env("DB_HOST", "localhost")
-DB_PORT = int(get_env("DB_PORT", 5432))
+DB_PORT = int(get_env("DB_PORT", 6003))
 DB_DATABASE = get_env("DB_DATABASE", "")
 DB_USERNAME = get_env("DB_USERNAME", "")
 DB_PASSWORD = get_env("DB_PASSWORD", "")
@@ -38,13 +38,13 @@ OWNER_USER_ID_INT = int(OWNER_USER_ID)
 
 DEBUGGER = get_bool_env("DEBUGGER", False)
 DEBUGGER_HOST = get_env("DEBUGGER_HOST")
-DEBUGGER_PORT = int(get_env("DEBUGGER_PORT", 5400))
+DEBUGGER_PORT = int(get_env("DEBUGGER_PORT", 6011))
 DEBUGGER_SUSPEND = get_bool_env("DEBUGGER_SUSPEND", False)
 
 # The optional bridge is started separately from the polling bot.
 ADMIN_BRIDGE_TOKEN = get_env("ADMIN_BRIDGE_TOKEN", "")
 # Parse and validate the port only when starting the bridge.
-ADMIN_BRIDGE_PORT = get_env("ADMIN_BRIDGE_PORT", "5001")
+ADMIN_BRIDGE_PORT = get_env("ADMIN_BRIDGE_PORT", "6004")
 
 BTC_WALLET_ADDRESS = get_env("BTC_WALLET_ADDRESS", "")
 ETH_WALLET_ADDRESS = get_env("ETH_WALLET_ADDRESS", "")

@@ -3,6 +3,9 @@
 import logging
 import os
 import socket
+import sqlite3
+
+from telegram import Update
 
 from config.envs import APP_ENV, DEBUGGER, DEBUGGER_HOST, DEBUGGER_PORT, DEBUGGER_SUSPEND
 from config.telegram_bot import app
@@ -14,6 +17,7 @@ from modules.donation import register as register_donation
 from modules.tag_editor import register as register_tag_editor
 from modules.voice_converter import register as register_voice_converter
 from utils.logging import configure_logging, get_logger
+from utils.extensions import register_optional_extension
 
 logger = get_logger(__name__)
 
@@ -65,9 +69,15 @@ def main():
         logging.getLogger("httpx").setLevel(logging.WARNING)
         logging.getLogger("httpcore").setLevel(logging.WARNING)
 
+    from runtime_controls import bot_settings
+    try:
+        bot_settings()
+    except (OSError, ValueError, sqlite3.Error):
+        logger.error("Runtime controls unavailable; controlled tools will fail closed")
+
     logger.info("Starting bot polling")
-    app.run_polling()
-    app.idle()
+    # Temporary proxy outages must not leave startup permanently disconnected.
+    app.run_polling(allowed_updates=Update.ALL_TYPES, bootstrap_retries=-1)
 
 
 if __name__ == '__main__':
@@ -77,6 +87,7 @@ if __name__ == '__main__':
     register_donation(app.add_handler)
     register_tag_editor(app.add_handler)
     register_voice_converter(app.add_handler)
+    register_optional_extension(app)
     register_core(app.add_handler)
 
     main()

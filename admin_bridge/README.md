@@ -10,7 +10,7 @@ Use the bot's existing Poetry environment and core database configuration. Add a
 make admin-bridge
 ```
 
-This development entry point listens only on `127.0.0.1:5001` by default; `ADMIN_BRIDGE_PORT` overrides the port. For later hosted use, run `create_app(token)` under a production WSGI server and keep it on a private network/HTTPS boundary. No host deployment has been installed here.
+This development entry point listens only on `127.0.0.1:6004` by default; `ADMIN_BRIDGE_PORT` overrides the port. For later hosted use, run `create_app(token)` under a production WSGI server and keep it on a private network/HTTPS boundary. No host deployment has been installed here.
 
 The bridge connects to the configured core PostgreSQL database, with a read-only transaction, a connection timeout and statement timeout. Use a dedicated read-only database role when deployment is configured; the separate process can receive its own DB credentials through the existing DB environment fields. No migration or database refresh is required for these reads. Existing integer-ID schemas remain unchanged.
 
@@ -91,3 +91,14 @@ this does not introduce retention leases or change the bot's cleanup policy.
 Mount the bot's `/data` volume read-only in the bridge. The private admin API receives
 neither a storage mount nor database credentials; it proxies authorized binary transfers.
 There are no new core tables, polling dependencies or file mutations.
+
+## Owner controls
+
+Optional `BOT_CONTROL_DB` enables a separate core-owned runtime configuration
+store; no core database write privileges are needed. `ADMIN_CONTROL_TOKEN` must
+be distinct from the read credential and at least 32 characters. Only current
+owners can POST reasoned, revision-checked `/v1/controls` changes. Current admins
+can GET controls and the immutable audit history. `BOT_PREMIUM_CONTROLS=true`
+reports the installed private premium tools as well. Mount the same store into
+the existing bot; without that mount/environment setting, saved controls cannot
+affect its handlers. Standalone deployments remain independent of this store.

@@ -9,8 +9,8 @@ services:
       BACKUP_DIR: /backups
       BACKUP_RETENTION: ${BACKUP_RETENTION}
       BACKUP_INTERVAL: ${BACKUP_INTERVAL}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
+      DB_HOST: postgres
+      DB_PORT: "6003"
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}

@@ -1,3 +1,4 @@
+from runtime_controls import feature_gate
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -48,6 +49,7 @@ from .utils import (
 logger = get_logger(__name__)
 
 
+@feature_gate('bitrate_changer')
 @upsert_user
 async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
     """
@@ -70,6 +72,7 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     )
 
 
+@feature_gate('bitrate_changer')
 @upsert_user
 async def change_bitrate(update: Update, context: CallbackContext) -> None:
     """

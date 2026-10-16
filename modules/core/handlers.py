@@ -206,7 +206,7 @@ async def show_module_selector(update: Update, context: CallbackContext) -> None
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
-    module_selector_keyboard = generate_module_selector_keyboard(language)
+    module_selector_keyboard = generate_module_selector_keyboard(language, update.effective_user.id)
 
     await update.message.reply_text(
         text=t(language, 'askWhichModule'),
@@ -385,7 +385,7 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
         return
 
     if does_user_have_music_file(music_path):
-        module_selector_keyboard = generate_module_selector_keyboard(language)
+        module_selector_keyboard = generate_module_selector_keyboard(language, update.effective_user.id)
 
         await message.reply_text(
             text=t(language, 'askWhichModule'),
