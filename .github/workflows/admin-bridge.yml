@@ -15,6 +15,7 @@ on:
       - poetry.lock
       - .pylintrc
       - .github/workflows/admin-bridge.yml
+      - .github/workflows/deploy-notify.yml
   workflow_dispatch:
 
 permissions:
