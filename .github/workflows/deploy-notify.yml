@@ -1,29 +1,114 @@
-name: Notify deployment coordinator
+name: Notify development after passing CI
 
 on:
-  workflow_run:
-    workflows: [Admin bridge checks, Optional extension checks]
-    branches: [develop, master]
-    types: [completed]
+  push:
+    branches: [develop]
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
   notify:
-    if: >-
-      vars.DEPLOYMENT_NOTIFICATIONS_ENABLED == 'true' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+    if: vars.DEVELOPMENT_NOTIFICATIONS_ENABLED == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 2
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NOTIFY_TOKEN: ${{ secrets.DEPLOY_NOTIFY_TOKEN }}
+      HEAD_SHA: ${{ github.sha }}
+      SOURCE_REPOSITORY: music-tool-bot
+      REQUIRED_WORKFLOWS: admin-bridge.yml,extensions.yml
     steps:
-      - name: Notify coordinator (it independently verifies all branch heads and CI)
-        env:
-          GH_TOKEN: ${{ secrets.DEPLOY_NOTIFY_TOKEN }}
-          BRANCH: ${{ github.event.workflow_run.head_branch }}
+      - name: Wait for every required push CI workflow to pass at this commit
         run: |
-          case "$BRANCH" in develop|master) ;; *) exit 1 ;; esac
-          gh api --method POST repos/amirhoseinsalimi/music-tool-bot-deploy/dispatches \
-            -f event_type=component-ci-passed -f "client_payload[branch]=$BRANCH"
+          set -eu
+          for attempt in $(seq 1 60); do
+            if python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          sha = os.environ['HEAD_SHA']
+          workflows = os.environ['REQUIRED_WORKFLOWS'].split(',')
+          for workflow in workflows:
+              path = f'repos/{os.environ["GITHUB_REPOSITORY"]}/actions/workflows/{workflow}/runs?branch=develop&event=push&head_sha={sha}&per_page=20'
+              result = subprocess.run(['gh', 'api', path], check=True, capture_output=True, text=True)
+              runs = json.loads(result.stdout)['workflow_runs']
+              matching = [run for run in runs if run['head_sha'] == sha and
+                          run['head_branch'] == 'develop' and run['event'] == 'push' and
+                          run['head_repository']['full_name'] == os.environ['GITHUB_REPOSITORY']]
+              latest = max(matching, key=lambda run: (run['run_number'], run.get('run_attempt', 1)), default=None)
+              if latest and latest['status'] == 'completed' and latest['conclusion'] != 'success':
+                  print('A required push CI workflow failed.', file=sys.stderr)
+                  sys.exit(1)
+              if not latest or latest['status'] != 'completed' or latest['conclusion'] != 'success':
+                  sys.exit(3)
+          PY
+            then
+              break
+            else
+              result=$?
+              if [ "$result" -ne 3 ]; then exit "$result"; fi
+              if [ "$attempt" -eq 60 ]; then
+                printf '%s\n' 'Required push CI did not finish successfully within 30 minutes.'
+                exit 1
+              fi
+              sleep 30
+            fi
+          done
+
+      - name: Notify the private coordinator with a branch push
+        env:
+          SOURCE_REPOSITORY: music-tool-bot
+        run: |
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          source = os.environ['SOURCE_REPOSITORY']
+          if source not in {'music-tool-bot', 'music-tool-bot-admin', 'music-tool-bot-landing', 'music-tool-bot-premium'}:
+              raise SystemExit('Unrecognized source repository')
+          sha = os.environ['HEAD_SHA']
+          if len(sha) != 40 or any(char not in '0123456789abcdef' for char in sha):
+              raise SystemExit('Invalid source revision')
+          token = os.environ['NOTIFY_TOKEN']
+          if not token:
+              raise SystemExit('Configure DEPLOY_NOTIFY_TOKEN')
+          path = urllib.parse.quote(f'.deploy-notifications/{source}.json', safe='/')
+          endpoint = f'https://api.github.com/repos/amirhoseinsalimi/music-tool-bot-deploy/contents/{path}'
+          data = json.dumps({'repository': source, 'sha': sha}, separators=(',', ':'))
+          request_headers = {'Accept': 'application/vnd.github+json', 'Authorization': f'Bearer {token}',
+                             'X-GitHub-Api-Version': '2022-11-28'}
+          for attempt in range(8):
+              current_sha = None
+              try:
+                  request = urllib.request.Request(endpoint + '?ref=develop', headers=request_headers)
+                  with urllib.request.urlopen(request, timeout=15) as response:
+                      current_sha = json.load(response)['sha']
+              except urllib.error.HTTPError as error:
+                  if error.code != 404:
+                      raise SystemExit('Could not inspect coordinator notification file') from None
+              payload = {'message': f'ci(deploy): record {source} development checks',
+                         'content': base64.b64encode((data + '\n').encode()).decode(), 'branch': 'develop'}
+              if current_sha:
+                  payload['sha'] = current_sha
+              request = urllib.request.Request(endpoint, data=json.dumps(payload).encode(),
+                                               headers={**request_headers, 'Content-Type': 'application/json'},
+                                               method='PUT')
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      result = json.load(response)
+                  print(f"Coordinator push created: {result['commit']['sha'][:12]}")
+                  break
+              except urllib.error.HTTPError as error:
+                  if error.code not in (409, 422) or attempt == 7:
+                      raise SystemExit('Could not record CI completion in the coordinator') from None
+                  time.sleep(min(attempt + 1, 5))
+          PY
