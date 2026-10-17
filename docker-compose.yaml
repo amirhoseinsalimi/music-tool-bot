@@ -3,7 +3,7 @@ name: music-tool-bot
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: music-tool-bot-postgres
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-postgres
     command: [postgres, -p, "6003"]
     environment:
       PGPORT: "6003"
@@ -25,7 +25,7 @@ services:
 
   bot:
     image: music-tool-bot:prod
-    container_name: music-tool-bot-bot
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-bot
     build:
       context: .
       dockerfile: docker/Dockerfile

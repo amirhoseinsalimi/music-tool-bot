@@ -3,16 +3,6 @@ name: Admin bridge checks
 on:
   push:
     branches: [master, develop]
-    paths:
-      - admin_bridge/**
-      - tests/bridge/**
-      - config/envs.py
-      - .env.example
-      - Makefile
-      - pyproject.toml
-      - poetry.lock
-      - .pylintrc
-      - .github/workflows/admin-bridge.yml
   pull_request:
     branches: [master, develop]
     paths:
