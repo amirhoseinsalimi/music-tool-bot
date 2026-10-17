@@ -1,0 +1,29 @@
+name: Notify deployment coordinator
+
+on:
+  workflow_run:
+    workflows: [Admin bridge checks, Optional extension checks]
+    branches: [develop, master]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    if: >-
+      vars.DEPLOYMENT_NOTIFICATIONS_ENABLED == 'true' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Notify coordinator (it independently verifies all branch heads and CI)
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_NOTIFY_TOKEN }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          case "$BRANCH" in develop|master) ;; *) exit 1 ;; esac
+          gh api --method POST repos/amirhoseinsalimi/music-tool-bot-deploy/dispatches \
+            -f event_type=component-ci-passed -f "client_payload[branch]=$BRANCH"

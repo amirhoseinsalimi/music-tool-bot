@@ -2,11 +2,6 @@ name: Optional extension checks
 on:
   push:
     branches: [develop, master]
-    paths:
-      - bot.py
-      - utils/extensions.py
-      - tests/extensions/**
-      - .github/workflows/extensions.yml
   pull_request:
     branches: [develop, master]
     paths:

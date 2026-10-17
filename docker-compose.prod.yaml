@@ -1,9 +1,11 @@
 services:
-  postgres: {}
+  bot:
+    environment:
+      APP_ENV: production
 
   backup:
     image: postgres:16-alpine
-    container_name: music-tool-bot-backup
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-backup
     entrypoint: ["/bin/bash", "/scripts/backup.sh"]
     environment:
       BACKUP_DIR: /backups
@@ -26,7 +28,7 @@ services:
 
   sweeper:
     image: postgres:16-alpine
-    container_name: music-tool-bot-sweeper
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-sweeper
     entrypoint: ["/bin/bash", "/scripts/sweeper.sh"]
     environment:
       DATA_DIR: ${DATA_DIR}
