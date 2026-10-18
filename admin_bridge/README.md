@@ -38,7 +38,7 @@ IDs cross the JSON boundary as strings. Missing interaction/status/language rela
 make test-admin-bridge
 ```
 
-The seventeen tests run the real bridge/repository with a SQLite adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
+The seventeen tests run the real bridge/repository with a PostgreSQL adapter for isolated query and authorization behavior. They do not establish live PostgreSQL connectivity; that remains an integration check. The old sample suite under `tests/unit` still has its unrelated known placeholder failure.
 
 ## Code organization
 
@@ -102,3 +102,13 @@ can GET controls and the immutable audit history. `BOT_PREMIUM_CONTROLS=true`
 reports the installed private premium tools as well. Mount the same store into
 the existing bot; without that mount/environment setting, saved controls cannot
 affect its handlers. Standalone deployments remain independent of this store.
+
+## PostgreSQL controls and test storage
+
+Optional runtime controls use `BOT_CONTROL_DATABASE_URL`. The bridge owns this
+core-controlled PostgreSQL store; the bot has settings-read/observation-write
+privileges and premium has a separate read-only role. No database file is shared.
+`postgres_storage.py` uses the same PostgreSQL driver as the core repository.
+Bridge tests require `TEST_DATABASE_URL` for an isolated `musictoolbot_tests`
+database and create/drop unique schemas with the real PostgreSQL driver. No SQL
+dialect adapter or in-memory database substitutes for PostgreSQL in these tests.

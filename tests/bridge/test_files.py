@@ -2,7 +2,6 @@
 
 import json
 import os
-import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,8 +10,10 @@ from unittest.mock import Mock, patch
 from urllib.parse import urlencode
 from wsgiref.util import setup_testing_defaults
 
-from test_bridge import SQLiteConnection
+from pg_support import PostgresFixture
+from test_bridge import PostgreSQLConnection
 
+from postgres_storage import Database
 from admin_bridge.app import create_app
 from admin_bridge.exceptions import BridgeError
 from admin_bridge.files import CHUNK_SIZE, FileStore
@@ -36,11 +37,13 @@ class FileTests(unittest.TestCase):
         (self.root / '7000000001').mkdir()
         (self.root / '7000000001' / 'newer.ogg').write_bytes(b'new')
         os.utime(self.root / '7000000001' / 'newer.ogg', (200, 200))
-        self.database = self.base / 'core.sqlite'
+        fixture = PostgresFixture()
+        self.addCleanup(fixture.close)
+        self.database = fixture.dsn
 
-        with sqlite3.connect(self.database) as connection:
-            connection.executescript('CREATE TABLE admins(admin_user_id INTEGER, is_owner BOOLEAN);'
-                                     'INSERT INTO admins VALUES(42, 1);')
+        with Database(self.database) as connection:
+            connection.execute('CREATE TABLE admins(admin_user_id BIGINT, is_owner BOOLEAN);'
+                               'INSERT INTO admins VALUES(42, TRUE);')
 
         self.store = FileStore(root=self.root)
         self.app = create_app(
@@ -48,9 +51,9 @@ class FileTests(unittest.TestCase):
             repository=CoreRepository(connect=self._connect, files=self.store),
         )
 
-    def _connect(self) -> SQLiteConnection:
+    def _connect(self) -> PostgreSQLConnection:
         """Returns the existing read-only core test adapter."""
-        return SQLiteConnection(path=str(self.database))
+        return PostgreSQLConnection(path=str(self.database))
 
     def request(
         self,
@@ -174,7 +177,7 @@ class FileTests(unittest.TestCase):
             token='s' * 32, repository=CoreRepository(connect=self._connect, files=store),
         )
 
-        with sqlite3.connect(self.database) as connection:
+        with Database(self.database) as connection:
             connection.execute('DELETE FROM admins')
 
         for path in ('/v1/files', '/v1/files/download'):
