@@ -115,7 +115,7 @@ def create_app(
     control_token = control_token or os.getenv('ADMIN_CONTROL_TOKEN', '')
     if control_token and (len(control_token) < 32 or control_token == token):
         raise ValueError('Use a separate control token of at least 32 characters')
-    control_path = os.getenv('BOT_CONTROL_DB', '')
+    control_path = os.getenv('BOT_CONTROL_DATABASE_URL', '')
     controls = controls or (ControlsStore(control_path) if control_path else None)
 
     def app(environ: dict[str, Any], start_response: StartResponse) -> Iterable[bytes]:

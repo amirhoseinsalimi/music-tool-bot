@@ -2,7 +2,7 @@
 import json
 import os
 import re
-import sqlite3
+from postgres_storage import Database, Error, GUARD_SQL
 import time
 from contextlib import closing
 from functools import wraps
@@ -24,34 +24,33 @@ class ControlError(Exception):
         self.code, self.status = code, status
 
 class ControlsStore:
-    def __init__(self, path):
-        self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(self, database_url):
+        self.database_url = database_url
         with closing(self.connect()) as db:
-            db.executescript('''
-                CREATE TABLE IF NOT EXISTS configuration (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL, settings TEXT NOT NULL);
-                CREATE TABLE IF NOT EXISTS control_audit (operation TEXT PRIMARY KEY, actor TEXT NOT NULL, feature TEXT NOT NULL, enabled INTEGER NOT NULL, previous INTEGER NOT NULL, reason TEXT NOT NULL, revision INTEGER NOT NULL, expected_revision INTEGER NOT NULL, created REAL NOT NULL);
-                CREATE TABLE IF NOT EXISTS bot_observation (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL, checked REAL NOT NULL);
-                CREATE TRIGGER IF NOT EXISTS controls_no_update BEFORE UPDATE ON control_audit BEGIN SELECT RAISE(ABORT,'Audit is append-only'); END;
-                CREATE TRIGGER IF NOT EXISTS controls_no_delete BEFORE DELETE ON control_audit BEGIN SELECT RAISE(ABORT,'Audit is append-only'); END;
+            db.begin_write()
+            db.execute(GUARD_SQL)
+            db.execute('''
+                CREATE TABLE IF NOT EXISTS configuration (id BIGINT PRIMARY KEY CHECK(id=1), revision BIGINT NOT NULL, settings TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS control_audit (operation TEXT PRIMARY KEY, actor TEXT NOT NULL, feature TEXT NOT NULL, enabled BIGINT NOT NULL, previous BIGINT NOT NULL, reason TEXT NOT NULL, revision BIGINT NOT NULL, expected_revision BIGINT NOT NULL, created DOUBLE PRECISION NOT NULL);
+                CREATE TABLE IF NOT EXISTS bot_observation (id BIGINT PRIMARY KEY CHECK(id=1), revision BIGINT NOT NULL, checked DOUBLE PRECISION NOT NULL);
+                CREATE OR REPLACE TRIGGER controls_no_update BEFORE UPDATE ON control_audit FOR EACH ROW EXECUTE FUNCTION reject_mutation();
+                CREATE OR REPLACE TRIGGER controls_no_delete BEFORE DELETE ON control_audit FOR EACH ROW EXECUTE FUNCTION reject_mutation();
+CREATE OR REPLACE TRIGGER controls_no_truncate BEFORE TRUNCATE ON control_audit FOR EACH STATEMENT EXECUTE FUNCTION reject_mutation();
             ''')
-            db.execute('INSERT OR IGNORE INTO configuration VALUES (1,0,?)', (json.dumps({key:True for key in TOOLS}),))
-            db.execute('BEGIN IMMEDIATE')
+            db.execute('INSERT INTO configuration VALUES (1,0,%s) ON CONFLICT DO NOTHING', (json.dumps({key:True for key in TOOLS}),))
             raw=db.execute('SELECT settings FROM configuration WHERE id=1').fetchone()[0]
             settings=json.loads(raw)
             for key in TOOLS:
                 settings.setdefault(key,True)
-            db.execute('UPDATE configuration SET settings=? WHERE id=1',(json.dumps(settings),))
+            db.execute('UPDATE configuration SET settings=%s WHERE id=1',(json.dumps(settings),))
             db.commit()
 
     def connect(self):
-        db=sqlite3.connect(self.path, timeout=5, isolation_level=None)
-        db.row_factory=sqlite3.Row
-        return db
+        return Database(self.database_url)
 
     def read(self):
         with closing(self.connect()) as db:
-            db.execute('BEGIN')
+            db.execute('BEGIN ISOLATION LEVEL REPEATABLE READ')
             row=db.execute('SELECT * FROM configuration WHERE id=1').fetchone()
             settings=json.loads(row['settings'])
             seen=db.execute('SELECT * FROM bot_observation WHERE id=1').fetchone()
@@ -63,10 +62,10 @@ class ControlsStore:
         if not isinstance(page, str) or not re.fullmatch(r'[0-9]{1,6}', page) or not 1 <= int(page) <= 100000:
             raise ControlError('invalid_request')
         with closing(self.connect()) as db:
-            db.execute('BEGIN')
+            db.execute('BEGIN ISOLATION LEVEL REPEATABLE READ')
             total=db.execute('SELECT COUNT(*) FROM control_audit').fetchone()[0]
             page=min(int(page),max(1,(total+9)//10))
-            items=[dict(r) for r in db.execute('SELECT * FROM control_audit ORDER BY revision DESC LIMIT 10 OFFSET ?',((page-1)*10,))]
+            items=[dict(r) for r in db.execute('SELECT * FROM control_audit ORDER BY revision DESC LIMIT 10 OFFSET %s',((page-1)*10,))]
         return dict(items=items,total=total,page=page,pageSize=10)
 
     def change(self, actor, data):
@@ -80,8 +79,8 @@ class ControlsStore:
             raise ControlError('invalid_control')
         reason=reason.strip()
         with closing(self.connect()) as db:
-            db.execute('BEGIN IMMEDIATE')
-            prior=db.execute('SELECT * FROM control_audit WHERE operation=?',(operation,)).fetchone()
+            db.begin_write()
+            prior=db.execute('SELECT * FROM control_audit WHERE operation=%s',(operation,)).fetchone()
             if prior:
                 if (prior['actor'],prior['feature'],bool(prior['enabled']),prior['reason'],prior['expected_revision'])!=(actor,feature,enabled,reason,revision):
                     raise ControlError('operation_conflict',409)
@@ -95,24 +94,24 @@ class ControlsStore:
             if previous==enabled:
                 raise ControlError('no_change',409)
             settings[feature]=enabled
-            db.execute('UPDATE configuration SET revision=?,settings=? WHERE id=1',(revision+1,json.dumps(settings)))
-            db.execute('INSERT INTO control_audit VALUES (?,?,?,?,?,?,?,?,?)',(operation,actor,feature,int(enabled),int(previous),reason,revision+1,revision,time.time()))
-            row=dict(db.execute('SELECT * FROM control_audit WHERE operation=?',(operation,)).fetchone())
+            db.execute('UPDATE configuration SET revision=%s,settings=%s WHERE id=1',(revision+1,json.dumps(settings)))
+            db.execute('INSERT INTO control_audit VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',(operation,actor,feature,int(enabled),int(previous),reason,revision+1,revision,time.time()))
+            row=dict(db.execute('SELECT * FROM control_audit WHERE operation=%s',(operation,)).fetchone())
             db.commit()
             return row,True
 
 def bot_settings():
-    path=os.getenv('BOT_CONTROL_DB','')
+    path=os.getenv('BOT_CONTROL_DATABASE_URL','')
     if not path:
         return {key:True for key in TOOLS}
     # A configured but unavailable control store fails closed for these tools.
-    with closing(sqlite3.connect(path,timeout=2,isolation_level=None)) as db:
-        db.execute('BEGIN IMMEDIATE')
+    with closing(Database(path)) as db:
+        db.begin_write()
         revision,raw=db.execute('SELECT revision,settings FROM configuration WHERE id=1').fetchone()
         settings=json.loads(raw)
         if not set(settings)<=set(TOOLS) or not {'tag_editor','bitrate_changer','cutter','voice_converter'}<=set(settings) or any(type(v) is not bool for v in settings.values()):
             raise ValueError('Invalid runtime controls')
-        db.execute('INSERT INTO bot_observation VALUES (1,?,?) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,checked=excluded.checked',(revision,time.time()))
+        db.execute('INSERT INTO bot_observation VALUES (1,%s,%s) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,checked=excluded.checked',(revision,time.time()))
         db.commit()
         return settings
 
@@ -132,7 +131,7 @@ def feature_gate(feature):
             import asyncio
             try:
                 enabled=(await asyncio.to_thread(bot_settings))[feature]
-            except (OSError,sqlite3.Error,ValueError,TypeError):
+            except (OSError,Error,ValueError,TypeError):
                 enabled=False
             if not enabled:
                 if update.effective_message:

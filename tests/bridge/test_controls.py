@@ -4,13 +4,15 @@ import asyncio
 import io
 import json
 import os
-import sqlite3
 import tempfile
 import unittest
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 from wsgiref.util import setup_testing_defaults
+
+import psycopg2
+from pg_support import PostgresFixture
+
 from runtime_controls import ControlsStore, ControlError, bot_settings, feature_gate
 from admin_bridge.app import create_app
 
@@ -26,7 +28,9 @@ class ControlsTests(unittest.TestCase):
         self.addCleanup(translation.stop)
         self.directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         self.addCleanup(self.directory.cleanup)
-        self.path = Path(self.directory.name)/'controls.sqlite'
+        fixture = PostgresFixture()
+        self.addCleanup(fixture.close)
+        self.path = fixture.dsn
         self.store = ControlsStore(self.path)
         self.repo = Mock()
         self.repo.dispatch.return_value = {'telegramId': '42', 'isOwner': True}
@@ -110,12 +114,12 @@ class ControlsTests(unittest.TestCase):
             with self.assertRaises(ControlError):
                 self.store.change('42', {**self.command, **patch_data})
         self.store.change('42', self.command)
-        with self.assertRaises(sqlite3.IntegrityError), self.store.connect() as db:
+        with self.assertRaises(psycopg2.IntegrityError), self.store.connect() as db:
             db.execute('DELETE FROM control_audit')
 
     def test_bot_gates_read_current_settings_and_standalone_defaults(self):
         """Enforce current settings without requiring controls for standalone bots."""
-        with patch.dict(os.environ, {'BOT_CONTROL_DB': ''}):
+        with patch.dict(os.environ, {'BOT_CONTROL_DATABASE_URL': ''}):
             self.assertTrue(all(bot_settings().values()))
         self.store.change('42', self.command)
         update = SimpleNamespace(effective_message=SimpleNamespace(reply_text=AsyncMock()))
@@ -124,7 +128,7 @@ class ControlsTests(unittest.TestCase):
         @feature_gate('cutter')
         async def action(_update, _context):
             called.append(True)
-        with patch.dict(os.environ, {'BOT_CONTROL_DB': str(self.path)}):
+        with patch.dict(os.environ, {'BOT_CONTROL_DATABASE_URL': str(self.path)}):
             asyncio.run(action(update, None))
             self.assertFalse(called)
             update.effective_message.reply_text.assert_awaited_once()
@@ -133,6 +137,7 @@ class ControlsTests(unittest.TestCase):
                               'expectedRevision': 1, 'operationId': 'reenable-control-operation'})
             asyncio.run(action(update, None))
             self.assertEqual(called, [True])
-        with patch.dict(os.environ, {'BOT_CONTROL_DB': str(self.path.parent/'missing.sqlite')}):
+        unavailable = 'host=127.0.0.1 port=1 dbname=unavailable connect_timeout=1'
+        with patch.dict(os.environ, {'BOT_CONTROL_DATABASE_URL': unavailable}):
             asyncio.run(action(update, None))
             self.assertEqual(called, [True])

@@ -8,12 +8,9 @@ services:
     environment:
       PGPORT: "6003"
       POSTGRES_DB: ${DB_DATABASE:-music_tool_bot_dev}
-      POSTGRES_USER: ${DB_USERNAME:-music_tool_bot}
+      POSTGRES_USER: ${DB_ADMIN_USERNAME:-${DB_USERNAME:-music_tool_bot}}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-music_tool_bot_dev}
-    ports:
-      # Bind to loopback only. Without the host IP Docker publishes on 0.0.0.0 and writes its own
-      # iptables rules, which bypass UFW and expose Postgres to the internet.
-      - "127.0.0.1:${DB_PORT:-6003}:6003"
+    # No host database port. Remote clients use the private SSH gateway.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

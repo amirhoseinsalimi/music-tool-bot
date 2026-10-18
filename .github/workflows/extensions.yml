@@ -9,7 +9,6 @@ on:
       - utils/extensions.py
       - tests/extensions/**
       - .github/workflows/extensions.yml
-      - .github/workflows/deploy-notify.yml
 permissions:
   contents: read
 jobs:

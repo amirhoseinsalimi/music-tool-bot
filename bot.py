@@ -3,7 +3,7 @@
 import logging
 import os
 import socket
-import sqlite3
+from psycopg2 import Error as DatabaseError
 
 from telegram import Update
 
@@ -72,7 +72,7 @@ def main():
     from runtime_controls import bot_settings
     try:
         bot_settings()
-    except (OSError, ValueError, sqlite3.Error):
+    except (OSError, ValueError, DatabaseError):
         logger.error("Runtime controls unavailable; controlled tools will fail closed")
 
     logger.info("Starting bot polling")
