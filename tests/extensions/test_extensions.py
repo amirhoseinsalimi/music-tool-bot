@@ -35,9 +35,24 @@ class ExtensionTests(unittest.TestCase):
     def test_configured_extension_receives_application(self):
         with patch.dict(os.environ, {"BOT_EXTENSION": "example_extension:register"}), patch.object(module.importlib, "import_module") as imported:
             application = Mock()
+            def register(app):
+                pass
+            imported.return_value.register = register
             module.register_optional_extension(application)
             imported.assert_called_once_with("example_extension")
-            imported.return_value.register.assert_called_once_with(application)
+            # Older standalone extensions keep their one argument contract.
+
+    def test_configured_core_extension_receives_upsert_decorator(self):
+        with patch.dict(os.environ, {"BOT_EXTENSION": "example_extension:register"}), patch.object(module.importlib, "import_module") as imported:
+            application = Mock()
+            received = {}
+            def register(app, *, upsert_user=None):
+                received.update(application=app, upsert_user=upsert_user)
+            imported.return_value.register = register
+            module.register_optional_extension(application)
+            self.assertIs(received["application"], application)
+            self.assertTrue(callable(received["upsert_user"]))
+            self.assertEqual(received["upsert_user"].__name__, "_lazy_upsert_user")
 
     def test_invalid_extension_is_rejected_before_import(self):
         with patch.dict(os.environ, {"BOT_EXTENSION": "invalid target"}), patch.object(module.importlib, "import_module") as imported:

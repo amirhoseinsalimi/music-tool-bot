@@ -1,10 +1,21 @@
 """Load an operator-configured optional extension without a free-bot dependency."""
 
 import importlib
+import inspect
 import os
 import re
+from functools import wraps
 
 _keyboard_providers = {}
+
+
+def _lazy_upsert_user(function):
+    """Keep the optional extension loader importable without bot dependencies."""
+    @wraps(function)
+    async def wrapped(update, context, *args, **kwargs):
+        from utils.decorators import upsert_user as core_upsert_user
+        return await core_upsert_user(function)(update, context, *args, **kwargs)
+    return wrapped
 
 
 def register_keyboard_provider(name, provider):
@@ -40,4 +51,8 @@ def register_optional_extension(application):
     if not callable(register):
         raise ValueError("BOT_EXTENSION must refer to a callable")
 
-    register(application)
+    parameters = inspect.signature(register).parameters.values()
+    if any(parameter.name == "upsert_user" for parameter in parameters):
+        register(application, upsert_user=_lazy_upsert_user)
+    else:
+        register(application)
