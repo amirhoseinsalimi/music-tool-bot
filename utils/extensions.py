@@ -1,6 +1,7 @@
 """Load an operator-configured optional extension without a free-bot dependency."""
 
 import importlib
+import inspect
 import os
 import re
 
@@ -40,4 +41,9 @@ def register_optional_extension(application):
     if not callable(register):
         raise ValueError("BOT_EXTENSION must refer to a callable")
 
-    register(application)
+    parameters = inspect.signature(register).parameters.values()
+    if any(parameter.name == "upsert_user" for parameter in parameters):
+        from utils.decorators import upsert_user
+        register(application, upsert_user=upsert_user)
+    else:
+        register(application)
