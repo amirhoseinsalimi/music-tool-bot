@@ -52,7 +52,7 @@ class ExtensionTests(unittest.TestCase):
             module.register_optional_extension(application)
             self.assertIs(received["application"], application)
             self.assertTrue(callable(received["upsert_user"]))
-            self.assertEqual(received["upsert_user"].__name__, "upsert_user")
+            self.assertEqual(received["upsert_user"].__name__, "_lazy_upsert_user")
 
     def test_invalid_extension_is_rejected_before_import(self):
         with patch.dict(os.environ, {"BOT_EXTENSION": "invalid target"}), patch.object(module.importlib, "import_module") as imported:
