@@ -94,6 +94,17 @@ class FileTests(unittest.TestCase):
         (self.user / 'safe.mp3').unlink()
         self.assertEqual(self.store.list_files(params={'telegramId': '42'})['total'], 0)
 
+    def test_missing_downloads_directory_is_an_empty_inventory(self) -> None:
+        """A fresh data volume without downloads returns an empty list, not a server error."""
+        self.root.rename(self.base / 'downloads-before-first-upload')
+
+        status, _headers, body = self.request()
+
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(b''.join(body)), {
+            'files': [], 'total': 0, 'page': 1, 'pageSize': 10,
+        })
+
     def test_download_stream_headers_and_cleanup(self) -> None:
         """Streams the retained bytes, bounded chunks and a safe attachment response."""
         status, headers, body = self.request(

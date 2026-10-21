@@ -63,8 +63,8 @@ from .utils import (
 logger = get_logger(__name__)
 
 
-@feature_gate('cutter')
 @upsert_user
+@feature_gate('cutter')
 async def handle_cutter(update: Update, context: CallbackContext) -> None:
     """
     Handles the cut functionality. When a user enters a cutting range, this function parses it, and acts upon
@@ -191,8 +191,8 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(user_id, user_data)
 
 
-@feature_gate('cutter')
 @upsert_user
+@feature_gate('cutter')
 async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """
     Displays the guide on how to use the cutter module, and set the current module to ``Module.CUTTER``.
