@@ -8,6 +8,7 @@ on:
       - bot.py
       - utils/extensions.py
       - tests/extensions/**
+      - i18n/**
       - .github/workflows/extensions.yml
 permissions:
   contents: read
