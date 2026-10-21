@@ -72,8 +72,8 @@ from .utils import (
 )
 
 
-@feature_gate('tag_editor')
 @upsert_user
+@feature_gate('tag_editor')
 async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the user's input when they are editing a tag. It first checks if the user
@@ -127,8 +127,8 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     unset_current_tag(user_data)
 
 
-@feature_gate('tag_editor')
 @upsert_user
+@feature_gate('tag_editor')
 async def handle_photo_message(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the album arts that the user wants to be saved in their file.
@@ -189,8 +189,8 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
         return
 
 
-@feature_gate('tag_editor')
 @upsert_user
+@feature_gate('tag_editor')
 async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
     """
     This function is called when the user has selected the `Module.TAG_EDITOR module`.
@@ -236,8 +236,8 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
         )
 
 
-@feature_gate('tag_editor')
 @upsert_user
+@feature_gate('tag_editor')
 async def display_preview(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/preview`` command. Displays a caption with all the information about the music file, and if there's
@@ -281,8 +281,8 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     )
 
 
-@feature_gate('tag_editor')
 @upsert_user
+@feature_gate('tag_editor')
 async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/finish`` command.
@@ -383,8 +383,8 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     reset_user_data_context(user_id, user_data)
 
 
-@feature_gate('tag_editor')
 @upsert_user
+@feature_gate('tag_editor')
 async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     """
     Asks the user to input a value based on the tag that they just selected.

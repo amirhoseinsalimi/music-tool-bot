@@ -49,8 +49,8 @@ from .utils import (
 logger = get_logger(__name__)
 
 
-@feature_gate('bitrate_changer')
 @upsert_user
+@feature_gate('bitrate_changer')
 async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
     """
     sets the current module to `Module.BITRATE_CHANGER`, and displays a keyboard with buttons for each bitrate option.
@@ -72,8 +72,8 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     )
 
 
-@feature_gate('bitrate_changer')
 @upsert_user
+@feature_gate('bitrate_changer')
 async def change_bitrate(update: Update, context: CallbackContext) -> None:
     """
     Handles the change bitrate functionality.

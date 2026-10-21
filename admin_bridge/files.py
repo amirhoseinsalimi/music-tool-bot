@@ -150,24 +150,28 @@ class FileStore:
         budget = (iter(range(MAX_SCAN_ENTRIES)), time.monotonic() + MAX_SCAN_SECONDS)
         rows: list[dict[str, Any]] = []
 
-        with self._directory(path=self.root) as root_fd:
-            names = iter((telegram_id,)) if telegram_id else (
-                entry.name for entry in self._entries(descriptor=root_fd, budget=budget)
-            )
+        try:
+            with self._directory(path=self.root) as root_fd:
+                names = iter((telegram_id,)) if telegram_id else (
+                    entry.name for entry in self._entries(descriptor=root_fd, budget=budget)
+                )
 
-            for name in names:
-                try:
-                    if validate_telegram_id(value=name) != name:
+                for name in names:
+                    try:
+                        if validate_telegram_id(value=name) != name:
+                            continue
+                    except BridgeError:
                         continue
-                except BridgeError:
-                    continue
 
-                rows.extend(self._scan_user(
-                    parent=root_fd,
-                    telegram_id=name,
-                    query=query,
-                    budget=budget,
-                ))
+                    rows.extend(self._scan_user(
+                        parent=root_fd,
+                        telegram_id=name,
+                        query=query,
+                        budget=budget,
+                    ))
+        except FileNotFoundError:
+            # A fresh bot data volume has no downloads directory until its first upload.
+            return []
 
         return rows
 

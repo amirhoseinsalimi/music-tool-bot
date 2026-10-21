@@ -9,7 +9,7 @@ from telegram.ext import ConversationHandler
 
 from database.models import Language, User, UserStatus
 from modules.admin.utils import is_admin_owner, is_user_admin
-from utils import get_effective_user_id, get_message_text
+from utils import get_effective_user_id, get_message_text, upsert_user
 from utils.logging import get_logger
 from .service import add_admin, del_admin, list_users, show_stats
 from .utils import get_list_limit
@@ -23,6 +23,7 @@ broadcast_thread = None
 logger = get_logger(__name__)
 
 
+@upsert_user
 async def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, calls :func:`add_admin`.
@@ -36,6 +37,7 @@ async def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) 
     await add_admin(update)
 
 
+@upsert_user
 async def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, call :func:`del_admin`.
@@ -49,6 +51,7 @@ async def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) 
     await del_admin(update)
 
 
+@upsert_user
 async def show_stats_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user is an admin. If they are, it calls :func:`show_stats` to display the stats of the bot.
@@ -62,6 +65,7 @@ async def show_stats_if_user_is_admin(update: Update, _context: CallbackContext)
     await show_stats(update)
 
 
+@upsert_user
 async def list_users_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, calls :func:`list_users`.
@@ -75,6 +79,7 @@ async def list_users_if_user_is_admin(update: Update, _context: CallbackContext)
     await list_users(update, get_list_limit(message=get_message_text(update)))
 
 
+@upsert_user
 async def broadcast_command(update: Update, context: CallbackContext) -> int:
     """
     Starts the process of sending a message to all users, optionally filtered by language.
@@ -113,6 +118,7 @@ async def broadcast_command(update: Update, context: CallbackContext) -> int:
     return AWAITING_MESSAGE
 
 
+@upsert_user
 async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     """
     Starts a new thread to broadcast the message to users (optionally filtered by language)
@@ -318,6 +324,7 @@ async def handle_admin_message(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
+@upsert_user
 async def cancel_broadcast(update: Update, context: CallbackContext) -> int:
     """
     Cancels the broadcasting process immediately.

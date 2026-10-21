@@ -42,8 +42,8 @@ from .service import (
 logger = get_logger(__name__)
 
 
-@feature_gate('voice_converter')
 @upsert_user
+@feature_gate('voice_converter')
 async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     """
     Handles the voice conversion functionality. This is the main function of the ``voice_converter`` module that
