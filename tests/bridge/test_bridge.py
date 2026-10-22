@@ -215,6 +215,7 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.request(path=path, query='from=2026-10-22&until=2026-10-21')[0], 400)
 
     def test_feature_usage_month_groups_are_31_days_from_selected_start(self) -> None:
+        """Keeps the 31st day in bucket one and starts bucket two on day 32."""
         with Database(self.path) as database:
             database.execute(
                 "INSERT INTO feature_usage_events VALUES "
