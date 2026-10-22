@@ -1,4 +1,5 @@
 from runtime_controls import feature_gate
+from feature_usage import record_completion
 import re
 
 from persiantools import (
@@ -368,6 +369,8 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data["music_message_id"],
             )
+
+        await record_completion('tag_editor', user_id, getattr(update, 'update_id', None))
 
         await uploading_message.delete()
 

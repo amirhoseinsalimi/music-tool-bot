@@ -1,4 +1,5 @@
 from runtime_controls import feature_gate
+from feature_usage import record_completion
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -101,6 +102,8 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
+
+        await record_completion('voice_converter', user_id, getattr(update, 'update_id', None))
 
         await uploading_message.delete()
 

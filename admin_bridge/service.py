@@ -13,6 +13,7 @@ from psycopg2.extras import RealDictCursor
 
 from .exceptions import BridgeError
 from .files import FileDownload, FileStore
+from .analytics import usage as feature_usage
 from .utils import (
     parse_user_filters,
     serialize_user_profile,
@@ -114,6 +115,9 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
 
         if path == '/v1/overview':
             return self._get_overview(cursor=cursor)
+
+        if path == '/v1/analytics/features':
+            return feature_usage(cursor, params)
 
         if path in {'/v1/users', '/v1/users/export'}:
             return self._list_users(
