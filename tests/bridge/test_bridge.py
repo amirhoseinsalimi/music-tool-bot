@@ -214,6 +214,20 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.request(path=path, query=query, actor='999')[0], 403)
         self.assertEqual(self.request(path=path, query='from=2026-10-22&until=2026-10-21')[0], 400)
 
+    def test_feature_usage_month_groups_are_31_days_from_selected_start(self) -> None:
+        """Keeps the 31st day in bucket one and starts bucket two on day 32."""
+        with Database(self.path) as database:
+            database.execute(
+                "INSERT INTO feature_usage_events VALUES "
+                "('cutter',11,7000000001,'2026-10-30 21:00:00+00'),"
+                "('cutter',12,7000000001,'2026-10-31 21:00:00+00')"
+            )
+        code, data = self.request(path='/v1/analytics/features',
+                                  query='from=2026-10-01&until=2026-11-03&group=month')
+        self.assertEqual(code, 200)
+        self.assertEqual([row['period'] for row in data['periods']],
+                         ['2026-10-01', '2026-11-01'])
+
     def test_id_and_search_validation(self) -> None:
         """Normalizes string IDs, escapes LIKE wildcards and serializes explicit UTC."""
         self.assertEqual(validate_telegram_id(value='007000000001'), '7000000001')

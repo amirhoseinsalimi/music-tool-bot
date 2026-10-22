@@ -34,7 +34,7 @@ broadcasting_active = False
 broadcast_thread = None
 
 ACTIVE_DAYS = 90
-MONTHLY_ACTIVE_DAYS = 30
+MONTHLY_ACTIVE_DAYS = 31
 CHURN_DAYS = 90
 
 
@@ -210,7 +210,7 @@ async def show_stats(update: Update) -> None:
             f"📈 Usage stats:\n"
             f"  🟢 Daily (24h): {daily_users}\n"
             f"  🟡 Weekly (7d): {weekly_users}\n"
-            f"  🔵 Monthly Active (30d): {monthly_active_users}\n"
+            f"  🔵 Monthly Active (31d): {monthly_active_users}\n"
             f"  🟣 Active (90d): {active_users_90d}\n"
             f"  ⚪ Inactive (no interaction): {inactive_users}\n"
             f"  🔴 Churned (90d+ idle): {churned_users}\n\n"

@@ -44,12 +44,19 @@ def usage(cursor, params):
         + feature_sql + ' GROUP BY feature ORDER BY feature', values,
     )
     features = [dict(row) for row in cursor.fetchall()]
-    bucket = f"date_trunc('{PERIODS[group]}', completed_at AT TIME ZONE 'Asia/Tehran')::date"
+    local_day = "(completed_at AT TIME ZONE 'Asia/Tehran')::date"
+    if group == 'month':
+        # Owner-defined month: consecutive 31-day blocks starting at the selected From date.
+        bucket = f"(%s::date + (({local_day} - %s::date) / 31) * 31)"
+        bucket_values = [lower.astimezone(ZONE).date()] * 2
+    else:
+        bucket = f"date_trunc('{PERIODS[group]}', completed_at AT TIME ZONE 'Asia/Tehran')::date"
+        bucket_values = []
     cursor.execute(
         f'SELECT {bucket} AS period, feature, COUNT(*) AS completed, '
         'COUNT(DISTINCT user_id) AS users FROM feature_usage_events '
         'WHERE completed_at >= %s AND completed_at < %s' + feature_sql
-        + ' GROUP BY period, feature ORDER BY period, feature', values,
+        + ' GROUP BY period, feature ORDER BY period, feature', [*bucket_values, *values],
     )
     periods = [{'period': row['period'].isoformat(), 'feature': row['feature'],
                 'completed': row['completed'], 'users': row['users']}
