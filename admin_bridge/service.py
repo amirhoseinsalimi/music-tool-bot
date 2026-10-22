@@ -94,6 +94,8 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
 
         return {'telegramId': actor_id, 'isOwner': bool(admin['is_owner'])}
 
+    # Independent route branches keep the authenticated dispatch easy to audit.
+    # pylint: disable=too-many-return-statements
     def _dispatch_authorized(
         self,
         cursor: PostgresCursor,

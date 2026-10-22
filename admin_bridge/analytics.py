@@ -11,6 +11,7 @@ PERIODS = {'day': 'day', 'week': 'week', 'month': 'month'}
 
 
 def range_filter(params):
+    """Validate an inclusive Tehran reporting range and optional grouping."""
     if set(params) - {'from', 'until', 'group', 'feature'}:
         raise BridgeError(400, 'invalid_request')
     try:
@@ -33,6 +34,7 @@ def range_filter(params):
 
 
 def usage(cursor, params):
+    """Return dated completion totals from core-owned forward-only events."""
     lower, upper, group, feature = range_filter(params)
     feature_sql = ' AND feature = %s' if feature else ''
     values = [lower, upper, *([feature] if feature else [])]
@@ -49,9 +51,10 @@ def usage(cursor, params):
         'WHERE completed_at >= %s AND completed_at < %s' + feature_sql
         + ' GROUP BY period, feature ORDER BY period, feature', values,
     )
-    periods = [dict(period=row['period'].isoformat(), feature=row['feature'],
-                    completed=row['completed'], users=row['users']) for row in cursor.fetchall()]
+    periods = [{'period': row['period'].isoformat(), 'feature': row['feature'],
+                'completed': row['completed'], 'users': row['users']}
+               for row in cursor.fetchall()]
     cursor.execute('SELECT MIN(completed_at) AS first FROM feature_usage_events')
     first = cursor.fetchone()['first']
-    return {'features': features, 'periods': periods, 'historySince': first.isoformat() if first else None,
-            'timezone': 'Asia/Tehran'}
+    return {'features': features, 'periods': periods,
+            'historySince': first.isoformat() if first else None, 'timezone': 'Asia/Tehran'}

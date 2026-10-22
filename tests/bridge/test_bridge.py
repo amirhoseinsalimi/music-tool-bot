@@ -192,6 +192,7 @@ class BridgeTests(unittest.TestCase):
         self.assertIsNone(self.request(path='/v1/users/7000000001')[1]['status'])
 
     def test_feature_usage_is_dated_and_authorized(self) -> None:
+        """Counts completions in Tehran dates and rejects unauthorised reads."""
         with Database(self.path) as database:
             database.execute(
                 "INSERT INTO feature_usage_events VALUES "
