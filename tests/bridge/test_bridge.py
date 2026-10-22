@@ -68,6 +68,10 @@ class BridgeTests(unittest.TestCase):
                     language_id BIGINT, user_status_id BIGINT, created_at TIMESTAMP,
                     updated_at TIMESTAMP, last_interaction_at TIMESTAMP
                 );
+                CREATE TABLE feature_usage_events(
+                    feature TEXT NOT NULL, update_id BIGINT NOT NULL, user_id BIGINT NOT NULL,
+                    completed_at TIMESTAMPTZ NOT NULL, PRIMARY KEY(feature,update_id)
+                );
                 INSERT INTO admins VALUES(42, TRUE);
                 INSERT INTO languages VALUES(1, 'en', 'English'), (2, 'fa', 'Persian');
                 INSERT INTO user_statuses VALUES(1, 'active'), (2, 'blocked');
@@ -186,6 +190,29 @@ class BridgeTests(unittest.TestCase):
             database.execute('UPDATE users SET user_status_id=999 WHERE id=1')
 
         self.assertIsNone(self.request(path='/v1/users/7000000001')[1]['status'])
+
+    def test_feature_usage_is_dated_and_authorized(self) -> None:
+        """Counts completions in Tehran dates and rejects unauthorised reads."""
+        with Database(self.path) as database:
+            database.execute(
+                "INSERT INTO feature_usage_events VALUES "
+                "('cutter',1,7000000001,'2026-10-21 20:29:59+00'),"
+                "('cutter',2,7000000001,'2026-10-21 20:30:00+00'),"
+                "('cutter',3,7000000002,'2026-10-21 20:40:00+00'),"
+                "('tag_editor',4,7000000002,'2026-10-21 20:50:00+00')"
+            )
+        path = '/v1/analytics/features'
+        query = 'from=2026-10-22&until=2026-10-22&group=day'
+        code, data = self.request(path=path, query=query)
+        self.assertEqual(code, 200)
+        self.assertEqual(data['timezone'], 'Asia/Tehran')
+        self.assertEqual(data['features'], [
+            {'feature': 'cutter', 'completed': 2, 'users': 2},
+            {'feature': 'tag_editor', 'completed': 1, 'users': 1},
+        ])
+        self.assertEqual(data['periods'][0]['period'], '2026-10-22')
+        self.assertEqual(self.request(path=path, query=query, actor='999')[0], 403)
+        self.assertEqual(self.request(path=path, query='from=2026-10-22&until=2026-10-21')[0], 400)
 
     def test_id_and_search_validation(self) -> None:
         """Normalizes string IDs, escapes LIKE wildcards and serializes explicit UTC."""

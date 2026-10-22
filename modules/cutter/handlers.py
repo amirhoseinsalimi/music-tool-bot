@@ -1,4 +1,5 @@
 from runtime_controls import feature_gate
+from feature_usage import record_completion
 from persiantools import (
     digits,
 )
@@ -174,6 +175,8 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
                 reply_markup=start_over_button_keyboard,
                 reply_to_message_id=user_data['music_message_id']
             )
+
+        await record_completion('cutter', user_id, getattr(update, 'update_id', None))
 
         await uploading_message.delete()
 
