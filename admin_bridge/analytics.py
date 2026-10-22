@@ -27,7 +27,8 @@ def range_filter(params):
     if group not in PERIODS or feature not in ('', *FREE_FEATURES):
         raise BridgeError(400, 'invalid_request')
     lower = datetime.combine(start, time.min, ZONE).astimezone(timezone.utc)
-    upper = datetime.combine(date.fromordinal(end.toordinal() + 1), time.min, ZONE).astimezone(timezone.utc)
+    upper = datetime.combine(date.fromordinal(end.toordinal() + 1),
+                             time.min, ZONE).astimezone(timezone.utc)
     return lower, upper, group, feature
 
 
