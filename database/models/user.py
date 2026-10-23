@@ -6,6 +6,8 @@ class User(Model):
     __fillable__ = [
         'user_id',
         'username',
+        'first_name',
+        'last_name',
         'language_id',
         'number_of_files_sent',
         'user_status_id',

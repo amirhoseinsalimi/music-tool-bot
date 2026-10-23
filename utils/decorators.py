@@ -23,7 +23,10 @@ def upsert_user(function):
     @wraps(function)
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
         user_id = get_effective_user_id(update)
+        telegram_user = update.effective_user
         username = get_effective_user_username(update)
+        first_name = getattr(telegram_user, 'first_name', None)
+        last_name = getattr(telegram_user, 'last_name', None)
         interaction_at = datetime.now(timezone.utc)
 
         user = User.where('user_id', '=', user_id).first()
@@ -32,6 +35,8 @@ def upsert_user(function):
             user = User.create({
                 'user_id': user_id,
                 'username': username,
+                'first_name': first_name,
+                'last_name': last_name,
                 'language_id': _get_default_language_id(),
                 'number_of_files_sent': 0,
                 'user_status_id': 1,
@@ -40,6 +45,12 @@ def upsert_user(function):
 
             logger.info("User %s started using the bot", user_id)
         else:
+            if getattr(user, 'first_name', None) != first_name:
+                user.first_name = first_name
+
+            if getattr(user, 'last_name', None) != last_name:
+                user.last_name = last_name
+
             if username and user.username != username:
                 logger.info("User %s changed username from %s to %s", user_id, user.username, username)
                 user.username = username
