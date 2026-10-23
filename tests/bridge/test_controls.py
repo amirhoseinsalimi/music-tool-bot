@@ -38,7 +38,8 @@ class ControlsTests(unittest.TestCase):
         self.command = {'feature': 'cutter', 'enabled': False, 'reason': 'Provider maintenance',
                         'expectedRevision': 0, 'operationId': 'operation-controls-test'}
 
-    def request(self, method='GET', data=None, path='/v1/controls', actor='42', token=None):
+    def request(self, method='GET', data=None, path='/v1/controls', actor='42',
+                token=None, query=''):
         # pylint: disable=too-many-arguments,too-many-positional-arguments
         """Exercise the WSGI boundary with a selectable actor, token and payload."""
         environ = {}
@@ -49,7 +50,7 @@ class ControlsTests(unittest.TestCase):
         environ.update(
             REQUEST_METHOD=method, PATH_INFO=path, HTTP_AUTHORIZATION='Bearer ' + selected_token,
             HTTP_X_ADMIN_TELEGRAM_ID=actor, CONTENT_LENGTH=str(len(body)),
-            CONTENT_TYPE='application/json',
+            CONTENT_TYPE='application/json', QUERY_STRING=query,
         )
         environ['wsgi.input'] = io.BytesIO(body)
         result = []
@@ -64,6 +65,8 @@ class ControlsTests(unittest.TestCase):
         self.assertEqual(self.store.audit()['total'], 27)
         self.assertEqual([row['revision']
                          for row in self.store.audit()['items']], list(range(27, 17, -1)))
+        ascending = self.store.audit({'page': '1', 'sort': 'revision', 'direction': 'asc'})
+        self.assertEqual([row['revision'] for row in ascending['items']], list(range(1, 11)))
         last = self.store.audit('999')
         self.assertEqual(last['page'], 3)
         self.assertEqual([row['revision'] for row in last['items']], list(range(7, 0, -1)))
@@ -73,6 +76,12 @@ class ControlsTests(unittest.TestCase):
         status, body = self.request(path='/v1/controls/audit')
         self.assertEqual(status, 200)
         self.assertEqual(body['pageSize'], 10)
+        status, body = self.request(
+            path='/v1/controls/audit', query='sort=revision&direction=asc')
+        self.assertEqual(status, 200)
+        self.assertEqual(body['items'][0]['revision'], 1)
+        self.assertEqual(
+            self.request(path='/v1/controls/audit', query='sort=sql&direction=asc')[0], 400)
         self.assertEqual(self.request(path='/v1/controls/audit', token='wrong')[0], 401)
         self.assertEqual(self.request('POST', {}, path='/v1/controls/audit')[0], 405)
 
