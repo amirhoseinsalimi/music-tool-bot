@@ -31,6 +31,15 @@ USER_COLUMNS = (
     'u.created_at, u.updated_at, u.last_interaction_at, '
     'l.name AS language_name, l.iso AS language_iso, s.slug AS status_slug'
 )
+USER_SORT_SQL = {
+    'username': 'LOWER(COALESCE(u.username, \'\'))',
+    'telegramId': 'u.user_id',
+    'language': 'LOWER(COALESCE(l.name, \'\'))',
+    'status': 'LOWER(COALESCE(s.slug, \'\'))',
+    'audioSubmissions': 'u.number_of_files_sent',
+    'lastInteractionAt': 'u.last_interaction_at',
+    'createdAt': 'u.created_at',
+}
 
 
 # Keep one public entry point so every read passes the same authorization gate.
@@ -167,7 +176,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         exporting: bool,
     ) -> dict[str, Any]:
         """Returns a filtered user page or a bounded collection for Excel export."""
-        conditions, values, page, page_size = parse_user_filters(params=params)
+        conditions, values, page, page_size, sort, direction = parse_user_filters(params=params)
 
         cursor.execute('SELECT COUNT(*) AS total' + USER_JOINS + conditions, values)
         total = cursor.fetchone()['total']
@@ -183,9 +192,12 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         limit = MAX_EXPORT_ROWS if exporting else page_size
         offset = 0 if exporting else (page - 1) * page_size
 
+        order = (
+            f' ORDER BY {USER_SORT_SQL[sort]} {direction.upper()} NULLS LAST, u.id ASC'
+            if sort else ' ORDER BY u.created_at DESC, u.id DESC'
+        )
         cursor.execute(
-            'SELECT ' + USER_COLUMNS + USER_JOINS + conditions
-            + ' ORDER BY u.created_at DESC, u.id DESC LIMIT %s OFFSET %s',
+            'SELECT ' + USER_COLUMNS + USER_JOINS + conditions + order + ' LIMIT %s OFFSET %s',
             [*values, limit, offset],
         )
         users = [serialize_user_profile(row=row) for row in cursor.fetchall()]

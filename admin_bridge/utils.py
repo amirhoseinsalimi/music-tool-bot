@@ -13,8 +13,23 @@ MAX_SEARCH_LENGTH = 80
 MAX_PAGE_NUMBER = 100000
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 10
-USER_FILTER_NAMES = {'q', 'status', 'language', 'page', 'pageSize'}
+USER_FILTER_NAMES = {'q', 'status', 'language', 'page', 'pageSize', 'sort', 'direction'}
 USER_STATUS_SLUGS = {'active', 'blocked', 'deleted'}
+USER_SORT_COLUMNS = {
+    'username', 'telegramId', 'language', 'status', 'audioSubmissions', 'lastInteractionAt', 'createdAt',
+}
+FILE_SORT_COLUMNS = {'basename', 'telegramId', 'bytes', 'modifiedAt'}
+
+
+def parse_sort(params: Mapping[str, str], columns: set[str]) -> tuple[str, str]:
+    """Validates an allowlisted sort key and direction, defaulting to no override."""
+    sort = params.get('sort', '')
+    direction = params.get('direction', '')
+    if not sort and not direction:
+        return '', ''
+    if sort not in columns or direction not in {'asc', 'desc'}:
+        raise BridgeError(status=400, message='Invalid sorting')
+    return sort, direction
 
 
 def validate_basename(value: str) -> str:
@@ -40,7 +55,7 @@ def validate_basename(value: str) -> str:
     return value
 
 
-def parse_file_filters(params: Mapping[str, str]) -> tuple[str, str, int, int]:
+def parse_file_filters(params: Mapping[str, str]) -> tuple[str, str, int, int, str, str]:
     """
     Validates filesystem search, an exact owner filter and bounded pagination.
 
@@ -48,7 +63,7 @@ def parse_file_filters(params: Mapping[str, str]) -> tuple[str, str, int, int]:
     :raises BridgeError: A filter is unknown, malformed or outside supported bounds
     :return: tuple[str, str, int, int]: Casefolded search, owner ID, page and page size
     """
-    if set(params) - {'q', 'telegramId', 'page', 'pageSize'}:
+    if set(params) - {'q', 'telegramId', 'page', 'pageSize', 'sort', 'direction'}:
         raise BridgeError(status=400, message='Unknown filter')
 
     query = params.get('q', '').strip()
@@ -69,7 +84,8 @@ def parse_file_filters(params: Mapping[str, str]) -> tuple[str, str, int, int]:
     if not 1 <= page <= MAX_PAGE_NUMBER or not 1 <= page_size <= MAX_PAGE_SIZE:
         raise BridgeError(status=400, message='Invalid pagination')
 
-    return query.casefold(), telegram_id, page, page_size
+    sort, direction = parse_sort(params=params, columns=FILE_SORT_COLUMNS)
+    return query.casefold(), telegram_id, page, page_size, sort, direction
 
 
 def validate_telegram_id(value: str) -> str:
@@ -115,13 +131,13 @@ def parse_query_string(query: str) -> dict[str, str]:
     return {key: values[0] for key, values in parsed.items()}
 
 
-def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, int]:
+def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, int, str, str]:
     """
     Validates user filters and creates parameterized SQL conditions.
 
     :param params: Mapping[str, str]: Search, status, language and pagination parameters
     :raises BridgeError: A filter is unknown, malformed or outside the supported range
-    :return: tuple[str, list[str], int, int]: SQL conditions, bindings, page and page size
+    :return: tuple: SQL conditions, bindings, page, page size, allowlisted sort key and direction
     """
     if set(params) - USER_FILTER_NAMES:
         raise BridgeError(status=400, message='Unknown filter')
@@ -164,7 +180,8 @@ def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, 
 
     conditions = ' WHERE ' + ' AND '.join(clauses) if clauses else ''
 
-    return conditions, values, page, page_size
+    sort, direction = parse_sort(params=params, columns=USER_SORT_COLUMNS)
+    return conditions, values, page, page_size, sort, direction
 
 
 def serialize_timestamp(value: datetime | str | None) -> str | None:

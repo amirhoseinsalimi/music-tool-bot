@@ -68,9 +68,19 @@ class FileStore:
         :raises BridgeError: Filters are invalid or the scan exceeds its entry budget
         :return: dict[str, Any]: Files, total, page and page size from this filesystem scan
         """
-        query, telegram_id, page, page_size = parse_file_filters(params=params)
+        query, telegram_id, page, page_size, sort, direction = parse_file_filters(params=params)
         files = self._scan(query=query, telegram_id=telegram_id)
-        files.sort(key=lambda row: (-row['modifiedNs'], row['telegramId'], row['basename']))
+        if sort:
+            files.sort(key=lambda row: (int(row['telegramId']), row['basename']))
+            keys = {
+                'basename': lambda row: row['basename'].casefold(),
+                'telegramId': lambda row: int(row['telegramId']),
+                'bytes': lambda row: row['bytes'],
+                'modifiedAt': lambda row: row['modifiedNs'],
+            }
+            files.sort(key=keys[sort], reverse=direction == 'desc')
+        else:
+            files.sort(key=lambda row: (-row['modifiedNs'], row['telegramId'], row['basename']))
         total = len(files)
         page = min(page, max(1, (total + page_size - 1) // page_size))
         offset = (page - 1) * page_size

@@ -82,7 +82,7 @@ def _dispatch_request(environ, actor_id, params, repository, control_settings):
     if controls is None:
         raise BridgeError(503, 'controls_unavailable')
     if path.endswith('/audit'):
-        return controls.audit(params.get('page', '1'))
+        return controls.audit(params)
     if environ.get('REQUEST_METHOD') == 'POST':
         if not membership['isOwner']:
             raise BridgeError(403, 'owner_required')

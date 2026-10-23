@@ -58,14 +58,30 @@ CREATE OR REPLACE TRIGGER controls_no_truncate BEFORE TRUNCATE ON control_audit 
             return dict(revision=row['revision'],features=[dict(id=k,name=TOOLS[k][0],description=TOOLS[k][1],enabled=settings[k]) for k in TOOLS if k not in {'recognition','separation','artwork'} or os.getenv('BOT_PREMIUM_CONTROLS')=='true'],
                         botRevision=seen['revision'] if seen else None,botCheckedAt=seen['checked'] if seen else None,audit=audit)
 
-    def audit(self, page='1'):
+    def audit(self, params='1'):
+        if isinstance(params, str):
+            params = {'page': params}
+        if set(params) - {'page', 'sort', 'direction'}:
+            raise ControlError('invalid_request')
+        page = params.get('page', '1')
         if not isinstance(page, str) or not re.fullmatch(r'[0-9]{1,6}', page) or not 1 <= int(page) <= 100000:
             raise ControlError('invalid_request')
+        sort = params.get('sort', '')
+        direction = params.get('direction', '')
+        columns = {
+            'revision': 'revision', 'created': 'created', 'actor': 'actor', 'feature': 'feature',
+            'changes': 'enabled', 'reason': 'reason',
+        }
+        if bool(sort) != bool(direction) or (sort and (sort not in columns or direction not in {'asc', 'desc'})):
+            raise ControlError('invalid_request')
+        order = (f"{columns[sort]} {direction.upper()} NULLS LAST, revision ASC"
+                 if sort else 'revision DESC')
         with closing(self.connect()) as db:
             db.execute('BEGIN ISOLATION LEVEL REPEATABLE READ')
             total=db.execute('SELECT COUNT(*) FROM control_audit').fetchone()[0]
             page=min(int(page),max(1,(total+9)//10))
-            items=[dict(r) for r in db.execute('SELECT * FROM control_audit ORDER BY revision DESC LIMIT 10 OFFSET %s',((page-1)*10,))]
+            items=[dict(r) for r in db.execute(
+                f'SELECT * FROM control_audit ORDER BY {order} LIMIT 10 OFFSET %s', ((page-1)*10,))]
         return dict(items=items,total=total,page=page,pageSize=10)
 
     def change(self, actor, data):
