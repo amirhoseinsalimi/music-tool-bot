@@ -6,7 +6,7 @@ import unittest
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from wsgiref.util import setup_testing_defaults
 
 import psycopg2
@@ -21,6 +21,7 @@ from admin_bridge.utils import (
     serialize_timestamp,
     validate_telegram_id,
 )
+from source_tracking import _record, source_key
 
 
 class PostgreSQLConnection:
@@ -65,7 +66,7 @@ class BridgeTests(unittest.TestCase):
                 CREATE TABLE languages(id BIGINT, iso TEXT, name TEXT);
                 CREATE TABLE user_statuses(id BIGINT, slug TEXT);
                 CREATE TABLE users(
-                    id BIGINT, user_id BIGINT, username TEXT, first_name TEXT, last_name TEXT,
+                    id BIGINT, user_id BIGINT, username TEXT, display_name TEXT,
                     number_of_files_sent BIGINT,
                     language_id BIGINT, user_status_id BIGINT, created_at TIMESTAMP,
                     updated_at TIMESTAMP, last_interaction_at TIMESTAMP
@@ -74,15 +75,19 @@ class BridgeTests(unittest.TestCase):
                     feature TEXT NOT NULL, update_id BIGINT NOT NULL, user_id BIGINT NOT NULL,
                     completed_at TIMESTAMPTZ NOT NULL, PRIMARY KEY(feature,update_id)
                 );
+                CREATE TABLE bot_start_events(
+                    update_id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, source_key VARCHAR(64),
+                    is_new_user BOOLEAN NOT NULL, started_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                );
                 INSERT INTO admins VALUES(42, TRUE);
                 INSERT INTO languages VALUES(1, 'en', 'English'), (2, 'fa', 'Persian');
                 INSERT INTO user_statuses VALUES(1, 'active'), (2, 'blocked');
                 INSERT INTO users VALUES(
-                    1, 7000000001, 'listener', 'Listener', 'Example', 4, 1, 1,
+                    1, 7000000001, 'listener', 'Listener Example', 4, 1, 1,
                     '2026-10-10 12:00:00', '2026-10-10 12:00:00', NULL
                 );
                 INSERT INTO users VALUES(
-                    2, 7000000002, NULL, 'Mina', NULL, 0, 2, 2,
+                    2, 7000000002, NULL, 'Mina', 0, 2, 2,
                     '2026-10-11 12:00:00', '2026-10-11 12:00:00', '2026-10-11 12:00:00'
                 );
             """)
@@ -216,6 +221,46 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.request(path=path, query=query, actor='999')[0], 403)
         self.assertEqual(self.request(path=path, query='from=2026-10-22&until=2026-10-21')[0], 400)
 
+    def test_source_keys_count_first_visits_and_repeated_starts(self) -> None:
+        """First visit, unique user and repeat Start totals use one Tehran date range."""
+        with Database(self.path) as database:
+            database.execute(
+                "INSERT INTO bot_start_events VALUES "
+                "(1,7000000001,'blackfriday',TRUE,'2026-10-10 12:00:00+00'),"
+                "(2,7000000001,'blackfriday',FALSE,'2026-10-22 09:00:00+00'),"
+                "(3,7000000002,'blackfriday',FALSE,'2026-10-22 10:00:00+00'),"
+                "(4,7000000001,'digikala_campain',FALSE,'2026-10-22 11:00:00+00')"
+            )
+        path = '/v1/analytics/sources'
+        code, report = self.request(path=path)
+        self.assertEqual(code, 200)
+        blackfriday = next(row for row in report['rows'] if row['key'] == 'blackfriday')
+        self.assertEqual(blackfriday, {'key': 'blackfriday', 'newUsers': 1,
+                                       'uniqueUsers': 2, 'botStarts': 3})
+        self.assertEqual(report['totalNewUsers'], 2)
+        self.assertEqual(report['unknownNewUsers'], 1)
+        _, dated = self.request(path=path, query='from=2026-10-22&until=2026-10-22')
+        self.assertEqual(next(row for row in dated['rows']
+                         if row['key'] == 'blackfriday')['botStarts'], 2)
+        profile = self.request(path='/v1/users/7000000001')[1]
+        self.assertEqual(profile['acquisitionSource'], 'blackfriday')
+        self.assertEqual(profile['latestTaggedSource'], 'digikala_campain')
+        self.assertEqual(self.request(path=path, actor='999')[0], 403)
+        self.assertEqual(self.request(path=path, query='from=2026-10-23&until=2026-10-22')[0], 400)
+
+    def test_start_recording_validates_keys_and_is_idempotent(self) -> None:
+        """Source parsing rejects invalid keys and repeated Telegram updates are idempotent."""
+        self.assertEqual(source_key(['digikala_campain']), 'digikala_campain')
+        self.assertIsNone(source_key(['bad key']))
+        self.assertIsNone(source_key(['a', 'b']))
+        connect = psycopg2.connect
+        with patch('source_tracking.psycopg2.connect', side_effect=lambda **_: connect(self.path)):
+            _record(91, 7000000001, 'blackfriday', True)
+            _record(91, 7000000001, 'blackfriday', True)
+        with Database(self.path) as database:
+            self.assertEqual(database.execute(
+                'SELECT COUNT(*) FROM bot_start_events').fetchone()[0], 1)
+
     def test_feature_usage_month_groups_are_31_days_from_selected_start(self) -> None:
         """Keeps the 31st day in bucket one and starts bucket two on day 32."""
         with Database(self.path) as database:
@@ -243,7 +288,7 @@ class BridgeTests(unittest.TestCase):
             with self.subTest(invalid=invalid), self.assertRaises(BridgeError):
                 parse_user_filters(params=invalid)
 
-        self.assertEqual(values, ['%\\_\\%\\\\%'] * 5)
+        self.assertEqual(values, ['%\\_\\%\\\\%'] * 3)
         self.assertEqual(
             serialize_timestamp(value=datetime(2026, 10, 10)),
             '2026-10-10T00:00:00+00:00',
@@ -263,6 +308,10 @@ class BridgeTests(unittest.TestCase):
             'createdAt': '2026-10-10T12:00:00+00:00',
             'updatedAt': '2026-10-10T12:00:00+00:00',
             'lastInteractionAt': None,
+            'acquisitionSource': None,
+            'acquisitionRecordedAt': None,
+            'latestTaggedSource': None,
+            'latestTaggedAt': None,
         })
 
     def test_read_transactions_close_on_success_and_denial(self) -> None:

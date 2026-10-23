@@ -76,6 +76,10 @@ async def command_start(update: Update, context: CallbackContext) -> None:
     user = context.user_data['user']
     user_id = user.user_id
 
+    from source_tracking import record_start  # pylint: disable=import-outside-toplevel
+    await record_start(update.update_id, user_id, context.args,
+                       context.user_data.pop('_new_user_on_this_update', False))
+
     user_data = get_user_data(context)
 
     reset_user_data_context(user_id, user_data)
