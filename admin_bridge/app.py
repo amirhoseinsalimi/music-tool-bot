@@ -73,7 +73,7 @@ def _dispatch_request(environ, actor_id, params, repository, control_settings):
     path = environ.get('PATH_INFO', '')
     if path not in {'/v1/health', '/v1/controls', '/v1/controls/audit'}:
         return repository.dispatch(actor_id=actor_id, path=path, params=params)
-    allowed_params = {'page'} if path.endswith('/audit') else set()
+    allowed_params = {'page', 'sort', 'direction'} if path.endswith('/audit') else set()
     if set(params) - allowed_params:
         raise BridgeError(400, 'invalid_request')
     membership = repository.dispatch(actor_id, '/v1/session', {})

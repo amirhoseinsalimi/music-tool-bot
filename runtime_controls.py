@@ -59,6 +59,8 @@ CREATE OR REPLACE TRIGGER controls_no_truncate BEFORE TRUNCATE ON control_audit 
                         botRevision=seen['revision'] if seen else None,botCheckedAt=seen['checked'] if seen else None,audit=audit)
 
     def audit(self, params='1'):
+        if params is None:
+            raise ControlError('invalid_request')
         if isinstance(params, str):
             params = {'page': params}
         if set(params) - {'page', 'sort', 'direction'}:

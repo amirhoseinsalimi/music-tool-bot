@@ -14,6 +14,7 @@ from pg_support import PostgresFixture
 
 from postgres_storage import Database
 from admin_bridge.app import create_app
+from admin_bridge.exceptions import BridgeError
 from admin_bridge.service import CoreRepository
 from admin_bridge.utils import (
     parse_user_filters,
@@ -231,7 +232,15 @@ class BridgeTests(unittest.TestCase):
     def test_id_and_search_validation(self) -> None:
         """Normalizes string IDs, escapes LIKE wildcards and serializes explicit UTC."""
         self.assertEqual(validate_telegram_id(value='007000000001'), '7000000001')
-        _, values, _, _ = parse_user_filters(params={'q': '_%\\'})
+        _, values, *_ = parse_user_filters(params={'q': '_%\\'})
+
+        self.assertEqual(parse_user_filters(params={'sort': 'telegramId', 'direction': 'asc'})[4:],
+                         ('telegramId', 'asc'))
+        for invalid in ({'sort': 'user_id', 'direction': 'asc'},
+                        {'sort': 'username', 'direction': 'sideways'},
+                        {'direction': 'desc'}):
+            with self.subTest(invalid=invalid), self.assertRaises(BridgeError):
+                parse_user_filters(params=invalid)
 
         self.assertEqual(values, ['%\\_\\%\\\\%'] * 2)
         self.assertEqual(

@@ -16,7 +16,8 @@ DEFAULT_PAGE_SIZE = 10
 USER_FILTER_NAMES = {'q', 'status', 'language', 'page', 'pageSize', 'sort', 'direction'}
 USER_STATUS_SLUGS = {'active', 'blocked', 'deleted'}
 USER_SORT_COLUMNS = {
-    'username', 'telegramId', 'language', 'status', 'audioSubmissions', 'lastInteractionAt', 'createdAt',
+    'username', 'telegramId', 'language', 'status', 'audioSubmissions', 'lastInteractionAt',
+    'createdAt',
 }
 FILE_SORT_COLUMNS = {'basename', 'telegramId', 'bytes', 'modifiedAt'}
 
