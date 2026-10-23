@@ -168,6 +168,7 @@ id:
   donationMessage: |
     Terima kasih atas ketertarikanmu untuk mendukung karyaku. Aku seorang pengembang dan menjalankan bot Telegram ini sebagai hobi.
     Donasimu akan membantuku terus mengembangkan dan menyempurnakan bot ini. Jika kamu ingin berdonasi, kamu bisa menggunakan metode berikut. Terima kasih sebelumnya atas dukunganmu.
+  donationUnavailable: "Metode donasi sementara tidak tersedia. Coba lagi nanti."
   donateMessageBitcoin: |
     Ini dompet BTC-ku.
 
