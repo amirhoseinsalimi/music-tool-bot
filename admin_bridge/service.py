@@ -14,6 +14,7 @@ from psycopg2.extras import RealDictCursor
 from .exceptions import BridgeError
 from .files import FileDownload, FileStore
 from .analytics import usage as feature_usage
+from .attribution import sources as source_report, user_sources
 from .utils import (
     USER_DISPLAY_NAME_SQL,
     parse_user_filters,
@@ -134,6 +135,9 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         if path == '/v1/analytics/features':
             return feature_usage(cursor, params)
 
+        if path == '/v1/analytics/sources':
+            return source_report(cursor, params)
+
         if path in {'/v1/users', '/v1/users/export'}:
             return self._list_users(
                 cursor=cursor,
@@ -228,7 +232,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         if row is None:
             raise BridgeError(status=404, message='User not found')
 
-        return serialize_user_profile(row=row)
+        return {**serialize_user_profile(row=row), **user_sources(cursor, int(telegram_id))}
 
 
 def create_file_store() -> FileStore:

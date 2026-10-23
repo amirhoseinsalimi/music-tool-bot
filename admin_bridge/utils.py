@@ -15,10 +15,7 @@ MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 10
 USER_FILTER_NAMES = {'q', 'status', 'language', 'page', 'pageSize', 'sort', 'direction'}
 USER_STATUS_SLUGS = {'active', 'blocked', 'deleted'}
-USER_DISPLAY_NAME_SQL = (
-    "NULLIF(CONCAT_WS(' ', NULLIF(BTRIM(u.first_name), ''), "
-    "NULLIF(BTRIM(u.last_name), '')), '')"
-)
+USER_DISPLAY_NAME_SQL = 'u.display_name'
 USER_SORT_COLUMNS = {
     'displayName', 'username', 'telegramId', 'language', 'status', 'audioSubmissions',
     'lastInteractionAt', 'createdAt',
@@ -173,11 +170,10 @@ def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, 
         # SQL LIKE wildcards are escaped so a search remains literal text.
         escaped = query.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
         clauses.append(
-            '(u.username ILIKE %s OR u.first_name ILIKE %s OR u.last_name ILIKE %s '
-            f'OR {USER_DISPLAY_NAME_SQL} ILIKE %s '
+            f'(u.username ILIKE %s OR {USER_DISPLAY_NAME_SQL} ILIKE %s '
             'OR CAST(u.user_id AS TEXT) LIKE %s)'
         )
-        values.extend([f'%{escaped}%'] * 5)
+        values.extend([f'%{escaped}%'] * 3)
 
     if status:
         clauses.append('s.slug = %s')
