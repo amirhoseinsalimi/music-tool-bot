@@ -65,7 +65,8 @@ class BridgeTests(unittest.TestCase):
                 CREATE TABLE languages(id BIGINT, iso TEXT, name TEXT);
                 CREATE TABLE user_statuses(id BIGINT, slug TEXT);
                 CREATE TABLE users(
-                    id BIGINT, user_id BIGINT, username TEXT, number_of_files_sent BIGINT,
+                    id BIGINT, user_id BIGINT, username TEXT, first_name TEXT, last_name TEXT,
+                    number_of_files_sent BIGINT,
                     language_id BIGINT, user_status_id BIGINT, created_at TIMESTAMP,
                     updated_at TIMESTAMP, last_interaction_at TIMESTAMP
                 );
@@ -77,11 +78,11 @@ class BridgeTests(unittest.TestCase):
                 INSERT INTO languages VALUES(1, 'en', 'English'), (2, 'fa', 'Persian');
                 INSERT INTO user_statuses VALUES(1, 'active'), (2, 'blocked');
                 INSERT INTO users VALUES(
-                    1, 7000000001, 'listener', 4, 1, 1,
+                    1, 7000000001, 'listener', 'Listener', 'Example', 4, 1, 1,
                     '2026-10-10 12:00:00', '2026-10-10 12:00:00', NULL
                 );
                 INSERT INTO users VALUES(
-                    2, 7000000002, NULL, 0, 2, 2,
+                    2, 7000000002, NULL, 'Mina', NULL, 0, 2, 2,
                     '2026-10-11 12:00:00', '2026-10-11 12:00:00', '2026-10-11 12:00:00'
                 );
             """)
@@ -242,7 +243,7 @@ class BridgeTests(unittest.TestCase):
             with self.subTest(invalid=invalid), self.assertRaises(BridgeError):
                 parse_user_filters(params=invalid)
 
-        self.assertEqual(values, ['%\\_\\%\\\\%'] * 2)
+        self.assertEqual(values, ['%\\_\\%\\\\%'] * 5)
         self.assertEqual(
             serialize_timestamp(value=datetime(2026, 10, 10)),
             '2026-10-10T00:00:00+00:00',
@@ -253,6 +254,7 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.request(path='/v1/users/7000000001')[1], {
             'id': 1,
             'telegramId': '7000000001',
+            'displayName': 'Listener Example',
             'username': 'listener',
             'language': 'English',
             'languageIso': 'en',

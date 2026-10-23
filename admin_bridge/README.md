@@ -21,8 +21,8 @@ Every request requires `Authorization: Bearer <ADMIN_BRIDGE_TOKEN>` and `X-Admin
 | GET path | Response |
 | --- | --- |
 | `/v1/session` | Current actor Telegram ID and owner flag |
-| `/v1/users` | Paginated users, total count, page/pageSize and language choices |
-| `/v1/users/<telegram_id>` | Available core user profile |
+| `/v1/users` | Paginated users, including recorded Telegram display name and username, total count, page/pageSize and language choices |
+| `/v1/users/<telegram_id>` | Available core user profile, including the recorded Telegram display name |
 | `/v1/overview` | User total, Active status count, audio submissions and language counts |
 | `/v1/users/export` | All matching profiles, bounded to 20000 rows; narrow filters beyond that |
 | `/v1/files` | Current retained files, filtered and paginated from the filesystem |

@@ -15,6 +15,7 @@ from .exceptions import BridgeError
 from .files import FileDownload, FileStore
 from .analytics import usage as feature_usage
 from .utils import (
+    USER_DISPLAY_NAME_SQL,
     parse_user_filters,
     serialize_user_profile,
     validate_telegram_id,
@@ -27,11 +28,14 @@ USER_JOINS = (
     ' LEFT JOIN user_statuses s ON s.id = u.user_status_id'
 )
 USER_COLUMNS = (
-    'u.id, u.user_id, u.username, u.number_of_files_sent, '
+    'u.id, u.user_id, u.username, '
+    + USER_DISPLAY_NAME_SQL + ' AS display_name, '
+    'u.number_of_files_sent, '
     'u.created_at, u.updated_at, u.last_interaction_at, '
     'l.name AS language_name, l.iso AS language_iso, s.slug AS status_slug'
 )
 USER_SORT_SQL = {
+    'displayName': f'LOWER(COALESCE({USER_DISPLAY_NAME_SQL}, \'\'))',
     'username': 'LOWER(COALESCE(u.username, \'\'))',
     'telegramId': 'u.user_id',
     'language': 'LOWER(COALESCE(l.name, \'\'))',
