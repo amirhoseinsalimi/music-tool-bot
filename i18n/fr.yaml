@@ -168,6 +168,7 @@ fr:
   donationMessage: |
     Merci de vouloir soutenir mon travail. Je suis développeur et je fais tourner ce bot Telegram comme projet hobby.
     Ton don m’aide à continuer son développement et ses améliorations. Si tu veux faire un don, utilise les méthodes ci-dessous. Merci d’avance pour ton soutien !
+  donationUnavailable: "Les moyens de faire un don sont temporairement indisponibles. Réessayez plus tard."
   donateMessageBitcoin: |
     Voici mon portefeuille BTC.
 

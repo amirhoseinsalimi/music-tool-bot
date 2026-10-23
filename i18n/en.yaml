@@ -168,6 +168,7 @@ en:
   donationMessage: |
     Thank you for your interest in supporting my work. I am a developer and I run this Telegram bot as a hobby. 
     Your donation will help me to continue developing and improving this bot. If you would like to donate, you can use the following methods. Thank you in advance for your support.
+  donationUnavailable: "Donation methods are temporarily unavailable. Please try again later."
   donateMessageBitcoin: |
     Here's my BTC wallet.
 
