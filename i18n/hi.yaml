@@ -230,3 +230,14 @@ hi:
   uploading: "अपलोड हो रहा है… कृपया प्रतीक्षा करें।"
   done: हो गया!
   or: या
+  broadcastAlreadyRunning: "एक ब्रॉडकास्ट पहले से चल रहा है। /broadcast_status देखें।"
+  broadcastPrompt: "ब्रॉडकास्ट करने वाला संदेश भेजें। भेजने से पहले आप उसका पूर्वावलोकन करके पुष्टि कर सकेंगे। रद्द करने के लिए /cancel_broadcast भेजें।"
+  broadcastPromptLanguage: "{language_code} भाषा वाले उपयोगकर्ताओं के लिए संदेश भेजें। भेजने से पहले आप उसका पूर्वावलोकन करके पुष्टि कर सकेंगे। रद्द करने के लिए /cancel_broadcast भेजें।"
+  broadcastConfirm: "यह संदेश का पूर्वावलोकन है। भेजने के लिए /send_broadcast या रद्द करने के लिए /cancel_broadcast भेजें।"
+  broadcastNoPending: "पुष्टि के लिए कोई संदेश बाकी नहीं है।"
+  broadcastStarted: "{count} उपयोगकर्ताओं के लिए ब्रॉडकास्ट शुरू हुआ। स्थिति: /broadcast_status"
+  broadcastComplete: "ब्रॉडकास्ट पूरा: {sent} भेजे गए, {failed} विफल, {blocked} नए ब्लॉक, {active} फिर सक्रिय।"
+  broadcastStatusActive: "एडमिन {admin_id} का ब्रॉडकास्ट चल रहा है: अब तक {sent} भेजे गए, {failed} विफल।"
+  broadcastStatusIdle: "कोई ब्रॉडकास्ट नहीं चल रहा है।"
+  broadcastNotOwner: "केवल ब्रॉडकास्ट शुरू करने वाला एडमिन इसे रद्द कर सकता है।"
+  broadcastCancelled: "ब्रॉडकास्ट रद्द हुआ। अब और संदेश नहीं भेजे जाएंगे।"

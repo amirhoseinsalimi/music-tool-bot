@@ -230,3 +230,14 @@ ar:
   uploading: "جاري الرفع... الرجاء الانتظار."
   done: تم!
   or: أو
+  broadcastAlreadyRunning: "هناك إرسال جماعي قيد التنفيذ. تحقق من /broadcast_status."
+  broadcastPrompt: "أرسل الرسالة التي تريد تعميمها. ستعاينها وتؤكدها قبل الإرسال. استخدم /cancel_broadcast للإلغاء."
+  broadcastPromptLanguage: "أرسل الرسالة لتعميمها على المستخدمين الذين لغتهم {language_code}. ستعاينها وتؤكدها قبل الإرسال. استخدم /cancel_broadcast للإلغاء."
+  broadcastConfirm: "هذه معاينة الرسالة. أرسل /send_broadcast لإرسالها أو /cancel_broadcast للإلغاء."
+  broadcastNoPending: "لا توجد رسالة بانتظار التأكيد."
+  broadcastStarted: "بدأ الإرسال الجماعي إلى {count} مستخدم. الحالة: /broadcast_status"
+  broadcastComplete: "اكتمل الإرسال: أُرسل {sent}، وفشل {failed}، وحُظر حديثًا {blocked}، وعاد نشطًا {active}."
+  broadcastStatusActive: "إرسال المشرف {admin_id} قيد التنفيذ: أُرسل {sent} وفشل {failed} حتى الآن."
+  broadcastStatusIdle: "لا يوجد إرسال جماعي قيد التنفيذ."
+  broadcastNotOwner: "يمكن للمشرف الذي بدأ الإرسال فقط إلغاءه."
+  broadcastCancelled: "أُلغي الإرسال الجماعي. لن تُرسل رسائل أخرى."

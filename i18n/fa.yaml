@@ -230,3 +230,14 @@ fa:
   done: تموم شد!
   uploading: "در حال آپلود... لطفاً صبر کنید."
   or: یا
+  broadcastAlreadyRunning: "یک پیام همگانی در حال اجراست. وضعیت را با /broadcast_status ببینید."
+  broadcastPrompt: "پیامی را که می‌خواهید همگانی کنید بفرستید. پیش از ارسال آن را می‌بینید و تأیید می‌کنید. برای لغو /cancel_broadcast را بزنید."
+  broadcastPromptLanguage: "پیام همگانی برای کاربران با زبان {language_code} را بفرستید. پیش از ارسال، آن را می‌بینید و تأیید می‌کنید. برای لغو /cancel_broadcast را بزنید."
+  broadcastConfirm: "این پیش‌نمایش پیام است. برای ارسال /send_broadcast و برای لغو /cancel_broadcast را بزنید."
+  broadcastNoPending: "پیامی برای تأیید وجود ندارد."
+  broadcastStarted: "ارسال همگانی برای {count} کاربر شروع شد. وضعیت: /broadcast_status"
+  broadcastComplete: "ارسال همگانی تمام شد: {sent} ارسال، {failed} ناموفق، {blocked} مسدودشدهٔ جدید، {active} فعال‌شدهٔ دوباره."
+  broadcastStatusActive: "ارسال همگانی مدیر {admin_id} در حال اجراست: تاکنون {sent} ارسال و {failed} ناموفق."
+  broadcastStatusIdle: "ارسال همگانی فعالی وجود ندارد."
+  broadcastNotOwner: "فقط مدیری که ارسال را شروع کرده می‌تواند آن را لغو کند."
+  broadcastCancelled: "ارسال همگانی لغو شد؛ پیام دیگری فرستاده نمی‌شود."
