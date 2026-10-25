@@ -139,7 +139,7 @@ def reset_user_data_context(user_id: int, user_data: UD) -> None:
     """
     Resets the user data session. Resets all values in the ``user_data`` dictionary.
     The language value is not reset, as it should be kept between sessions.
-    User files are preserved on disk and cleaned up periodically by the sweeper service.
+    User files are preserved on disk and cleaned up periodically by the bot retention job.
 
     :param user_id: int: The user's ``user_id``
     :param user_data: UD: The ``user_data`` object

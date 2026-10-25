@@ -71,7 +71,8 @@ def _dispatch_request(environ, actor_id, params, repository, control_settings):
     """Authorize current membership before health/control observations or changes."""
     controls, control_token = control_settings
     path = environ.get('PATH_INFO', '')
-    if path not in {'/v1/health', '/v1/controls', '/v1/controls/audit'}:
+    if path not in {'/v1/health', '/v1/controls', '/v1/controls/audit',
+                    '/v1/controls/retention'}:
         return repository.dispatch(actor_id=actor_id, path=path, params=params)
     allowed_params = {'page', 'sort', 'direction'} if path.endswith('/audit') else set()
     if set(params) - allowed_params:
@@ -86,18 +87,14 @@ def _dispatch_request(environ, actor_id, params, repository, control_settings):
     if environ.get('REQUEST_METHOD') == 'POST':
         if not membership['isOwner']:
             raise BridgeError(403, 'owner_required')
-        result, created = controls.change(actor_id, _control_payload(environ))
+        payload = _control_payload(environ)
+        if path == '/v1/controls/retention':
+            result, created = controls.change_retention(actor_id, payload)
+        else:
+            result, created = controls.change(actor_id, payload)
         return {'change': result, 'created': created}
     data = controls.read()
     data['canChange'] = membership['isOwner'] and bool(control_token)
-    raw_retention = os.getenv('FILE_RETENTION_DAYS', '20')
-    try:
-        retention_days = min(max(int(raw_retention), 1), 60)
-    except ValueError:
-        retention_days = 20
-    data['retention'] = {
-        'days': retention_days, 'runtimeMutable': False, 'source': 'FILE_RETENTION_DAYS',
-    }
     return data
 
 
@@ -126,8 +123,7 @@ def create_app(
     def app(environ: dict[str, Any], start_response: StartResponse) -> Iterable[bytes]:
         """Handles one authenticated read and returns a bounded JSON response."""
         try:
-            writing = environ.get(
-                'PATH_INFO') == '/v1/controls' and environ.get('REQUEST_METHOD') == 'POST'
+            writing = environ.get('PATH_INFO') in {'/v1/controls', '/v1/controls/retention'} and environ.get('REQUEST_METHOD') == 'POST'
             if writing and not control_token:
                 raise BridgeError(503, 'controls_unavailable')
             actor_id, params = _validate_request(
