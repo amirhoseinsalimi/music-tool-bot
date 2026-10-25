@@ -120,6 +120,7 @@ es:
   errOnConvertingM4a: "Lo siento, no pude convertir tu archivo m4a… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Lo siento, no pude descargar la foto… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errTooLargeFile: "El archivo es demasiado grande para que pueda procesarlo. ¡Lo siento!"
+  unsupportedFileMessage: "No puedo usar este tipo de archivo. Tu sesión actual no ha cambiado; envía audio, una imagen al editar la portada o empieza un archivo nuevo."
   errOnReadingTags: "Lo siento, no pude leer las etiquetas del archivo… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnUpdatingTags: "Lo siento, no pude actualizar las etiquetas del archivo… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnUploading: "Lo siento, debido a problemas de red, no pude subir tu archivo. Intenta nuevamente."

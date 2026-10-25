@@ -120,6 +120,7 @@ fa:
   errOnConvertingM4a: "نتونستم فایل m4a رو تبدیل کنم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errOnDownloadPhotoMessage: "نتونستم عکس رو دانلود کنم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errTooLargeFile: "فایل زیادی بزرگه و از توان پردازش من خارجه!"
+  unsupportedFileMessage: "نمی‌توانم از این نوع فایل استفاده کنم. وضعیت فعلی شما حفظ شد؛ فایل صوتی، تصویر هنگام ویرایش جلد، یا فایل جدید بفرستید."
   errOnReadingTags: "نتونستم تگ‌های فایل رو بخونم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errOnUpdatingTags: "نتونستم تگ‌ها رو آپدیت کنم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errOnUploading: "مشکل شبکه بود، فایل آپلود نشد. دوباره امتحان کن."

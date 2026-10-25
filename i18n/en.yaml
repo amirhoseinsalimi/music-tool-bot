@@ -120,6 +120,7 @@ en:
   errOnConvertingM4a: "Sorry, I couldn't convert your m4a file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Sorry, I couldn't download your file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errTooLargeFile: "This file is too big that I can process, sorry!"
+  unsupportedFileMessage: "I can't use this file type. Your current session is unchanged; send audio, an image during album-art editing, or start a new file."
   errOnReadingTags: "Sorry, I couldn't read the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnUpdatingTags: "Sorry, I couldn't update tags the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnUploading: "Sorry, due to network issues, I couldn't upload your file. Please try again."
