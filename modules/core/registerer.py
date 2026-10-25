@@ -57,6 +57,10 @@ def registry() -> list[BaseHandler]:
     """
     Build and return this module's handlers.
     """
+    audio_document_filter = filters.Document.AUDIO
+    for extension in ('mp3', 'm4a', 'aac', 'ogg', 'flac', 'wav'):
+        audio_document_filter |= filters.Document.FileExtension(extension)
+
     handlers: list[BaseHandler] = [
         CommandHandler('start', command_start),
         CommandHandler('new', start_over),

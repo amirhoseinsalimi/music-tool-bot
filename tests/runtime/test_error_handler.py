@@ -32,6 +32,18 @@ class ErrorHandlerTests(unittest.TestCase):
         user.save.assert_called_once()
         update.effective_message.reply_text.assert_not_awaited()
 
+    def test_unrelated_bad_request_is_unexpected_and_does_not_log_exception_text(self):
+        from telegram.error import BadRequest
+
+        reply = AsyncMock()
+        update = SimpleNamespace(update_id=19, effective_user=SimpleNamespace(id=42), effective_message=SimpleNamespace(reply_text=reply))
+        context = SimpleNamespace(error=BadRequest('private detail'), user_data={'language': 'en'}, bot=SimpleNamespace(send_message=AsyncMock()))
+        with patch('utils.error_handler.reset_user_data_context'), patch('utils.error_handler.delete_all_user_files'), patch('utils.error_handler.OWNER_USER_ID_INT', None), patch('utils.error_handler.logger') as logger:
+            asyncio.run(on_error(update, context))
+        reply.assert_awaited_once()
+        logger.error.assert_called_once()
+        self.assertNotIn('private detail', str(logger.error.call_args))
+
 
 if __name__ == '__main__':
     unittest.main()
