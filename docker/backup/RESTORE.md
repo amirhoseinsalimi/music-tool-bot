@@ -80,7 +80,7 @@ tar -xzf ./backups/bot_data_<timestamp>.tar.gz -C ./data
 docker compose start bot
 ```
 
-## Restore Everything (Full Disaster Recovery)
+## Restore Everything (Core Bot)
 
 If you're setting up on a brand new machine:
 
@@ -94,8 +94,15 @@ docker compose up -d postgres
 
 docker compose exec postgres pg_isready -U "${DB_USERNAME}"
 
+docker compose run --rm bot make db-migrate
+docker compose run --rm bot make db-seed
 docker compose up -d
 ```
+
+This public repository owns one PostgreSQL database and the bot's `/data` volume.
+This procedure restores those core bot resources; it does not cover databases
+owned by private sibling services. Seed after migrations, then start/restart the
+bot so it loads the supported languages and owner account.
 
 ## Verify the Restore
 
@@ -104,4 +111,4 @@ docker compose up -d
 docker compose exec postgres psql -U "${DB_USERNAME}" -d "${DB_DATABASE}" -c "SELECT COUNT(*) FROM users;"
 
 # Check that the bot starts without errors
-docker compose logs bot
+docker compose logs --follow bot
