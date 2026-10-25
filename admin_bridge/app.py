@@ -90,8 +90,13 @@ def _dispatch_request(environ, actor_id, params, repository, control_settings):
         return {'change': result, 'created': created}
     data = controls.read()
     data['canChange'] = membership['isOwner'] and bool(control_token)
+    raw_retention = os.getenv('FILE_RETENTION_DAYS', '20')
+    try:
+        retention_days = min(max(int(raw_retention), 1), 60)
+    except ValueError:
+        retention_days = 20
     data['retention'] = {
-        'days': None, 'runtimeMutable': False, 'source': 'Sweeper deployment configuration',
+        'days': retention_days, 'runtimeMutable': False, 'source': 'FILE_RETENTION_DAYS',
     }
     return data
 

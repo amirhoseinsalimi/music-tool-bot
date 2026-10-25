@@ -32,7 +32,7 @@ services:
     entrypoint: ["/bin/bash", "/scripts/sweeper.sh"]
     environment:
       DATA_DIR: ${DATA_DIR}
-      SWEEPER_RETENTION_DAYS: ${SWEEPER_RETENTION_DAYS}
+      FILE_RETENTION_DAYS: ${FILE_RETENTION_DAYS}
       SWEEPER_INTERVAL: ${SWEEPER_INTERVAL}
     volumes:
       - ./docker/sweeper/sweeper.sh:/scripts/sweeper.sh:ro
