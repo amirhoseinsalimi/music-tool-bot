@@ -93,7 +93,12 @@ def is_user_data_empty(user_data: UD) -> bool:
     :param user_data: UD: The ``user_data`` object of the user that we want to check its emptiness
     :return: bool: Whether the user has data
     """
-    return len(user_data) == 1
+    # New sessions carry an explicit marker. Keep accepting complete contexts
+    # written before the marker was introduced.
+    if 'session_started' in user_data:
+        return not user_data['session_started']
+
+    return 'music_path' not in user_data
 
 
 def get_user_language_or_fallback(user_data: UD) -> str:
@@ -138,6 +143,7 @@ def reset_user_data_context(user_id: int, user_data: UD) -> None:
     language = get_user_language_or_fallback(user_data) if ('language' in user_data) else 'en'
 
     new_user_data = {
+        'session_started': True,
         'tag_editor': {},
         'bitrate_changer': {},
         'music_path': '',
