@@ -12,6 +12,8 @@ fr:
   starsJobAccepted: "Tâche acceptée. Le résultat sera envoyé ici une fois prêt."
   starsJobFailed: "La tâche a échoué. Les crédits réservés ont été restitués."
   starsJobReview: "Cette tâche nécessite un examen du propriétaire. Aucun renvoi automatique."
+  starsJobExpired: "Ce résultat enregistré est indisponible ou le délai de récupération de 7 jours a expiré. Contactez /paysupport. La prochaine fois, récupérez-le sous 7 jours avec /premiumjob {job_id}."
+  starsJobClaimLimit: "Vous avez atteint la limite quotidienne de récupération des résultats. Réessayez demain ou contactez /paysupport si le résultat reste inaccessible."
   starsJobReady: "Tâche terminée. Le résultat enregistré arrivera ici bientôt."
   starsJobDelivered: "Résultat déjà livré. Vous pouvez le récupérer à nouveau."
   starsJobLink: "Consultez ou récupérez le résultat. Copiez la commande :"

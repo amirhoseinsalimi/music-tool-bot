@@ -12,6 +12,8 @@ es:
   starsJobAccepted: "Tarea aceptada. Enviaré el resultado aquí cuando esté listo."
   starsJobFailed: "La tarea falló. Se devolvieron los créditos reservados."
   starsJobReview: "Esta tarea requiere revisión del propietario. No se volverá a enviar automáticamente."
+  starsJobExpired: "El resultado guardado no está disponible o venció el plazo de reclamación de 7 días. Contacta con /paysupport. La próxima vez, recupéralo dentro de 7 días con /premiumjob {job_id}."
+  starsJobClaimLimit: "Has alcanzado el límite diario para recuperar resultados. Inténtalo mañana o contacta con /paysupport si aún no puedes recuperarlo."
   starsJobReady: "Tarea terminada. El resultado guardado llegará aquí pronto."
   starsJobDelivered: "Esta tarea ya se entregó. Puedes recuperar el resultado guardado."
   starsJobLink: "Consulta o recupera el resultado. Toca el comando para copiar:"

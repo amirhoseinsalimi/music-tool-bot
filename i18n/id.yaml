@@ -12,6 +12,8 @@ id:
   starsJobAccepted: "Tugas diterima. Hasil akan dikirim di sini setelah siap."
   starsJobFailed: "Tugas gagal. Kredit yang dicadangkan telah dikembalikan."
   starsJobReview: "Tugas perlu ditinjau pemilik dan tidak akan dikirim ulang otomatis."
+  starsJobExpired: "Hasil tersimpan ini tidak tersedia atau masa klaim 7 hari telah berakhir. Hubungi /paysupport. Lain kali, ambil hasil dalam 7 hari dengan /premiumjob {job_id}."
+  starsJobClaimLimit: "Batas pengambilan hasil hari ini telah tercapai. Coba lagi besok atau hubungi /paysupport jika hasil masih tidak tersedia."
   starsJobReady: "Tugas selesai. Hasil tersimpan akan segera dikirim di sini."
   starsJobDelivered: "Hasil sudah dikirim. Anda dapat mengambilnya lagi."
   starsJobLink: "Periksa atau ambil hasil. Ketuk perintah untuk menyalin:"
