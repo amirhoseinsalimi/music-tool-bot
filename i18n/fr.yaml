@@ -81,6 +81,7 @@ fr:
     Si tu as des questions ou des retours, n’hésite pas à m’écrire sur Telegram.
     Si tu es développeur et que tu as une idée pour améliorer le bot, j’accueille volontiers tes pull requests.
   defaultMessage: "Envoie-moi ou transfère-moi une piste audio, un fichier MP3 ou de la musique. J’attends… 😁"
+  unexpectedError: "Une erreur est survenue. Réessayez avec un nouveau fichier."
   askWhichModule: Que veux-tu faire avec ce fichier ?
   askWhichTag: Quel tag veux-tu modifier ?
   askForAlbum: |

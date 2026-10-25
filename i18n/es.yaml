@@ -81,6 +81,7 @@ es:
     Si tienes alguna pregunta o comentario, no dudes en escribirme por Telegram.
     Si eres desarrollador y tienes una idea para mejorar el bot, ¡agradezco tus pull requests!
   defaultMessage: "Envíame o reenvíame una pista de audio, un archivo MP3 o cualquier música. Estoy esperando… 😁"
+  unexpectedError: "Algo salió mal. Inténtalo de nuevo con un archivo nuevo."
   askWhichModule: ¿Qué quieres hacer con este archivo?
   askWhichTag: ¿Qué etiqueta (tag) quieres editar?
   askForAlbum: |
