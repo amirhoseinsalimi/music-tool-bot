@@ -6,6 +6,7 @@ from telegram import (
     ReplyKeyboardRemove,
     Update,
 )
+from telegram.error import BadRequest
 from telegram.constants import (
     ChatAction,
 )
@@ -17,6 +18,7 @@ from database.models import (
     Language,
     User,
 )
+from config.envs import MAX_DURATION_SECONDS
 from modules.cutter.handlers import (
     handle_cutter,
 )
@@ -60,6 +62,7 @@ from .utils import (
 )
 
 logger = get_logger(__name__)
+MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024
 
 
 @upsert_user
@@ -236,7 +239,6 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     user_data = get_user_data(context)
 
     reset_user_data_context(user_id, user_data)
-    increment_file_counter_for_user(user_id=user_id)
 
     music_duration = message.audio.duration.total_seconds()
     music_file_size = message.audio.file_size
@@ -249,15 +251,23 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     language = get_user_language_or_fallback(user_data)
 
-    if music_duration >= 3600 and music_file_size > 48000000:
+    if music_file_size is not None and music_file_size > MAX_DOWNLOAD_BYTES:
         logger.warning(
-            "Rejected oversized audio from user %s duration=%ss size=%s",
+            "Rejected oversized audio from user %s size=%s",
             user_id,
-            music_duration,
             music_file_size
         )
         await message.reply_text(
             text=t(language, 'errTooLargeFile'),
+            reply_markup=generate_start_over_keyboard(language)
+        )
+
+        return
+
+    if music_duration > MAX_DURATION_SECONDS:
+        logger.warning("Rejected overlong audio from user %s duration=%ss", user_id, music_duration)
+        await message.reply_text(
+            text=t(language, 'errAudioTooLong', maxDuration=MAX_DURATION_SECONDS),
             reply_markup=generate_start_over_keyboard(language)
         )
 
@@ -284,6 +294,16 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
             file_type='audio',
             context=context
         )
+    except BadRequest as error:
+        if 'file is too big' not in str(error).lower():
+            raise
+        logger.warning("Telegram rejected audio download as too large for user %s", user_id)
+        await message.reply_text(
+            text=t(language, 'errTooLargeFile'),
+            reply_markup=generate_start_over_keyboard(language)
+        )
+
+        return
     except ValueError:
         await message.reply_text(
             text=t(language, 'errOnDownloadAudioMessage'),
@@ -324,8 +344,8 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     logger.info("Stored audio for user %s at %s", user_id, file_download_path)
 
     try:
-        await read_and_store_music_tags(update, user_data)
-    except (KeyError, Exception):
+        tags_loaded = await read_and_store_music_tags(update, user_data)
+    except Exception:
         reset_user_data_context(user_id, user_data)
         logger.exception("Failed to read and store tags for user %s", user_id)
 
@@ -333,7 +353,12 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
         return
 
+    if not tags_loaded:
+        reset_user_data_context(user_id, user_data)
+        return
+
     logger.info("Audio intake completed for user %s", user_id)
+    increment_file_counter_for_user(user_id=user_id)
     await show_module_selector(update, context)
 
 

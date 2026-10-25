@@ -243,7 +243,7 @@ async def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> N
     await update.message.reply_text(text=message_text)
 
 
-async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
+async def read_and_store_music_tags(update: Update, user_data: UD) -> bool:
     """
     Reads the tags of a music file and stores them in the user's ``user_data`` dictionary.
 
@@ -268,7 +268,7 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             file_download_path
         )
 
-        return
+        return False
 
     artist = music.get('artist')
     title = music.get('title')
@@ -338,3 +338,4 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
         tag_editor_context.pop('art_path', None)
 
     logger.info("Loaded tags for user %s file %s", user_id, file_download_path)
+    return True
