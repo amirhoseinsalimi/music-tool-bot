@@ -86,12 +86,16 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     """
     user_data = get_user_data(context)
+    language = get_user_language_or_fallback(user_data)
+    if is_user_data_empty(user_data):
+        await reply_default_message(update, language)
+        return
+
     music_tags = user_data['tag_editor']
     message = get_message(update)
 
     current_tag = music_tags.get('current_tag')
 
-    language = get_user_language_or_fallback(user_data)
     tag_editor_keyboard = generate_tag_editor_keyboard(language)
 
     if not did_user_select_a_tag(current_tag):
@@ -144,7 +148,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     music_path = user_data.get('music_path')
     message = get_message(update)
 
-    if not music_path:
+    if is_user_data_empty(user_data) or not music_path:
         reply_message = t(language, 'defaultMessage')
 
         await message.reply_text(text=reply_message, reply_markup=ReplyKeyboardRemove())
@@ -204,6 +208,10 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
     message = get_message(update)
     language = get_user_language_or_fallback(user_data)
 
+    if is_user_data_empty(user_data):
+        await reply_default_message(update, language)
+        return
+
     try:
         tag_editor_context = user_data['tag_editor']
     except KeyError:
@@ -251,7 +259,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
-    if not user_data.get('music_path'):
+    if is_user_data_empty(user_data) or not user_data.get('music_path'):
         await reply_default_message(update, language)
 
         return
@@ -302,7 +310,7 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if not music_path:
+    if is_user_data_empty(user_data) or not music_path:
         await reply_default_message(update, language)
 
         return

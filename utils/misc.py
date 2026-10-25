@@ -85,7 +85,7 @@ def get_user_data(context: CallbackContext) -> UD | None:
 
 def is_user_data_empty(user_data: UD) -> bool:
     """
-    Checks if a user's ``user_data`` is empty.
+    Checks whether ``user_data`` has an initialized audio session.
 
     Can be used to determine if a user has started the bot or not. It does so by evaluating the length of ``user_data``
     of the user.
@@ -93,12 +93,16 @@ def is_user_data_empty(user_data: UD) -> bool:
     :param user_data: UD: The ``user_data`` object of the user that we want to check its emptiness
     :return: bool: Whether the user has data
     """
-    # New sessions carry an explicit marker. Keep accepting complete contexts
-    # written before the marker was introduced.
+    required_session_keys = {
+        'music_path', 'current_module', 'music_duration', 'tag_editor', 'music_message_id',
+    }
+    has_session = required_session_keys.issubset(user_data)
+    if user_data.get('session_started') is True:
+        return not has_session
     if 'session_started' in user_data:
-        return not user_data['session_started']
-
-    return 'music_path' not in user_data
+        return True
+    # Accept complete legacy contexts written before the marker was introduced.
+    return not has_session
 
 
 def get_user_language_or_fallback(user_data: UD) -> str:
