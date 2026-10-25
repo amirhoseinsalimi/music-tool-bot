@@ -28,7 +28,7 @@ file with `cp .env.example .env` and fill in your credentials:
 | DB_PORT                    | `int`     | Database port (for postgres), default `6003`.                                                                                                       |
 | DB_DATABASE                | `str`     | Database name (for postgres).                                                                                                       |
 | DB_USERNAME                | `str`     | Database username (for postgres).                                                                                                   |
-| DB_PASSWORD                | `str`     | Database password (for postgres).                                                                                                   |
+| DB_PASSWORD                | `str`     | Required, unique database password. Compose fails if it is unset or empty instead of using a public default.                         |
 | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.                                                                 |
 | DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                                                                                         |
 | DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker                      |
