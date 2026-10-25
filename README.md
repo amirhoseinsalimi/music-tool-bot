@@ -3,7 +3,7 @@
 Music Tool Bot is the ultimate bot for managing your music files effortlessly! 🎵✨. Check it out here:
 [@MusicToolBot](https://t.me/MusicToolBot)
 
-Currently, supports 6 languages: **English** and **Persian**, **Russian**, **Spanish**, **French**, **Arabic**. 
+Currently, supports 8 languages: **English**, **Persian**, **Russian**, **Spanish**, **French**, **Arabic**, **Hindi**, and **Indonesian**.
 ([Add more if you want](#contribution))
 
 The bot runs in **Docker** - no need to install Python, Poetry, or ffmpeg on your machine.
@@ -19,16 +19,23 @@ file with `cp .env.example .env` and fill in your credentials:
 
 | Field                      | Type      | Description                                                                                                                         |
 |----------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------|
-| APP_ENV                    | `str`     | Defines app's environment. Valid values: `production` \| `development`                                                              |
+| APP_ENV                    | `str`     | Defines the app environment (`development` by default; Compose sets `production` for the production overlay).                        |
 | BOT_NAME                   | `str`     | The name of the bot                                                                                                                 |
 | BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions.                                                            |
 | BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                                                                           |
+| BOT_EXTENSION              | `str`     | Optional installed Python callable in `module:function` form. Leave empty for standalone use; see [optional extensions](docs/optional-extensions.md). |
+| BOT_CONTROL_DATABASE_URL   | `str`     | Optional PostgreSQL URL for core runtime controls and the read-only admin bridge.                                                   |
+| BOT_PREMIUM_CONTROLS       | `boolean` | Set to `true` only when optional premium controls should appear in the bridge. Defaults to `false`.                                |
+| ADMIN_BRIDGE_TOKEN         | `str`     | Optional bearer token required by the read-only administrative bridge.                                                              |
+| ADMIN_BRIDGE_PORT          | `int`     | Port for the optional administrative bridge; defaults to `6004`.                                                                    |
+| ADMIN_CONTROL_TOKEN        | `str`     | Optional separate token used to authenticate requests to the read-only admin bridge.                                                |
 | DATA_DIR                   | `str`     | Directory for bot file persistence. In Docker this should be `/data` so the pickle and downloaded files survive container restarts. |
 | DB_HOST                    | `str`     | Database host (for postgres).                                                                                                       |
 | DB_PORT                    | `int`     | Database port (for postgres), default `6003`.                                                                                                       |
 | DB_DATABASE                | `str`     | Database name (for postgres).                                                                                                       |
 | DB_USERNAME                | `str`     | Database username (for postgres).                                                                                                   |
 | DB_PASSWORD                | `str`     | Database password (for postgres).                                                                                                   |
+| DB_ADMIN_USERNAME          | `str`     | Optional PostgreSQL maintenance role used by Compose; defaults to `DB_USERNAME`.                                                    |
 | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.                                                                 |
 | DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                                                                                         |
 | DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker                      |
@@ -38,6 +45,11 @@ file with `cp .env.example .env` and fill in your credentials:
 | BACKUP_INTERVAL            | `int`     | Seconds between backups. Defaults to `86400` (24 hours).                                                                            |
 | SWEEPER_RETENTION_DAYS     | `int`     | Days to keep downloaded user files before automatic cleanup. Defaults to `30`.                                                      |
 | SWEEPER_INTERVAL           | `int`     | Seconds between sweeps. Defaults to `86400` (24 hours).                                                                             |
+| PTB_TIMEDELTA              | `boolean` | Compose sets this to `True` so Telegram `RetryAfter` values use timedeltas; it is set by the stack, not `.env`.                       |
+| COMPOSE_PROJECT_NAME       | `str`     | Optional Compose project name used as the prefix for container and volume names.                                                    |
+| GRAFANA_CLOUD_LOKI_URL     | `str`     | Optional Grafana Cloud Loki push URL, used only with the Grafana overlay.                                                           |
+| GRAFANA_CLOUD_LOKI_USERNAME| `str`     | Optional Grafana Cloud stack user ID, used only with the Grafana overlay.                                                           |
+| GRAFANA_CLOUD_API_KEY      | `str`     | Optional Grafana Cloud write token, used only with the Grafana overlay.                                                             |
 | BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                                                                            |
 | ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                                                                            |
 | TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                                                                            |
@@ -55,8 +67,7 @@ file with `cp .env.example .env` and fill in your credentials:
 Stack ports default to the dedicated 6000–6100 range. PostgreSQL listens on 6003
 inside Docker and publishes to IPv4 loopback on 6003. Compose sets the bot and
 backup database endpoint to `postgres:6003`; for a host Python process use
-`DB_HOST=127.0.0.1` and `DB_PORT=6003`. See [workspace networking](../docs/networking.md)
-for the local hosts entry and other services. Existing named volumes remain unchanged.
+`DB_HOST=127.0.0.1` and `DB_PORT=6003`. Existing named volumes remain unchanged.
 
 Run the bot without installing Python, Poetry, or ffmpeg on your machine.
 
@@ -126,8 +137,13 @@ If the new version includes database migrations, apply them before recreating:
 
 ```bash
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
 make deploy
 ```
+
+Run the seeder after migrations so the owner account and supported languages are
+present. Restart the bot after seeding or changing supported languages; language
+handlers are loaded from the database when the bot starts.
 
 ---
 
@@ -155,7 +171,10 @@ Run `make help` to see this list from the terminal.
 The admin web API can read existing core users and current admin membership through a
 separate authenticated bridge process. The bot does not start this process automatically,
 and ordinary bot operation does not depend on it. Configure `ADMIN_BRIDGE_TOKEN` and,
-optionally, `ADMIN_BRIDGE_PORT` in the existing environment, then run `make admin-bridge`.
+optionally, `ADMIN_BRIDGE_PORT`, then run `make admin-bridge`. Runtime controls are a
+separate optional feature: `BOT_CONTROL_DATABASE_URL` points to their PostgreSQL store,
+and `ADMIN_CONTROL_TOKEN` authorizes owner control changes. `BOT_PREMIUM_CONTROLS=true`
+enables reporting of installed premium tools. Leave these unset/false for a standalone bot.
 
 See [bridge setup and protocol](admin_bridge/README.md) for supported reads and the trust
 boundary. Use `make test-admin-bridge` for its isolated regression suite. These commands
@@ -166,7 +185,8 @@ neither deploy a server nor change core schemas or user records.
 ## Shipping Logs To Grafana Cloud
 
 This repo includes an optional Grafana Alloy setup that tails the bot container logs from Docker and forwards them to
-Grafana Cloud Logs.
+Grafana Cloud Logs. Configure `GRAFANA_CLOUD_LOKI_URL`, `GRAFANA_CLOUD_LOKI_USERNAME`,
+and `GRAFANA_CLOUD_API_KEY` as listed in [Configuration](#configuration).
 
 Why this uses a separate Compose file:
 - Grafana log shipping is optional, so it is kept as an overlay instead of being forced into every local run.
@@ -330,7 +350,10 @@ The backup service is only included in `docker-compose.prod.yaml` to avoid runni
 
 ## File Retention & Sweeper
 
-The bot doesn't delete downloaded user files immediately after processing. Instead, files are preserved on disk for a configurable retention period (default: **30 days**) and cleaned up by a dedicated **sweeper** service that runs daily.
+The dedicated **sweeper** service removes downloaded files after 30 days by default.
+The bot also runs an independent in-process purge after 59 days. Both cleanup paths
+currently apply, so the sweeper normally removes files first. The 30-day period is
+configurable with `SWEEPER_RETENTION_DAYS`.
 
 ### How it works
 
