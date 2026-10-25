@@ -3,7 +3,12 @@ set -euo pipefail
 
 DATA_DIR="${DATA_DIR:-/data}"
 DOWNLOADS_DIR="${DATA_DIR}/downloads"
-SWEEPER_RETENTION_DAYS="${SWEEPER_RETENTION_DAYS:-30}"
+FILE_RETENTION_DAYS="${FILE_RETENTION_DAYS:-20}"
+if ! [[ "${FILE_RETENTION_DAYS}" =~ ^[0-9]+$ ]] || [ "${FILE_RETENTION_DAYS}" -lt 1 ]; then
+    FILE_RETENTION_DAYS=1
+elif [ "${FILE_RETENTION_DAYS}" -gt 60 ]; then
+    FILE_RETENTION_DAYS=60
+fi
 SWEEPER_INTERVAL="${SWEEPER_INTERVAL:-86400}"
 
 log() {
@@ -18,15 +23,15 @@ do_sweep() {
         return
     fi
 
-    log "Sweeping files older than ${SWEEPER_RETENTION_DAYS} days in ${DOWNLOADS_DIR}..."
+    log "Sweeping files older than ${FILE_RETENTION_DAYS} days in ${DOWNLOADS_DIR}..."
 
-    OLD_FILES=$(find "${DOWNLOADS_DIR}" -type f -mtime +"${SWEEPER_RETENTION_DAYS}" 2>/dev/null || true)
+    OLD_FILES=$(find "${DOWNLOADS_DIR}" -type f -mtime +"${FILE_RETENTION_DAYS}" 2>/dev/null || true)
 
     if [[ -z "${OLD_FILES}" ]]; then
         log "No files older than ${SWEEPER_RETENTION_DAYS} days found"
     else
         COUNT=$(echo "${OLD_FILES}" | wc -l)
-        find "${DOWNLOADS_DIR}" -type f -mtime +"${SWEEPER_RETENTION_DAYS}" -delete 2>/dev/null || true
+        find "${DOWNLOADS_DIR}" -type f -mtime +"${FILE_RETENTION_DAYS}" -delete 2>/dev/null || true
         log "Deleted ${COUNT} file(s) older than ${SWEEPER_RETENTION_DAYS} days"
     fi
 
@@ -39,7 +44,7 @@ do_sweep() {
 
 log "Sweeper service started"
 log "  Interval:     ${SWEEPER_INTERVAL}s ($(( SWEEPER_INTERVAL / 3600 ))h)"
-log "  Retention:    ${SWEEPER_RETENTION_DAYS} days"
+log "  Retention:    ${FILE_RETENTION_DAYS} days"
 log "  Data dir:     ${DATA_DIR}"
 log "  Downloads:    ${DOWNLOADS_DIR}"
 echo
