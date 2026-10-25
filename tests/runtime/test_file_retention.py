@@ -39,7 +39,7 @@ class FileRetentionTests(unittest.TestCase):
             aged = now - (FILE_RETENTION_DAYS + 1) * 86400
             os.utime(old, (aged, aged))
 
-            self.assertEqual(purge_expired_downloads(root, now), 1)
+            self.assertEqual(purge_expired_downloads(root, now, root / 'logs'), 1)
             self.assertFalse(old.exists())
             self.assertEqual(recent.read_bytes(), b'recent')
             self.assertEqual(outside.read_bytes(), b'outside')

@@ -24,7 +24,8 @@ def get_file_retention_days() -> int:
 FILE_RETENTION_DAYS = DEFAULT_FILE_RETENTION_DAYS
 
 
-def purge_expired_downloads(root: Path = DOWNLOAD_DIR_PATH, now: float | None = None) -> int:
+def purge_expired_downloads(root: Path = DOWNLOAD_DIR_PATH, now: float | None = None,
+                            logs_root: Path = Path('logs')) -> int:
     current_time = time.time() if now is None else now
     cutoff = current_time - get_file_retention_days() * 86400
     removed = 0
@@ -42,7 +43,7 @@ def purge_expired_downloads(root: Path = DOWNLOAD_DIR_PATH, now: float | None = 
                     continue
                 except OSError:
                     logger.exception('Could not remove aged core media file')
-    removed += purge_expired_log_files(now=current_time)
+    removed += purge_expired_log_files(logs_root, now=current_time)
     try:
         from runtime_controls import record_retention_sweep
         record_retention_sweep(removed)
