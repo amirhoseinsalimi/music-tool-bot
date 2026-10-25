@@ -13,7 +13,7 @@ from wsgiref.util import setup_testing_defaults
 import psycopg2
 from pg_support import PostgresFixture
 
-from runtime_controls import ControlsStore, ControlError, bot_settings, feature_gate
+from runtime_controls import ControlsStore, ControlError, bot_settings, feature_gate, file_retention_days
 from admin_bridge.app import create_app
 
 
@@ -45,7 +45,7 @@ class ControlsTests(unittest.TestCase):
         environ = {}
         setup_testing_defaults(environ)
         body = json.dumps(data).encode() if data is not None else b''
-        write_token = method == 'POST' and path == '/v1/controls'
+        write_token = method == 'POST' and path in {'/v1/controls', '/v1/controls/retention'}
         selected_token = token or ('w' * 32 if write_token else 's' * 32)
         environ.update(
             REQUEST_METHOD=method, PATH_INFO=path, HTTP_AUTHORIZATION='Bearer ' + selected_token,
@@ -114,6 +114,38 @@ class ControlsTests(unittest.TestCase):
             **self.command, 'enabled': True, 'expectedRevision': 1,
             'operationId': 'owner-denied-operation'})[0], 403)
         self.assertEqual(self.store.read()['revision'], 1)
+
+    def test_retention_override_is_bounded_owner_scoped_and_audited(self):
+        with patch.dict(os.environ, {'FILE_RETENTION_DAYS': '30', 'BOT_CONTROL_DATABASE_URL': str(self.path)}):
+            initial = self.store.read()['retention']
+            self.assertEqual((initial['days'], initial['source']), (30, 'FILE_RETENTION_DAYS'))
+            payload = {'days': 14, 'reason': 'Reduce stored file lifetime',
+                       'expectedRevision': 0, 'operationId': 'retention-control-operation'}
+            status, result = self.request('POST', payload, path='/v1/controls/retention')
+            self.assertEqual(status, 200)
+            self.assertTrue(result['created'])
+            self.assertEqual(result['change']['previous_days'], 30)
+            self.assertEqual(self.store.read()['retention']['days'], 14)
+            self.assertEqual(file_retention_days(), 14)
+            # The admin bridge uses the same core-owned setting as the cleanup jobs.
+            self.assertEqual(self.request()[1]['retention']['days'], 14)
+            with patch('runtime_controls.time.time', return_value=1234.0):
+                from runtime_controls import record_retention_sweep
+                record_retention_sweep(3)
+            reported = self.store.read()['retention']
+            self.assertEqual((reported['lastSweepAt'], reported['lastSweepDeleted']), (1234.0, 3))
+            replay = self.request('POST', payload, path='/v1/controls/retention')
+            self.assertFalse(replay[1]['created'])
+            audit = self.store.read()['retention']['audit'][0]
+            self.assertEqual((audit['actor'], audit['previous_days'], audit['days'], audit['reason']),
+                             ('42', 30, 14, payload['reason']))
+            self.repo.dispatch.return_value['isOwner'] = False
+            denied = self.request('POST', {**payload, 'operationId': 'retention-denied-operation',
+                                           'expectedRevision': 1}, path='/v1/controls/retention')
+            self.assertEqual(denied[0], 403)
+            for invalid in (0, 61, True, '14'):
+                bad = self.request('POST', {**payload, 'days': invalid}, path='/v1/controls/retention')
+                self.assertEqual(bad[0], 400)
 
     def test_invalid_payloads_and_audit_are_immutable(self):
         """Validate command fields and prevent rewriting old audit entries."""
