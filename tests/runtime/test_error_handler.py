@@ -12,23 +12,21 @@ class ErrorHandlerTests(unittest.TestCase):
 
         context = SimpleNamespace(error=NetworkError('polling failed'), user_data=None,
                                    bot=SimpleNamespace(send_message=AsyncMock()))
-        with patch('utils.error_handler.OWNER_USER_ID_INT', None), \
-             patch('utils.error_handler._alerted', {}), \
-             patch('utils.error_handler.logger') as logger:
+        with patch('utils.error_handler.logger') as logger:
             asyncio.run(on_error(None, context))
         logger.warning.assert_called_once()
         context.bot.send_message.assert_not_awaited()
 
-    def test_unexpected_error_replies_resets_and_alerts(self):
+    def test_unexpected_error_replies_without_sending_technical_details(self):
         reply = AsyncMock()
         update = SimpleNamespace(update_id=17, effective_user=SimpleNamespace(id=42), effective_message=SimpleNamespace(reply_text=reply))
         context = SimpleNamespace(error=ValueError('private text'), user_data={'language': 'en'}, bot=SimpleNamespace(send_message=AsyncMock()))
-        with patch('utils.error_handler.reset_user_data_context') as reset, patch('utils.error_handler.delete_all_user_files'), patch('utils.error_handler.OWNER_USER_ID_INT', 99), patch('utils.error_handler._alerted', {}):
+        with patch('utils.error_handler.reset_user_data_context') as reset, patch('utils.error_handler.delete_all_user_files'):
             asyncio.run(on_error(update, context))
         reset.assert_called_once_with(42, context.user_data)
         reply.assert_awaited_once()
-        context.bot.send_message.assert_awaited_once()
-        self.assertNotIn('private text', context.bot.send_message.call_args.kwargs['text'])
+        self.assertNotIn('private text', reply.call_args.kwargs['text'])
+        context.bot.send_message.assert_not_awaited()
 
     def test_forbidden_marks_user_blocked_without_reply(self):
         from telegram.error import Forbidden
@@ -50,7 +48,7 @@ class ErrorHandlerTests(unittest.TestCase):
         reply = AsyncMock()
         update = SimpleNamespace(update_id=19, effective_user=SimpleNamespace(id=42), effective_message=SimpleNamespace(reply_text=reply))
         context = SimpleNamespace(error=BadRequest('private detail'), user_data={'language': 'en'}, bot=SimpleNamespace(send_message=AsyncMock()))
-        with patch('utils.error_handler.reset_user_data_context'), patch('utils.error_handler.delete_all_user_files'), patch('utils.error_handler.OWNER_USER_ID_INT', None), patch('utils.error_handler.logger') as logger:
+        with patch('utils.error_handler.reset_user_data_context'), patch('utils.error_handler.delete_all_user_files'), patch('utils.error_handler.logger') as logger:
             asyncio.run(on_error(update, context))
         reply.assert_awaited_once()
         logger.error.assert_called_once()
