@@ -81,6 +81,7 @@ id:
     Jika kamu punya pertanyaan atau masukan, jangan ragu mengirim pesan kepadaku di Telegram.
     Jika kamu seorang pengembang dan punya ide untuk menyempurnakan bot ini, aku menyambut pull request-mu.
   defaultMessage: "Kirim atau teruskan sebuah trek audio, berkas MP3, atau musik kepadaku. Aku menunggu… 😁"
+  unexpectedError: "Terjadi kesalahan. Silakan coba lagi dengan file baru."
   askWhichModule: Apa yang ingin kamu lakukan dengan berkas ini?
   askWhichTag: Tag mana yang ingin kamu sunting?
   askForAlbum: |

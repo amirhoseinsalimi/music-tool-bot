@@ -81,6 +81,7 @@ en:
     If you have any questions or feedback, feel free to message me on Telegram.
     If you are a developer and have ideas to improve this bot, I welcome your pull requests.
   defaultMessage: "Send or forward me an audio track, an MP3 file or a music. I'm waiting... 😁"
+  unexpectedError: "Something went wrong. Please try again with a new file."
   askWhichModule: What do you want to do with this file?
   askWhichTag: Which tag do you want to edit?
   askForAlbum: |

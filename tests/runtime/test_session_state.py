@@ -12,6 +12,11 @@ class SessionStateTests(unittest.TestCase):
 
         self.assertTrue(is_user_data_empty(data))
 
+    def test_partial_started_context_is_sessionless(self):
+        data = {'user': object(), 'session_started': True, 'music_path': 'track.mp3'}
+
+        self.assertTrue(is_user_data_empty(data))
+
     def test_reset_marks_session_started(self):
         data = {'user': object()}
 
