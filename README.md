@@ -30,6 +30,7 @@ file with `cp .env.example .env` and fill in your credentials:
 | DB_USERNAME                | `str`     | Database username (for postgres).                                                                                                   |
 | DB_PASSWORD                | `str`     | Database password (for postgres).                                                                                                   |
 | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.                                                                 |
+| MAX_DURATION_SECONDS       | `int`     | Maximum accepted audio duration in seconds. Defaults to `3600`; must be positive.                                                   |
 | DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                                                                                         |
 | DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker                      |
 | DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `6011`                                                                                       |

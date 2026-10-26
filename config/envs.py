@@ -1,4 +1,5 @@
 import os
+import logging
 
 from dotenv import load_dotenv
 
@@ -20,12 +21,28 @@ def get_bool_env(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def get_positive_int_env(name: str, default: int) -> int:
+    raw = get_env(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        logging.getLogger(__name__).warning("Invalid %s; using default", name)
+        return default
+    if value <= 0:
+        logging.getLogger(__name__).warning("%s must be positive; using default", name)
+        return default
+    return value
+
+
 APP_ENV = get_env("APP_ENV", "development")
 
 BOT_USERNAME = get_env("BOT_USERNAME")
 BOT_TOKEN = get_env("BOT_TOKEN")
 
 DATA_DIR = get_env("DATA_DIR", "/data")
+MAX_DURATION_SECONDS = get_positive_int_env("MAX_DURATION_SECONDS", 3600)
 
 DB_HOST = get_env("DB_HOST", "localhost")
 DB_PORT = int(get_env("DB_PORT", 6003))
