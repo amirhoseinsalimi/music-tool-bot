@@ -160,6 +160,11 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     current_tag = user_data['tag_editor']['current_tag']
     tag_editor_keyboard = generate_tag_editor_keyboard(language)
 
+    if message.document and (not is_current_module_tag_editor(current_module)
+                             or not is_current_tag_album_art(current_tag)):
+        await message.reply_text(text=t(language, 'unsupportedFileMessage'))
+        return
+
     if not is_current_module_tag_editor(current_module):
         return
 
@@ -173,7 +178,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     try:
         file_download_path = await download_file(
             user_id=user_id,
-            file_to_download=message.photo[-1],
+            file_to_download=message.document or message.photo[-1],
             file_type='photo',
             context=context
         )

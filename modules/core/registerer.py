@@ -6,6 +6,7 @@ from telegram.ext import (
     MessageHandler,
     BaseHandler,
 )
+from pathlib import Path
 
 from database.models import Language
 from utils.logging import get_logger
@@ -23,6 +24,19 @@ from .handlers import (
 )
 
 logger = get_logger(__name__)
+
+
+class AudioDocumentFilter(filters.MessageFilter):
+    """Match audio documents by MIME type or a supported audio filename."""
+    _extensions = {'.aac', '.flac', '.m4a', '.mp3', '.ogg', '.wav'}
+
+    def filter(self, message):
+        document = message.document
+        if not document:
+            return False
+        mime_type = (document.mime_type or '').lower()
+        extension = Path(document.file_name or '').suffix.lower()
+        return mime_type.startswith('audio/') or extension in self._extensions
 
 
 def build_language_button_filter() -> filters.BaseFilter | None:
@@ -80,11 +94,11 @@ def registry() -> list[BaseHandler]:
              filters.Regex('^(🆕 Berkas Baru)$')),
             start_over),
 
-        MessageHandler(filters.AUDIO, handle_music_message),
+        MessageHandler(filters.AUDIO | AudioDocumentFilter(), handle_music_message),
         MessageHandler(filters.TEXT, handle_responses),
         MessageHandler(
-            (filters.VIDEO | filters.Document.ALL | filters.CONTACT & (
-                    ~filters.AUDIO | ~filters.PHOTO | ~filters.Document.IMAGE | ~filters.Document.JPG | ~filters.Document.MP3)),
+            filters.VIDEO | filters.CONTACT |
+            (filters.Document.ALL & ~filters.Document.IMAGE & ~AudioDocumentFilter()),
             ignore_file),
     ])
 

@@ -240,8 +240,10 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     reset_user_data_context(user_id, user_data)
 
-    music_duration = message.audio.duration.total_seconds()
-    music_file_size = message.audio.file_size
+    audio_file = message.audio or message.document
+    duration = getattr(audio_file, 'duration', 0) or 0
+    music_duration = duration.total_seconds() if hasattr(duration, 'total_seconds') else duration
+    music_file_size = audio_file.file_size
     logger.info(
         "User %s sent audio for processing duration=%ss size=%s",
         user_id,
@@ -290,7 +292,7 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     try:
         file_download_path = await download_file(
             user_id=user_id,
-            file_to_download=message.audio,
+            file_to_download=audio_file,
             file_type='audio',
             context=context
         )
@@ -432,12 +434,5 @@ async def ignore_file(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    user = context.user_data['user']
-    user_id = user.user_id
     user_data = get_user_data(context)
-    reset_user_data_context(user_id, user_data)
-
-    await update.message.reply_text(
-        text=t(get_user_language_or_fallback(user_data), 'startOverMessage'),
-        reply_markup=ReplyKeyboardRemove()
-    )
+    await update.message.reply_text(text=t(get_user_language_or_fallback(user_data), 'unsupportedFileMessage'))

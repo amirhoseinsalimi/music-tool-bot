@@ -121,6 +121,7 @@ es:
   errOnDownloadPhotoMessage: "Lo siento, no pude descargar la foto… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errTooLargeFile: "Este audio supera el límite de descarga de Telegram de 20 MiB. Envía un archivo más pequeño."
   errAudioTooLong: "El audio debe durar {maxDuration} segundos o menos. Envía un archivo más corto."
+  unsupportedFileMessage: "No puedo usar este tipo de archivo. Tu sesión actual no ha cambiado; envía audio, una imagen al editar la portada o empieza un archivo nuevo."
   errOnReadingTags: "Lo siento, no pude leer las etiquetas del archivo… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnUpdatingTags: "Lo siento, no pude actualizar las etiquetas del archivo… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnUploading: "Lo siento, debido a problemas de red, no pude subir tu archivo. Intenta nuevamente."

@@ -121,6 +121,7 @@ id:
   errOnDownloadPhotoMessage: "Maaf, aku tidak bisa mengunduh berkasmu… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errTooLargeFile: "Audio ini melebihi batas unduhan Telegram sebesar 20 MiB. Kirim berkas yang lebih kecil."
   errAudioTooLong: "Durasi audio harus {maxDuration} detik atau kurang. Kirim berkas yang lebih pendek."
+  unsupportedFileMessage: "Jenis berkas ini tidak didukung. Sesi Anda tetap tersimpan; kirim audio, gambar saat mengedit sampul, atau mulai berkas baru."
   errOnReadingTags: "Maaf, aku tidak bisa membaca tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnUpdatingTags: "Maaf, aku tidak bisa memperbarui tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnUploading: "Maaf, karena masalah jaringan, aku tidak bisa mengunggah berkasmu. Silakan coba lagi."
