@@ -28,6 +28,7 @@ from config.modules import (
 from modules.core.utils import (
     generate_start_over_keyboard,
 )
+from modules.core.media import probe_audio_format
 from modules.tag_editor.utils import (
     generate_tag_editor_keyboard,
 )
@@ -369,26 +370,39 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
 
+        extension, _audio_codec = probe_audio_format(music_path)
+        filename = f"{get_file_name(music_tags)}{extension}"
         with open(music_path, "rb") as music_file:
-            await context.bot.send_audio(
-                audio=music_file,
-                thumbnail=possible_art,
-                duration=user_data["music_duration"],
-                chat_id=get_chat_id(update),
-                performer=music_tags.get('artist') or 'Unknown',
-                title=music_tags.get('title') or 'Unknown',
-                filename=f"{get_file_name(music_tags)}.mp3",
-                caption=f"🆔 {BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data["music_message_id"],
-            )
+            if extension in {'.mp3', '.m4a'}:
+                await context.bot.send_audio(
+                    audio=music_file,
+                    thumbnail=possible_art,
+                    duration=user_data["music_duration"],
+                    chat_id=get_chat_id(update),
+                    performer=music_tags.get('artist') or 'Unknown',
+                    title=music_tags.get('title') or 'Unknown',
+                    filename=filename,
+                    caption=f"🆔 {BOT_USERNAME}",
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data["music_message_id"],
+                )
+            else:
+                await context.bot.send_document(
+                    document=music_file,
+                    thumbnail=possible_art,
+                    chat_id=get_chat_id(update),
+                    filename=filename,
+                    caption=f"🆔 {BOT_USERNAME}",
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data["music_message_id"],
+                )
 
         await record_completion('tag_editor', user_id, getattr(update, 'update_id', None))
 
         await uploading_message.delete()
 
         logger.info("User %s finished tag editing for %s", user_id, music_path)
-    except (TelegramError, OSError) as error:
+    except (TelegramError, OSError, ValueError) as error:
         await message.reply_text(
             text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
