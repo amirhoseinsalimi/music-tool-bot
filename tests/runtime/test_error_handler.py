@@ -7,6 +7,18 @@ from utils.error_handler import on_error
 
 
 class ErrorHandlerTests(unittest.TestCase):
+    def test_polling_error_without_update_is_logged_without_crashing(self):
+        from telegram.error import NetworkError
+
+        context = SimpleNamespace(error=NetworkError('polling failed'), user_data=None,
+                                   bot=SimpleNamespace(send_message=AsyncMock()))
+        with patch('utils.error_handler.OWNER_USER_ID_INT', None), \
+             patch('utils.error_handler._alerted', {}), \
+             patch('utils.error_handler.logger') as logger:
+            asyncio.run(on_error(None, context))
+        logger.warning.assert_called_once()
+        context.bot.send_message.assert_not_awaited()
+
     def test_unexpected_error_replies_resets_and_alerts(self):
         reply = AsyncMock()
         update = SimpleNamespace(update_id=17, effective_user=SimpleNamespace(id=42), effective_message=SimpleNamespace(reply_text=reply))

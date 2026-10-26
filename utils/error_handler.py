@@ -24,7 +24,8 @@ def _mark_blocked(user_id: int | None) -> None:
 
 async def on_error(update: Update, context: CallbackContext) -> None:
     error = context.error
-    user_id = get_effective_user_id(update)
+    update_id = getattr(update, 'update_id', None)
+    user_id = get_effective_user_id(update) if update is not None else None
     if isinstance(error, Forbidden):
         _mark_blocked(user_id)
         return
@@ -32,9 +33,8 @@ async def on_error(update: Update, context: CallbackContext) -> None:
         if 'message is not modified' in str(error).lower():
             return
     elif isinstance(error, (RetryAfter, NetworkError, TimedOut)):
-        logger.warning('Telegram transient error class=%s update_id=%s', type(error).__name__, getattr(update, 'update_id', None))
+        logger.warning('Telegram transient error class=%s update_id=%s', type(error).__name__, update_id)
         return
-    update_id = getattr(update, 'update_id', None)
     logger.error('Unhandled handler error class=%s update_id=%s', type(error).__name__, update_id)
     user_data = getattr(context, 'user_data', None)
     language = get_user_language_or_fallback(user_data or {})
