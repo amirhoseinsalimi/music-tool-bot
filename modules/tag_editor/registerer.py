@@ -32,7 +32,7 @@ def registry() -> list[BaseHandler]:
         CommandHandler('preview', display_preview),
         MessageHandler(localized_button_filter('btnPreviewTags'), display_preview),
         MessageHandler(localized_button_filter('btnSaveTags'), finish_editing_tags),
-        MessageHandler(filters.PHOTO, handle_photo_message),
+        MessageHandler(filters.PHOTO | filters.Document.IMAGE, handle_photo_message),
         MessageHandler(
             (
                     filters.Regex('^(🎵 Tag/Art Editor)$') |

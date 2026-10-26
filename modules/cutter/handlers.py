@@ -40,6 +40,7 @@ from utils import (
     get_message_text,
     get_user_data,
     get_user_language_or_fallback,
+    is_user_data_empty,
     reset_user_data_context,
     set_current_module,
     t,
@@ -83,7 +84,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if not music_path:
+    if is_user_data_empty(user_data) or not music_path:
         await reply_default_message(update, language)
 
         return
@@ -208,7 +209,7 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if not music_path:
+    if is_user_data_empty(user_data) or not music_path:
         await reply_default_message(update, language)
 
         return

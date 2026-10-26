@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from telegram import Audio, PhotoSize
+from telegram.error import BadRequest
 from telegram.ext import CallbackContext
 
 from config.constants import DOWNLOAD_DIR_PATH
@@ -74,8 +75,10 @@ async def download_file(
         logger.info("Downloaded %s file for user %s to %s", file_type, user_id, file_download_path)
 
         return str(file_download_path)
+    except BadRequest:
+        logger.warning("Telegram rejected %s download for user %s", file_type, user_id)
+        raise
     except ValueError as error:
-
         logger.exception("Failed downloading %s file for user %s", file_type, user_id)
         raise Exception(f"Couldn't download the file with file_id: {file_id}") from error
 

@@ -81,6 +81,7 @@ id:
     Jika kamu punya pertanyaan atau masukan, jangan ragu mengirim pesan kepadaku di Telegram.
     Jika kamu seorang pengembang dan punya ide untuk menyempurnakan bot ini, aku menyambut pull request-mu.
   defaultMessage: "Kirim atau teruskan sebuah trek audio, berkas MP3, atau musik kepadaku. Aku menunggu… 😁"
+  unexpectedError: "Terjadi kesalahan. Silakan coba lagi dengan file baru."
   askWhichModule: Apa yang ingin kamu lakukan dengan berkas ini?
   askWhichTag: Tag mana yang ingin kamu sunting?
   askForAlbum: |
@@ -119,7 +120,9 @@ id:
   errOnDownloadAudioMessage: "Maaf, aku tidak bisa mengunduh berkasmu… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnConvertingM4a: "Maaf, aku tidak bisa mengonversi berkas m4a-mu… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Maaf, aku tidak bisa mengunduh berkasmu… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
-  errTooLargeFile: "Berkas ini terlalu besar untuk bisa kuproses, maaf!"
+  errTooLargeFile: "Audio ini melebihi batas unduhan Telegram sebesar 20 MiB. Kirim berkas yang lebih kecil."
+  errAudioTooLong: "Durasi audio harus {maxDuration} detik atau kurang. Kirim berkas yang lebih pendek."
+  unsupportedFileMessage: "Jenis berkas ini tidak didukung. Sesi Anda tetap tersimpan; kirim audio, gambar saat mengedit sampul, atau mulai berkas baru."
   errOnReadingTags: "Maaf, aku tidak bisa membaca tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnUpdatingTags: "Maaf, aku tidak bisa memperbarui tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnUploading: "Maaf, karena masalah jaringan, aku tidak bisa mengunggah berkasmu. Silakan coba lagi."
