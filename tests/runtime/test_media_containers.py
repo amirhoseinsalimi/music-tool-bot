@@ -109,7 +109,7 @@ class MediaContainerTests(unittest.TestCase):
                 })()
                 user_data = {
                     'language': 'en', 'music_path': str(source), 'music_message_id': 3,
-                    'music_duration': 2,
+                    'music_duration': 2, 'current_module': 'tag_editor',
                     'tag_editor': {'artist': 'Artist', 'title': 'Title'},
                     'user': type('User', (), {'user_id': 42})(),
                 }
