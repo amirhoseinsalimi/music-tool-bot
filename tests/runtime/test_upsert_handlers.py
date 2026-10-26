@@ -43,6 +43,8 @@ class UpsertHandlerTests(unittest.TestCase):
         recorded = create.call_args.args[0]['last_interaction_at']
         self.assertIsInstance(recorded, datetime)
         self.assertEqual(recorded.tzinfo, timezone.utc)
+        self.assertTrue(context._new_user_on_this_update)
+        self.assertNotIn('_new_user_on_this_update', context.user_data)
         callback.assert_awaited_once_with(update, context)
 
     def test_registered_user_handlers_use_upsert_user(self):

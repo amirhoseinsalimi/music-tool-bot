@@ -67,7 +67,9 @@ def upsert_user(function):
             user_id=user.user_id,
             username=user.username,
         )
-        context.user_data['_new_user_on_this_update'] = new_user
+        # This value is only needed by the current update and must not be
+        # persisted alongside the user's session.
+        context._new_user_on_this_update = new_user
 
         return await function(update, context, *args, **kwargs)
 

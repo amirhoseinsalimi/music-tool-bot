@@ -62,6 +62,10 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     user_data = get_user_data(context)
 
     language = get_user_language_or_fallback(user_data)
+    if is_user_data_empty(user_data):
+        await reply_default_message(update, language)
+        return
+
     bitrate_selector_keyboard = generate_bitrate_selector_keyboard(language)
 
     set_current_module(user_data, Module.BITRATE_CHANGER)
