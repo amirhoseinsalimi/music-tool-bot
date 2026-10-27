@@ -19,7 +19,7 @@ MAX_RETRY_AFTER_ATTEMPTS = 3
 
 AWAITING_MESSAGE = 1
 CONFIRMING_BROADCAST = 2
-CONVERSATION_TIMEOUT = 300
+CONVERSATION_TIMEOUT = 60
 broadcast_lock = threading.Lock()
 broadcast_state = {
     'active': False,
@@ -160,17 +160,20 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
         return ConversationHandler.END
 
     language_code = user_data.get('broadcast_language')
-    if language_code:
-        selected_language = Language.where('iso', '=', language_code).first()
-        users = User.where('language_id', '=', selected_language.id).get() if selected_language else []
-    else:
-        users = User.all()
-
     blocked_status = UserStatus.where('slug', 'blocked').first()
     deleted_status = UserStatus.where('slug', 'deleted').first()
     active_status = UserStatus.where('slug', 'active').first()
-    if deleted_status:
-        users = [user for user in users if user.user_status_id != deleted_status.id]
+
+    users_query = None
+    selected_language = None
+    if language_code:
+        selected_language = Language.where('iso', '=', language_code).first()
+        if selected_language:
+            users_query = User.where('language_id', '=', selected_language.id)
+    if deleted_status and (not language_code or selected_language):
+        users_query = users_query.where('user_status_id', '!=', deleted_status.id) if users_query else \
+            User.where('user_status_id', '!=', deleted_status.id)
+    users = users_query.get() if users_query else (User.all() if not language_code else [])
 
     with broadcast_lock:
         already_active = broadcast_state['active']
