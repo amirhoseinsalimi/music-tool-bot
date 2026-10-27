@@ -1,4 +1,5 @@
 import asyncio
+import threading
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
@@ -33,12 +34,13 @@ def make_update(user_id=42, text='/broadcast'):
 class AdminBroadcastTests(unittest.TestCase):
     def setUp(self):
         handlers.broadcast_state.update({
-            'active': False, 'admin_id': None, 'thread': None, 'sent': 0, 'failed': 0,
+            'active': False, 'admin_id': None, 'thread': None,
+            'cancel_requested': False, 'sent': 0, 'failed': 0,
         })
 
-    def test_conversation_has_five_minute_timeout_and_confirmation_command(self):
+    def test_conversation_has_one_minute_timeout_and_confirmation_command(self):
         conversation = registry()[0]
-        self.assertEqual(conversation.conversation_timeout, 300)
+        self.assertEqual(conversation.conversation_timeout, 60)
         self.assertIn(handlers.CONFIRMING_BROADCAST, conversation.states)
         commands = [handler.commands for handler in conversation.states[handlers.CONFIRMING_BROADCAST]]
         self.assertIn(frozenset({'send_broadcast'}), commands)
@@ -90,7 +92,11 @@ class AdminBroadcastTests(unittest.TestCase):
             blocked_user = Mock(user_id=101, user_status_id=blocked.id)
             active_user = Mock(user_id=102, user_status_id=active.id)
             deleted_user = Mock(user_id=103, user_status_id=deleted.id)
-            users = [blocked_user, active_user, deleted_user]
+            users = [blocked_user, active_user]
+            users_query = Mock()
+            users_query.where.return_value = users_query
+            users_query.get.return_value = users
+            users_query_factory = Mock(return_value=users_query)
 
             async def copy_message(**kwargs):
                 if kwargs['chat_id'] == active_user.user_id:
@@ -104,7 +110,7 @@ class AdminBroadcastTests(unittest.TestCase):
                 bot=SimpleNamespace(copy_message=AsyncMock(side_effect=copy_message), send_message=AsyncMock()),
             )
             with patch.object(handlers, 'is_user_admin', return_value=True), \
-                 patch.object(handlers.User, 'all', return_value=users), \
+                 patch.object(handlers.User, 'where', new=users_query_factory), \
                  patch.object(handlers.UserStatus, 'where', side_effect=lambda field, slug: SimpleNamespace(first=lambda: {
                      'active': active, 'blocked': blocked, 'deleted': deleted,
                  }[slug])):
@@ -122,6 +128,7 @@ class AdminBroadcastTests(unittest.TestCase):
             self.assertEqual(active_user.user_status_id, blocked.id)
             active_user.save.assert_called_once_with()
             deleted_user.save.assert_not_called()
+            users_query_factory.assert_called_once_with('user_status_id', '!=', deleted.id)
             self.assertFalse(handlers.broadcast_state['active'])
 
         asyncio.run(run())
@@ -141,14 +148,17 @@ class AdminBroadcastTests(unittest.TestCase):
                 return None
 
             user = Mock(user_id=201, user_status_id=active.id)
+            users_query = Mock()
+            users_query.where.return_value = users_query
+            users_query.get.return_value = [user]
+            users_query_factory = Mock(return_value=users_query)
             update = make_update(text='/send_broadcast')
             context = SimpleNamespace(
                 user_data={'language': 'en', 'broadcast_pending_message_id': 8, 'broadcast_pending_chat_id': 42},
                 bot=SimpleNamespace(copy_message=AsyncMock(side_effect=copy_message), send_message=AsyncMock()),
             )
-            users_query = Mock(return_value=[user])
             with patch.object(handlers, 'is_user_admin', return_value=True), \
-                 patch.object(handlers.User, 'all', new=users_query), \
+                 patch.object(handlers.User, 'where', new=users_query_factory), \
                  patch.object(handlers.UserStatus, 'where', side_effect=lambda field, slug: SimpleNamespace(first=lambda: {
                      'active': active, 'blocked': blocked, 'deleted': deleted,
                  }[slug])):
@@ -159,8 +169,62 @@ class AdminBroadcastTests(unittest.TestCase):
                         break
                     await asyncio.sleep(0.01)
                 self.assertFalse(worker.is_alive())
-            self.assertEqual(calls, 2, (users_query.call_count, context.bot.copy_message.await_count, handlers.broadcast_state))
+            self.assertEqual(calls, 2, (users_query_factory.call_count, context.bot.copy_message.await_count, handlers.broadcast_state))
             self.assertNotIn('parse_mode', context.bot.copy_message.await_args.kwargs)
+
+        asyncio.run(run())
+
+    def test_cancel_during_retry_keeps_broadcast_reserved_until_worker_stops(self):
+        async def run():
+            active = SimpleNamespace(id=1, slug='active')
+            blocked = SimpleNamespace(id=2, slug='blocked')
+            deleted = SimpleNamespace(id=3, slug='deleted')
+            user = Mock(user_id=301, user_status_id=active.id)
+            users_query = Mock()
+            users_query.where.return_value = users_query
+            users_query.get.return_value = [user]
+            users_query_factory = Mock(return_value=users_query)
+            retry_wait_started = threading.Event()
+            release_retry_wait = threading.Event()
+            calls = 0
+
+            async def copy_message(**kwargs):
+                nonlocal calls
+                calls += 1
+                raise RetryAfter(5)
+
+            context = SimpleNamespace(
+                user_data={
+                    'language': 'en', 'broadcast_pending_message_id': 9,
+                    'broadcast_pending_chat_id': 42,
+                },
+                bot=SimpleNamespace(copy_message=AsyncMock(side_effect=copy_message), send_message=AsyncMock()),
+            )
+            statuses = {'active': active, 'blocked': blocked, 'deleted': deleted}
+            with patch.object(handlers, 'is_user_admin', return_value=True), \
+                 patch.object(handlers.User, 'where', new=users_query_factory), \
+                 patch.object(handlers.UserStatus, 'where', side_effect=lambda field, slug: SimpleNamespace(
+                     first=lambda: statuses[slug]
+                 )), \
+                 patch.object(handlers.time, 'sleep', side_effect=lambda _: (
+                     retry_wait_started.set(), release_retry_wait.wait(2)
+                 )):
+                await inner(handlers.send_broadcast)(make_update(text='/send_broadcast'), context)
+                worker = handlers.broadcast_state['thread']
+                self.assertTrue(await asyncio.to_thread(retry_wait_started.wait, 1))
+
+                cancel_update = make_update(text='/cancel_broadcast')
+                await inner(handlers.cancel_broadcast)(cancel_update, SimpleNamespace(user_data={'language': 'en'}))
+                self.assertTrue(handlers.broadcast_state['active'])
+                release_retry_wait.set()
+                for _ in range(300):
+                    if not worker.is_alive():
+                        break
+                    await asyncio.sleep(0.01)
+                self.assertFalse(worker.is_alive())
+
+            self.assertEqual(calls, 1)
+            self.assertFalse(handlers.broadcast_state['active'])
 
         asyncio.run(run())
 

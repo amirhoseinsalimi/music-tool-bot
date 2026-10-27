@@ -26,6 +26,7 @@ broadcast_state = {
     'admin_id': None,
     'job_token': None,
     'thread': None,
+    'cancel_requested': False,
     'sent': 0,
     'failed': 0,
 }
@@ -181,7 +182,7 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
         if not already_active:
             broadcast_state.update({
                 'active': True, 'admin_id': user_id, 'job_token': job_token,
-                'thread': None, 'sent': 0, 'failed': 0,
+                'thread': None, 'cancel_requested': False, 'sent': 0, 'failed': 0,
             })
     if already_active:
         await update.message.reply_text(t(language, 'broadcastAlreadyRunning'))
@@ -194,15 +195,25 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
     admin_chat_id = update.message.chat_id
     bot = context.bot
 
+    def cancellation_requested():
+        with broadcast_lock:
+            return (
+                not broadcast_state['active']
+                or broadcast_state['job_token'] is not job_token
+                or broadcast_state['cancel_requested']
+            )
+
     def broadcast():
         sent_count = failed_count = newly_blocked = newly_active = 0
         try:
             for user in users:
-                with broadcast_lock:
-                    if not broadcast_state['active'] or broadcast_state['job_token'] is not job_token:
-                        break
+                if cancellation_requested():
+                    break
                 try:
+                    delivered = False
                     for attempt in range(MAX_RETRY_AFTER_ATTEMPTS):
+                        if cancellation_requested():
+                            break
                         try:
                             asyncio.run_coroutine_threadsafe(
                                 bot.copy_message(
@@ -212,6 +223,7 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
                                     disable_notification=True,
                                 ), loop,
                             ).result()
+                            delivered = True
                             break
                         except RetryAfter as error:
                             if attempt + 1 >= MAX_RETRY_AFTER_ATTEMPTS:
@@ -219,6 +231,8 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
                             retry_after = error.retry_after
                             delay = retry_after.total_seconds() if hasattr(retry_after, 'total_seconds') else float(retry_after)
                             time.sleep(delay)
+                    if not delivered:
+                        break
                     sent_count += 1
                     if blocked_status and active_status and user.user_status_id == blocked_status.id:
                         user.user_status_id = active_status.id
@@ -246,6 +260,7 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
                 if broadcast_state['job_token'] is job_token:
                     broadcast_state.update({
                         'active': False, 'admin_id': None, 'job_token': None,
+                        'thread': None, 'cancel_requested': False,
                         'sent': sent_count, 'failed': failed_count,
                     })
             logger.info(
@@ -304,7 +319,7 @@ async def cancel_broadcast(update: Update, context: CallbackContext) -> int:
         else:
             not_owner = False
             if active:
-                broadcast_state['active'] = False
+                broadcast_state['cancel_requested'] = True
 
     if not_owner:
         await update.message.reply_text(t(language, 'broadcastNotOwner'))
