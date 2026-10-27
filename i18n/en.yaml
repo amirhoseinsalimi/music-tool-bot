@@ -230,3 +230,14 @@ en:
   uploading: "Uploading... Please wait."
   done: Done!
   or: or
+  broadcastAlreadyRunning: "A broadcast is already running. Check /broadcast_status."
+  broadcastPrompt: "Send the message you want to broadcast. You will preview it and confirm before it is sent. Use /cancel_broadcast to cancel."
+  broadcastPromptLanguage: "Send the message to broadcast to users with language {language_code}. You will preview it and confirm before it is sent. Use /cancel_broadcast to cancel."
+  broadcastConfirm: "This is your preview. Send /send_broadcast to deliver it, or /cancel_broadcast to cancel."
+  broadcastNoPending: "There is no message waiting for confirmation."
+  broadcastStarted: "Broadcast started for {count} users. Check /broadcast_status for progress."
+  broadcastComplete: "Broadcast complete: {sent} sent, {failed} failed, {blocked} newly blocked, {active} returned to active."
+  broadcastStatusActive: "Broadcast running (started by admin {admin_id}): {sent} sent, {failed} failed so far."
+  broadcastStatusIdle: "No broadcast is running."
+  broadcastNotOwner: "Only the admin who started this broadcast can cancel it."
+  broadcastCancelled: "Broadcast canceled. No further messages will be sent."

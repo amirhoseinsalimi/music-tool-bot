@@ -230,3 +230,14 @@ id:
   uploading: "Mengunggah… Mohon tunggu."
   done: Selesai!
   or: atau
+  broadcastAlreadyRunning: "Broadcast sedang berjalan. Periksa /broadcast_status."
+  broadcastPrompt: "Kirim pesan yang ingin disiarkan. Kamu dapat melihat pratinjau dan mengonfirmasi sebelum dikirim. Gunakan /cancel_broadcast untuk membatalkan."
+  broadcastPromptLanguage: "Kirim pesan untuk pengguna dengan bahasa {language_code}. Kamu dapat melihat pratinjau dan mengonfirmasi sebelum dikirim. Gunakan /cancel_broadcast untuk membatalkan."
+  broadcastConfirm: "Ini pratinjau pesan. Kirim /send_broadcast untuk mengirimnya atau /cancel_broadcast untuk membatalkan."
+  broadcastNoPending: "Tidak ada pesan yang menunggu konfirmasi."
+  broadcastStarted: "Broadcast untuk {count} pengguna dimulai. Status: /broadcast_status"
+  broadcastComplete: "Broadcast selesai: {sent} terkirim, {failed} gagal, {blocked} baru diblokir, {active} aktif kembali."
+  broadcastStatusActive: "Broadcast admin {admin_id} berjalan: {sent} terkirim dan {failed} gagal sejauh ini."
+  broadcastStatusIdle: "Tidak ada broadcast yang berjalan."
+  broadcastNotOwner: "Hanya admin yang memulai broadcast ini yang dapat membatalkannya."
+  broadcastCancelled: "Broadcast dibatalkan. Tidak ada pesan lain yang akan dikirim."

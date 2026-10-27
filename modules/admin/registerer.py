@@ -8,21 +8,18 @@ from telegram.ext import (
 
 from .handlers import (
     broadcast_command,
+    broadcast_status,
+    send_broadcast,
     handle_admin_message,
     cancel_broadcast,
     add_admin_if_user_is_owner,
     list_users_if_user_is_admin,
     show_stats_if_user_is_admin,
     del_admin_if_user_is_owner,
+    AWAITING_MESSAGE,
+    CONFIRMING_BROADCAST,
+    CONVERSATION_TIMEOUT,
 )
-
-SLEEP_TIME_TO_NEXT_USER_IN_SECONDS = 3
-
-AWAITING_MESSAGE = 1
-CONVERSATION_TIMEOUT = 10
-broadcasting_active = False
-broadcast_thread = None
-
 
 def registry() -> list[BaseHandler]:
     """
@@ -32,7 +29,8 @@ def registry() -> list[BaseHandler]:
         ConversationHandler(
             entry_points=[CommandHandler('broadcast', broadcast_command)],
             states={
-                AWAITING_MESSAGE: [MessageHandler(filters.ALL & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_message)]
+                AWAITING_MESSAGE: [MessageHandler(filters.ALL & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_message)],
+                CONFIRMING_BROADCAST: [CommandHandler('send_broadcast', send_broadcast)],
             },
             fallbacks=[CommandHandler('cancel_broadcast', cancel_broadcast)],
             conversation_timeout=CONVERSATION_TIMEOUT
@@ -42,6 +40,7 @@ def registry() -> list[BaseHandler]:
         CommandHandler('stats', show_stats_if_user_is_admin),
         CommandHandler('listusers', list_users_if_user_is_admin),
         CommandHandler('cancel_broadcast', cancel_broadcast),
+        CommandHandler('broadcast_status', broadcast_status),
     ]
 
 

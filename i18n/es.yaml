@@ -230,3 +230,14 @@ es:
   done: ¡Hecho!
   uploading: "Subiendo... Por favor, espera."
   or: o
+  broadcastAlreadyRunning: "Ya hay una difusión en curso. Consulta /broadcast_status."
+  broadcastPrompt: "Envía el mensaje que quieres difundir. Podrás previsualizarlo y confirmarlo antes del envío. Usa /cancel_broadcast para cancelar."
+  broadcastPromptLanguage: "Envía el mensaje para los usuarios con idioma {language_code}. Podrás previsualizarlo y confirmarlo antes del envío. Usa /cancel_broadcast para cancelar."
+  broadcastConfirm: "Esta es la vista previa. Envía /send_broadcast para entregar el mensaje o /cancel_broadcast para cancelar."
+  broadcastNoPending: "No hay ningún mensaje pendiente de confirmación."
+  broadcastStarted: "La difusión para {count} usuarios ha comenzado. Estado: /broadcast_status"
+  broadcastComplete: "Difusión completada: {sent} enviados, {failed} fallidos, {blocked} nuevos bloqueados, {active} reactivados."
+  broadcastStatusActive: "Difusión iniciada por el admin {admin_id}: {sent} enviados y {failed} fallidos hasta ahora."
+  broadcastStatusIdle: "No hay ninguna difusión en curso."
+  broadcastNotOwner: "Solo el administrador que inició esta difusión puede cancelarla."
+  broadcastCancelled: "Difusión cancelada. No se enviarán más mensajes."

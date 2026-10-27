@@ -230,3 +230,14 @@ ru:
   done: Готово!
   uploading: "Загрузка... Пожалуйста, подождите."
   or: или
+  broadcastAlreadyRunning: "Рассылка уже выполняется. Статус: /broadcast_status"
+  broadcastPrompt: "Отправьте сообщение для рассылки. Перед отправкой вы увидите предварительный просмотр и подтвердите его. Для отмены используйте /cancel_broadcast."
+  broadcastPromptLanguage: "Отправьте сообщение для пользователей с языком {language_code}. Перед отправкой вы увидите предварительный просмотр и подтвердите его. Для отмены используйте /cancel_broadcast."
+  broadcastConfirm: "Это предварительный просмотр. Для отправки используйте /send_broadcast, для отмены — /cancel_broadcast."
+  broadcastNoPending: "Нет сообщения, ожидающего подтверждения."
+  broadcastStarted: "Рассылка для {count} пользователей началась. Статус: /broadcast_status"
+  broadcastComplete: "Рассылка завершена: отправлено {sent}, ошибок {failed}, новых блокировок {blocked}, снова активны {active}."
+  broadcastStatusActive: "Рассылка администратора {admin_id} выполняется: отправлено {sent}, ошибок {failed}."
+  broadcastStatusIdle: "Активной рассылки нет."
+  broadcastNotOwner: "Отменить рассылку может только запустивший её администратор."
+  broadcastCancelled: "Рассылка отменена. Новые сообщения отправляться не будут."
