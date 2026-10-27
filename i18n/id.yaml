@@ -15,6 +15,8 @@ id:
   starsJobExpired: "Hasil tersimpan ini tidak tersedia atau masa klaim 7 hari telah berakhir. Hubungi /paysupport. Lain kali, ambil hasil dalam 7 hari dengan /premiumjob {job_id}."
   starsJobClaimLimit: "Batas pengambilan hasil hari ini telah tercapai. Coba lagi besok atau hubungi /paysupport jika hasil masih tidak tersedia."
   starsJobDeliveryTooLarge: "Telegram tidak dapat mengirim hasil ini karena ukuran file terlalu besar. Hubungi /paysupport agar kami dapat memeriksanya. Kredit Anda tetap ditahan selama pemeriksaan."
+  starsJobDeliveryRetrying: "Telegram kehabisan waktu saat mengirim hasil, jadi saya belum dapat memastikan pengirimannya. Saya akan mencoba lagi secara otomatis. Anda juga dapat mengambil hasil dengan /premiumjob {job_id}. Kredit Anda tetap ditahan sampai pengiriman terkonfirmasi."
+  starsJobDeliveryNeedsReview: "Telegram belum mengonfirmasi pengiriman setelah beberapa kali percobaan. Ambil hasil yang tersimpan dengan /premiumjob {job_id}; kredit Anda tetap ditahan. Hubungi /paysupport jika Anda masih belum menerima hasilnya."
   starsJobReady: "Tugas selesai. Hasil tersimpan akan segera dikirim di sini."
   starsJobDelivered: "Hasil sudah dikirim. Anda dapat mengambilnya lagi."
   starsJobLink: "Periksa atau ambil hasil. Ketuk perintah untuk menyalin:"
