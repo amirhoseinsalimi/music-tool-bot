@@ -83,6 +83,7 @@ fr:
     Si tu as des questions ou des retours, n’hésite pas à m’écrire sur Telegram.
     Si tu es développeur et que tu as une idée pour améliorer le bot, j’accueille volontiers tes pull requests.
   defaultMessage: "Envoie-moi ou transfère-moi une piste audio, un fichier MP3 ou de la musique. J’attends… 😁"
+  unexpectedError: "Une erreur est survenue. Réessayez avec un nouveau fichier."
   askWhichModule: Que veux-tu faire avec ce fichier ?
   askWhichTag: Quel tag veux-tu modifier ?
   askForAlbum: |
@@ -121,7 +122,9 @@ fr:
   errOnDownloadAudioMessage: "Désolé, je n’ai pas pu télécharger ton audio… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnConvertingM4a: "Désolé, je n’ai pas pu convertir ton fichier m4a… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnDownloadPhotoMessage: "Désolé, je n’ai pas pu télécharger la photo… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
-  errTooLargeFile: "Le fichier est trop volumineux pour que je puisse le traiter, désolé !"
+  errTooLargeFile: "Cet audio dépasse la limite de téléchargement de Telegram de 20 Mio. Envoyez un fichier plus petit."
+  errAudioTooLong: "La durée de l’audio doit être de {maxDuration} secondes ou moins. Envoyez un fichier plus court."
+  unsupportedFileMessage: "Ce type de fichier n’est pas pris en charge. Votre session est conservée ; envoyez un audio, une image pendant la modification de la pochette ou commencez un nouveau fichier."
   errOnReadingTags: "Désolé, je n’ai pas pu lire les tags du fichier… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnUpdatingTags: "Désolé, je n’ai pas pu mettre à jour les tags du fichier… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnUploading: "Désolé, à cause d’un problème réseau, je n’ai pas pu envoyer ton fichier. Essaie encore."

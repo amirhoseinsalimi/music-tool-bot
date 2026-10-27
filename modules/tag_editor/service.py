@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from html import (
     escape as html_escape,
 )
@@ -14,6 +15,7 @@ from telegram.ext._utils.types import (
 from modules.core.utils import (
     generate_start_over_keyboard,
 )
+from modules.core.media import probe_audio_format
 from modules.tag_editor.utils import (
     generate_tag_editor_keyboard,
 )
@@ -177,7 +179,16 @@ async def remove_album_art(update: Update, user_data: UD, language: str) -> None
     music_path = user_data.get('music_path')
     user_data['tag_editor']['current_tag'] = 'remove_album'
 
-    temp_path = f"{music_path}_temp.mp3"
+    try:
+        extension, _audio_codec = probe_audio_format(music_path)
+    except ValueError:
+        await update.message.reply_text(
+            text=t(language, 'errOnUpdatingTags'),
+            reply_markup=tag_editor_keyboard
+        )
+        return
+    input_path = Path(music_path)
+    temp_path = str(input_path.with_name(f"{input_path.stem}_temp{extension}"))
 
     try:
         run_ffmpeg(
@@ -188,15 +199,18 @@ async def remove_album_art(update: Update, user_data: UD, language: str) -> None
                 "-i",
                 music_path,
                 "-map",
-                "0:a",
+                "0:a:0",
+                "-map_metadata",
+                "0",
                 "-c:a",
                 "copy",
                 temp_path,
             ],
             "remove album art",
         )
-    except RuntimeError:
+    except (RuntimeError, OSError):
         logger.exception("Failed to remove album art for file %s", music_path)
+        Path(temp_path).unlink(missing_ok=True)
         await update.message.reply_text(
             text=t(language, 'errOnUpdatingTags'),
             reply_markup=tag_editor_keyboard
@@ -243,7 +257,7 @@ async def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> N
     await update.message.reply_text(text=message_text)
 
 
-async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
+async def read_and_store_music_tags(update: Update, user_data: UD) -> bool:
     """
     Reads the tags of a music file and stores them in the user's ``user_data`` dictionary.
 
@@ -268,7 +282,7 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
             file_download_path
         )
 
-        return
+        return False
 
     artist = music.get('artist')
     title = music.get('title')
@@ -338,3 +352,4 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> None:
         tag_editor_context.pop('art_path', None)
 
     logger.info("Loaded tags for user %s file %s", user_id, file_download_path)
+    return True

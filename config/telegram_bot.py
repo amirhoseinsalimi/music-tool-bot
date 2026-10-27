@@ -4,6 +4,7 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, Defaults, PicklePersistence
 
 from utils.polling_health import PollingHealthRequest
+from utils.error_handler import on_error
 
 from config.constants import PERSISTENCE_UPDATE_INTERVAL
 from config.envs import BOT_TOKEN, DATA_DIR
@@ -24,5 +25,7 @@ app = (
     .concurrent_updates(False)
     .build()
 )
+
+app.add_error_handler(on_error)
 
 add_handler = app.add_handler
