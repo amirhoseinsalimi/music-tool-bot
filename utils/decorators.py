@@ -7,7 +7,6 @@ from telegram.ext import ContextTypes
 from database.models import Language, User
 from .context import SessionUser
 from .logging import get_logger
-from .misc import get_effective_user_id, get_effective_user_username
 
 logger = get_logger(__name__)
 
@@ -22,9 +21,14 @@ def _get_default_language_id() -> int | None:
 def upsert_user(function):
     @wraps(function)
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
-        user_id = get_effective_user_id(update)
-        telegram_user = update.effective_user
-        username = get_effective_user_username(update)
+        telegram_user = getattr(update, 'effective_user', None)
+        if telegram_user is None:
+            logger.warning('Skipping user-specific handler without an effective Telegram user: handler=%s update_id=%s',
+                           function.__name__, getattr(update, 'update_id', None))
+            return None
+
+        user_id = telegram_user.id
+        username = telegram_user.username
         display_name = ' '.join(
             part.strip()
             for part in (getattr(telegram_user, 'first_name', None),
