@@ -27,6 +27,7 @@ from config.modules import (
 )
 from modules.core.utils import (
     generate_start_over_keyboard,
+    require_active_music,
 )
 from modules.core.media import probe_audio_format
 from modules.tag_editor.utils import (
@@ -40,8 +41,6 @@ from utils import (
     get_message_text,
     get_user_data,
     get_user_language_or_fallback,
-    is_user_data_empty,
-    reply_default_message,
     reset_user_data_context,
     set_current_module,
     t,
@@ -88,8 +87,7 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     """
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, language)
+    if not await require_active_music(update, context):
         return
 
     music_tags = user_data['tag_editor']
@@ -149,11 +147,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     music_path = user_data.get('music_path')
     message = get_message(update)
 
-    if is_user_data_empty(user_data) or not music_path:
-        reply_message = t(language, 'defaultMessage')
-
-        await message.reply_text(text=reply_message, reply_markup=ReplyKeyboardRemove())
-
+    if not await require_active_music(update, context):
         return
 
     user_id = user.user_id
@@ -214,8 +208,7 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
     message = get_message(update)
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, language)
+    if not await require_active_music(update, context):
         return
 
     try:
@@ -265,9 +258,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data) or not user_data.get('music_path'):
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     tag_editor_context = user_data['tag_editor']
@@ -316,9 +307,7 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data) or not music_path:
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     await context.bot.send_chat_action(
@@ -428,9 +417,7 @@ async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     message_text = get_message_text(update)

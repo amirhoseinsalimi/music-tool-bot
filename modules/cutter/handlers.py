@@ -29,6 +29,7 @@ from config.modules import (
 from modules.core.utils import (
     generate_start_over_keyboard,
     generate_back_button_keyboard,
+    require_active_music,
 )
 from modules.tag_editor.service import (
     save_tags_to_file,
@@ -40,11 +41,9 @@ from utils import (
     get_message_text,
     get_user_data,
     get_user_language_or_fallback,
-    is_user_data_empty,
     reset_user_data_context,
     set_current_module,
     t,
-    reply_default_message,
     resize_image,
     get_file_name,
     upsert_user,
@@ -84,9 +83,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data) or not music_path:
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     message_text = digits.ar_to_fa(digits.fa_to_en(get_message_text(update)))
@@ -209,9 +206,7 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data) or not music_path:
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     back_button_keyboard = generate_back_button_keyboard(language)

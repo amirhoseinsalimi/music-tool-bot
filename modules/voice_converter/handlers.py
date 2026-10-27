@@ -22,6 +22,7 @@ from config.modules import (
 )
 from modules.core.utils import (
     generate_start_over_keyboard,
+    require_active_music,
 )
 from utils import (
     delete_file,
@@ -29,8 +30,6 @@ from utils import (
     get_message,
     get_user_data,
     get_user_language_or_fallback,
-    is_user_data_empty,
-    reply_default_message,
     reset_user_data_context,
     set_current_module,
     t,
@@ -61,8 +60,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
     user_data = get_user_data(context)
 
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, get_user_language_or_fallback(user_data))
+    if not await require_active_music(update, context):
         return
 
     await context.bot.send_chat_action(

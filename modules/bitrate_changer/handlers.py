@@ -22,6 +22,7 @@ from config.modules import (
 )
 from modules.core.utils import (
     generate_start_over_keyboard,
+    require_active_music,
 )
 from utils import (
     delete_file,
@@ -29,8 +30,6 @@ from utils import (
     get_message,
     get_user_data,
     get_user_language_or_fallback,
-    is_user_data_empty,
-    reply_default_message,
     reset_user_data_context,
     set_current_module,
     t,
@@ -62,8 +61,7 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     user_data = get_user_data(context)
 
     language = get_user_language_or_fallback(user_data)
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, language)
+    if not await require_active_music(update, context):
         return
 
     bitrate_selector_keyboard = generate_bitrate_selector_keyboard(language)
@@ -96,9 +94,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     start_over_button_keyboard = generate_start_over_keyboard(language)

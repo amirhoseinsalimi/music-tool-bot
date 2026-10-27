@@ -57,7 +57,7 @@ from .utils import (
     increment_file_counter_for_user,
     generate_start_over_keyboard,
     create_user_directory,
-    does_user_have_music_file,
+    require_active_music,
     get_app_version,
 )
 
@@ -212,6 +212,9 @@ async def show_module_selector(update: Update, context: CallbackContext) -> None
     """
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
+
+    if not await require_active_music(update, context):
+        return
 
     module_selector_keyboard = generate_module_selector_keyboard(language, update.effective_user.id)
 
@@ -389,8 +392,6 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
         return
 
-    music_path = user_data['music_path']
-
     current_module = user_data['current_module']
     logger.info(
         "User %s sent message while in module=%s username=%s text=%s",
@@ -410,20 +411,17 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
         return
 
-    if not does_user_have_music_file(music_path):
-        await message.reply_text(text=t(language, 'startOverMessage'))
-
+    if not await require_active_music(update, context):
         return
 
-    if does_user_have_music_file(music_path):
-        module_selector_keyboard = generate_module_selector_keyboard(language, update.effective_user.id)
+    module_selector_keyboard = generate_module_selector_keyboard(language, update.effective_user.id)
 
-        await message.reply_text(
-            text=t(language, 'askWhichModule'),
-            reply_markup=module_selector_keyboard
-        )
+    await message.reply_text(
+        text=t(language, 'askWhichModule'),
+        reply_markup=module_selector_keyboard
+    )
 
-        return
+    return
 
 
 @upsert_user
