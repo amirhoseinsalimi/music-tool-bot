@@ -2,11 +2,11 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from config.constants import DOWNLOAD_DIR_PATH
 from database.models import User
-from utils import t
+from utils import get_user_language_or_fallback, reset_user_data_context, t
 from utils.extensions import optional_keyboard_rows
 
 PYPROJECT_PATH = Path(__file__).resolve().parents[2] / 'pyproject.toml'
@@ -99,7 +99,43 @@ def does_user_have_music_file(music_path: str) -> bool:
     :param music_path: str: The user's current music_path
     :return: bool: Whether the user has a music path
     """
-    return bool(music_path)
+    return bool(music_path and Path(music_path).is_file())
+
+
+def has_active_music_file(user_data: dict, user_id: int) -> bool:
+    """Return whether the current session points to an existing file owned by this user."""
+    music_path = user_data.get('music_path')
+    if not music_path:
+        return False
+
+    try:
+        user_directory = (DOWNLOAD_DIR_PATH / str(user_id)).resolve()
+        source_path = Path(music_path).resolve(strict=True)
+        source_path.relative_to(user_directory)
+    except (OSError, RuntimeError, TypeError, ValueError):
+        return False
+
+    return source_path.is_file()
+
+
+async def require_active_music(update, context) -> bool:
+    """Stop a music feature unless this user has a retained current track."""
+    user_data = getattr(context, 'user_data', None) or {}
+    user = user_data.get('user')
+    user_id = getattr(user, 'user_id', None) or getattr(update.effective_user, 'id', None)
+    language = get_user_language_or_fallback(user_data)
+
+    if user_id is not None and has_active_music_file(user_data, user_id):
+        return True
+
+    if user_id is not None and user is not None:
+        reset_user_data_context(user_id, user_data)
+
+    await update.effective_message.reply_text(
+        text=t(language, 'startOverMessage'),
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return False
 
 
 def increment_file_counter_for_user(user_id: int) -> None:
