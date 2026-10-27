@@ -7,7 +7,7 @@ LOCALES = Path(__file__).resolve().parents[2] / "i18n"
 
 
 class PremiumJobLocaleTests(unittest.TestCase):
-    def test_claim_expiry_and_daily_limit_messages_exist_in_every_catalog(self):
+    def test_claim_delivery_and_daily_limit_messages_exist_in_every_catalog(self):
         catalogs = sorted(LOCALES.glob("*.yaml"))
         self.assertEqual(len(catalogs), 8)
         for catalog in catalogs:
@@ -16,3 +16,5 @@ class PremiumJobLocaleTests(unittest.TestCase):
                 self.assertTrue(messages["starsJobExpired"].strip())
                 self.assertIn("{job_id}", messages["starsJobExpired"])
                 self.assertTrue(messages["starsJobClaimLimit"].strip())
+                self.assertIn("/paysupport", messages["starsJobDeliveryTooLarge"])
+                self.assertTrue(messages["starsJobDeliveryTooLarge"].strip())
