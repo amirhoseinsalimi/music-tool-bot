@@ -243,6 +243,7 @@ class BridgeTests(unittest.TestCase):
             with psycopg2.connect(self.path) as connection:
                 connection.autocommit = True
                 with connection.cursor() as cursor:
+                    cursor.execute(f'DROP OWNED BY {role}')
                     cursor.execute(f'DROP ROLE IF EXISTS {role}')
 
         self.addCleanup(drop_role)
