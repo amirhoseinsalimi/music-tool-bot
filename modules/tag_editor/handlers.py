@@ -1,5 +1,5 @@
 from runtime_controls import feature_gate
-from feature_usage import record_completion
+from feature_usage import send_file_and_record_completion
 import re
 
 from persiantools import (
@@ -363,30 +363,34 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         filename = f"{get_file_name(music_tags)}{extension}"
         with open(music_path, "rb") as music_file:
             if extension in {'.mp3', '.m4a'}:
-                await context.bot.send_audio(
-                    audio=music_file,
-                    thumbnail=possible_art,
-                    duration=user_data["music_duration"],
-                    chat_id=get_chat_id(update),
-                    performer=music_tags.get('artist') or 'Unknown',
-                    title=music_tags.get('title') or 'Unknown',
-                    filename=filename,
-                    caption=f"🆔 {BOT_USERNAME}",
-                    reply_markup=start_over_button_keyboard,
-                    reply_to_message_id=user_data["music_message_id"],
+                await send_file_and_record_completion(
+                    context.bot.send_audio(
+                        audio=music_file,
+                        thumbnail=possible_art,
+                        duration=user_data["music_duration"],
+                        chat_id=get_chat_id(update),
+                        performer=music_tags.get('artist') or 'Unknown',
+                        title=music_tags.get('title') or 'Unknown',
+                        filename=filename,
+                        caption=f"🆔 {BOT_USERNAME}",
+                        reply_markup=start_over_button_keyboard,
+                        reply_to_message_id=user_data["music_message_id"],
+                    ),
+                    'tag_editor', user_id, getattr(update, 'update_id', None)
                 )
             else:
-                await context.bot.send_document(
-                    document=music_file,
-                    thumbnail=possible_art,
-                    chat_id=get_chat_id(update),
-                    filename=filename,
-                    caption=f"🆔 {BOT_USERNAME}",
-                    reply_markup=start_over_button_keyboard,
-                    reply_to_message_id=user_data["music_message_id"],
+                await send_file_and_record_completion(
+                    context.bot.send_document(
+                        document=music_file,
+                        thumbnail=possible_art,
+                        chat_id=get_chat_id(update),
+                        filename=filename,
+                        caption=f"🆔 {BOT_USERNAME}",
+                        reply_markup=start_over_button_keyboard,
+                        reply_to_message_id=user_data["music_message_id"],
+                    ),
+                    'tag_editor', user_id, getattr(update, 'update_id', None)
                 )
-
-        await record_completion('tag_editor', user_id, getattr(update, 'update_id', None))
 
         await uploading_message.delete()
 

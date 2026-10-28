@@ -1,5 +1,5 @@
 from runtime_controls import feature_gate
-from feature_usage import record_completion
+from feature_usage import send_file_and_record_completion
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -136,20 +136,21 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
                 possible_art = art.read()
 
         with open(output_path, 'rb') as music_file:
-            await context.bot.send_audio(
-                audio=music_file,
-                chat_id=get_chat_id(update),
-                thumbnail=possible_art,
-                duration=music_duration,
-                performer=music_tags.get('artist'),
-                title=music_tags.get('title'),
-                filename=f"{get_file_name(music_tags)}.mp3",
-                caption=f"🆔 {BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data['music_message_id']
+            await send_file_and_record_completion(
+                context.bot.send_audio(
+                    audio=music_file,
+                    chat_id=get_chat_id(update),
+                    thumbnail=possible_art,
+                    duration=music_duration,
+                    performer=music_tags.get('artist'),
+                    title=music_tags.get('title'),
+                    filename=f"{get_file_name(music_tags)}.mp3",
+                    caption=f"🆔 {BOT_USERNAME}",
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data['music_message_id']
+                ),
+                'bitrate_changer', user_id, getattr(update, 'update_id', None)
             )
-
-        await record_completion('bitrate_changer', user_id, getattr(update, 'update_id', None))
 
         await uploading_message.delete()
 
