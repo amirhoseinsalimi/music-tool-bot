@@ -16,6 +16,9 @@ PREMIUM_KEYS = (
     'starsJobInProgress',
     'starsJobCancelled',
     'starsCancelTooLate',
+    'premiumRecognitionButton',
+    'premiumSeparationButton',
+    'premiumArtworkButton',
 )
 
 

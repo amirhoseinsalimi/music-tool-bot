@@ -18,6 +18,7 @@ from database.models import (
 )
 from utils import (
     get_message_text,
+    t,
 )
 from .utils import (
     extract_user_id,
@@ -38,7 +39,7 @@ MONTHLY_ACTIVE_DAYS = 31
 CHURN_DAYS = 90
 
 
-async def add_admin(update: Update) -> None:
+async def add_admin(update: Update, language: str = 'en') -> None:
     """
     Adds a user ``id`` to the ``admins`` table. If succeeds, sends a success message.
 
@@ -47,7 +48,7 @@ async def add_admin(update: Update) -> None:
     admin_id_to_add = extract_user_id(get_message_text(update))
 
     if not admin_id_to_add.isdigit():
-        await update.message.reply_text(f"The user ID {admin_id_to_add} is malformed")
+        await update.message.reply_text(t(language, 'adminMalformedUserId', user_id=admin_id_to_add))
 
     admin_id_to_add_int = int(admin_id_to_add)
 
@@ -56,10 +57,10 @@ async def add_admin(update: Update) -> None:
 
     admin.save()
 
-    await update.message.reply_text(text=f"User {admin_id_to_add} has been added as admins.")
+    await update.message.reply_text(text=t(language, 'adminUserAdded', user_id=admin_id_to_add))
 
 
-async def del_admin(update: Update) -> None:
+async def del_admin(update: Update, language: str = 'en') -> None:
     """
     Deletes a user ``id`` from the ``admins`` table. Then sends a message accordingly.
 
@@ -68,19 +69,19 @@ async def del_admin(update: Update) -> None:
     admin_id_to_delete = extract_user_id(get_message_text(update))
 
     if not admin_id_to_delete.isdigit():
-        await update.message.reply_text(f"The user ID `{admin_id_to_delete}` is malformed")
+        await update.message.reply_text(t(language, 'adminMalformedUserId', user_id=admin_id_to_delete))
 
     admin_id_to_delete_int = int(admin_id_to_delete)
 
     if is_user_admin(admin_id_to_delete_int):
         Admin.where('admin_user_id', '=', admin_id_to_delete).delete()
 
-        await update.message.reply_text(text=f"User {admin_id_to_delete} is no longer an admin")
+        await update.message.reply_text(text=t(language, 'adminUserRemoved', user_id=admin_id_to_delete))
     else:
-        await update.message.reply_text(text=f"User {admin_id_to_delete} is not an admin")
+        await update.message.reply_text(text=t(language, 'adminUserNotAdmin', user_id=admin_id_to_delete))
 
 
-async def show_stats(update: Update) -> None:
+async def show_stats(update: Update, language: str = 'en') -> None:
     """
     Displays a summary about how the bot is being used:
      - The number of users using this bot
@@ -182,49 +183,38 @@ async def show_stats(update: Update) -> None:
     occupied_disk_space_bytes, available_disk_space_bytes, available_disk_space_percent = \
         psutil.disk_usage('/')[-3:]
 
-    language_labels = {
-        'en': '🇬🇧 English',
-        'fa': '🇮🇷 Persian',
-        'ru': '🇷🇺 Russian',
-        'es': '🇪🇸 Spanish',
-        'fr': '🇫🇷 French',
-        'ar': '🇸🇦 Arabic',
-        'hi': '🇮🇳 Hindi',
-        'id': '🇮🇩 Indonesian',
-    }
-
     language_lines = '\n'.join(
-        f"  {language_labels[lang]}: {status_by_language[lang]['active']} ✅"
-        f" / {status_by_language[lang]['blocked']} 🚫"
-        f" / {status_by_language[lang]['deleted']} 🗑"
+        t(language, 'adminLanguageStatsLine', language_code=lang.upper(),
+          active=status_by_language[lang]['active'], blocked=status_by_language[lang]['blocked'],
+          deleted=status_by_language[lang]['deleted'])
         for lang in language_counts
     )
 
     await update.message.reply_text(
-        text=(
-            f"👥 {total_users} users are using this bot!\n\n"
-            f"📊 User status breakdown ({total_users} total):\n"
-            f"  ✅ Active: {status_totals['active']}\n"
-            f"  🚫 Blocked: {status_totals['blocked']}\n"
-            f"  🗑 Deleted: {status_totals['deleted']}\n\n"
-            f"📈 Usage stats:\n"
-            f"  🟢 Daily (24h): {daily_users}\n"
-            f"  🟡 Weekly (7d): {weekly_users}\n"
-            f"  🔵 Monthly Active (31d): {monthly_active_users}\n"
-            f"  🟣 Active (90d): {active_users_90d}\n"
-            f"  ⚪ Inactive (no interaction): {inactive_users}\n"
-            f"  🔴 Churned (90d+ idle): {churned_users}\n\n"
-            f"🌐 By language:\n"
-            f"{language_lines}\n\n"
-            f"📁 There are {number_of_downloaded_files} files on the filesystem, occupying {downloads_dir_size}\n"
-            f"💽 Occupied disk space: {pretty_print_size(occupied_disk_space_bytes)}, "
-            f"available space: {pretty_print_size(available_disk_space_bytes)} "
-            f"({available_disk_space_percent}% used)"
+        text=t(
+            language,
+            'adminStatsReport',
+            total_users=total_users,
+            status_active=status_totals['active'],
+            status_blocked=status_totals['blocked'],
+            status_deleted=status_totals['deleted'],
+            daily_users=daily_users,
+            weekly_users=weekly_users,
+            monthly_active_users=monthly_active_users,
+            active_users=active_users_90d,
+            inactive_users=inactive_users,
+            churned_users=churned_users,
+            language_lines=language_lines,
+            downloaded_files=number_of_downloaded_files,
+            downloads_dir_size=downloads_dir_size,
+            occupied_disk_space=pretty_print_size(occupied_disk_space_bytes),
+            available_disk_space=pretty_print_size(available_disk_space_bytes),
+            disk_used_percent=available_disk_space_percent,
         )
     )
 
 
-async def list_users(update: Update, limit: Optional[int] = None) -> None:
+async def list_users(update: Update, limit: Optional[int] = None, language: str = 'en') -> None:
     """
     Displays a list of all or specified last users in groups of `90` users per message.
 
@@ -251,11 +241,13 @@ async def list_users(update: Update, limit: Optional[int] = None) -> None:
 
     for index, chunk in enumerate(user_chunks):
         reply_message = "\n".join(
-            f"{user.user_id}: {f'@{user.username}' if user.username else '-'}: {user.number_of_files_sent}"
+            t(language, 'adminUserRow', user_id=user.user_id,
+              username=f'@{user.username}' if user.username else t(language, 'adminNoUsername'),
+              file_count=user.number_of_files_sent)
             for user in chunk
         )
 
         await update.message.reply_text(
-            text=f"👥 List of users ({len(users)} total) - Page {index + 1}/{len(user_chunks)}:\n\n"
-                 f"{reply_message}",
+            text=t(language, 'adminUserListPage', total_users=len(users), page=index + 1,
+                   pages=len(user_chunks), user_lines=reply_message),
         )

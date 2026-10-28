@@ -187,11 +187,13 @@ def resize_image(image_path: str, output_path: str, size=(640, 640)):
         img.save(output_path, format="JPEG")
 
 
-def get_file_name(music_tags: dict):
+def get_file_name(music_tags: dict, language: str = 'en'):
     """
     Return a formatted filename based on audio tags with fallbacks
 
     :param music_tags: dict: The dictionary containing the music tags
     :return: str: A formatted filename based on audio tags with fallbacks
     """
-    return f"{music_tags.get('artist') or 'Unknown'} - {music_tags.get('title') or 'Unknown'}"
+    from .i18n import t
+    unknown = t(language, 'unknownMetadata')
+    return f"{music_tags.get('artist') or unknown} - {music_tags.get('title') or unknown}"

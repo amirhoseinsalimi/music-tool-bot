@@ -34,59 +34,63 @@ logger = get_logger(__name__)
 
 
 @upsert_user
-async def add_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
+async def add_admin_if_user_is_owner(update: Update, context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, calls :func:`add_admin`.
 
     :param update: Update: The ``update`` object
-    :param _context: CallbackContext: Unused
+    :param context: CallbackContext: The ``context`` object
     """
     if not is_admin_owner(get_effective_user_id(update)):
         return
 
-    await add_admin(update)
+    await add_admin(update, get_user_language_or_fallback(context.user_data))
 
 
 @upsert_user
-async def del_admin_if_user_is_owner(update: Update, _context: CallbackContext) -> None:
+async def del_admin_if_user_is_owner(update: Update, context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, call :func:`del_admin`.
 
     :param update: Update: The ``update`` object
-    :param _context: CallbackContext: Unused
+    :param context: CallbackContext: The ``context`` object
     """
     if not is_admin_owner(get_effective_user_id(update)):
         return
 
-    await del_admin(update)
+    await del_admin(update, get_user_language_or_fallback(context.user_data))
 
 
 @upsert_user
-async def show_stats_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
+async def show_stats_if_user_is_admin(update: Update, context: CallbackContext) -> None:
     """
     Checks if the user is an admin. If they are, it calls :func:`show_stats` to display the stats of the bot.
 
     :param update: Update: The ``update`` object
-    :param _context: CallbackContext: Unused
+    :param context: CallbackContext: The ``context`` object
     """
     if not is_user_admin(get_effective_user_id(update)):
         return
 
-    await show_stats(update)
+    await show_stats(update, get_user_language_or_fallback(context.user_data))
 
 
 @upsert_user
-async def list_users_if_user_is_admin(update: Update, _context: CallbackContext) -> None:
+async def list_users_if_user_is_admin(update: Update, context: CallbackContext) -> None:
     """
     Checks if the user who sent the message is an owner of the bot. If so, calls :func:`list_users`.
 
     :param update: Update: The ``update`` object
-    :param _context: CallbackContext: Unused
+    :param context: CallbackContext: The ``context`` object
     """
     if not is_user_admin(get_effective_user_id(update)):
         return
 
-    await list_users(update, get_list_limit(message=get_message_text(update)))
+    await list_users(
+        update,
+        get_list_limit(message=get_message_text(update)),
+        get_user_language_or_fallback(context.user_data),
+    )
 
 
 @upsert_user

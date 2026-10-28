@@ -3,6 +3,14 @@ from telegram import (
 )
 
 from config import envs
+from utils import t
+
+SUPPORTED_LANGUAGES = ('en', 'fa', 'ru', 'es', 'fr', 'ar', 'hi', 'id')
+DONATION_METHOD_KEYS = (
+    'donationMethodBitcoin', 'donationMethodEthereum', 'donationMethodTron',
+    'donationMethodTether', 'donationMethodShiba', 'donationMethodDogecoin',
+    'donationMethodZarinPal',
+)
 
 ADDRESS_NAMES = (
     "BTC_WALLET_ADDRESS", "ETH_WALLET_ADDRESS", "TRX_WALLET_ADDRESS",
@@ -22,7 +30,12 @@ def donation_destinations() -> dict[str, str]:
             for name in ADDRESS_NAMES}
 
 
-def generate_donation_keyboard() -> ReplyKeyboardMarkup | None:
+def all_donation_method_labels() -> list[str]:
+    """Return every localized label accepted by the donation handler."""
+    return [t(language, key) for language in SUPPORTED_LANGUAGES for key in DONATION_METHOD_KEYS]
+
+
+def generate_donation_keyboard(language: str = 'en') -> ReplyKeyboardMarkup | None:
     """
     Creates and returns an instance of ``donation_keyboard``
 
@@ -31,13 +44,15 @@ def generate_donation_keyboard() -> ReplyKeyboardMarkup | None:
     addresses = donation_destinations()
     donation_methods = []
 
-    if addresses["BTC_WALLET_ADDRESS"]: donation_methods.append("Bitcoin")
-    if addresses["ETH_WALLET_ADDRESS"]: donation_methods.append("Ethereum")
-    if addresses["TRX_WALLET_ADDRESS"]: donation_methods.append("TRON")
-    if addresses["USDT_TRC20_WALLET_ADDRESS"] or addresses["USDT_ERC20_WALLET_ADDRESS"]: donation_methods.append("Tether")
-    if addresses["SHIBA_BEP20_WALLET_ADDRESS"] or addresses["SHIBA_ERC20_WALLET_ADDRESS"]: donation_methods.append("Shiba")
-    if addresses["DOGE_WALLET_ADDRESS"]: donation_methods.append("Dogecoin")
-    if addresses["ZARIN_LINK_ADDRESS"]: donation_methods.append("ZarinPal")
+    if addresses["BTC_WALLET_ADDRESS"]: donation_methods.append(t(language, 'donationMethodBitcoin'))
+    if addresses["ETH_WALLET_ADDRESS"]: donation_methods.append(t(language, 'donationMethodEthereum'))
+    if addresses["TRX_WALLET_ADDRESS"]: donation_methods.append(t(language, 'donationMethodTron'))
+    if addresses["USDT_TRC20_WALLET_ADDRESS"] or addresses["USDT_ERC20_WALLET_ADDRESS"]:
+        donation_methods.append(t(language, 'donationMethodTether'))
+    if addresses["SHIBA_BEP20_WALLET_ADDRESS"] or addresses["SHIBA_ERC20_WALLET_ADDRESS"]:
+        donation_methods.append(t(language, 'donationMethodShiba'))
+    if addresses["DOGE_WALLET_ADDRESS"]: donation_methods.append(t(language, 'donationMethodDogecoin'))
+    if addresses["ZARIN_LINK_ADDRESS"]: donation_methods.append(t(language, 'donationMethodZarinPal'))
 
     if not donation_methods:
         return None
