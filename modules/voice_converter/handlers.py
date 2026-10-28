@@ -1,5 +1,5 @@
 from runtime_controls import feature_gate
-from feature_usage import record_completion
+from feature_usage import send_file_and_record_completion
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -98,16 +98,17 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
         convert_to_voice(input_path, output_path)
 
         with open(output_path, 'rb') as voice_file:
-            await context.bot.send_voice(
-                voice=voice_file,
-                filename=f"{get_file_name(music_tags)}.opus",
-                chat_id=get_chat_id(update),
-                caption=f"🆔 {BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data['music_message_id']
+            await send_file_and_record_completion(
+                context.bot.send_voice(
+                    voice=voice_file,
+                    filename=f"{get_file_name(music_tags)}.opus",
+                    chat_id=get_chat_id(update),
+                    caption=f"🆔 {BOT_USERNAME}",
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data['music_message_id']
+                ),
+                'voice_converter', user_id, getattr(update, 'update_id', None)
             )
-
-        await record_completion('voice_converter', user_id, getattr(update, 'update_id', None))
 
         await uploading_message.delete()
 
