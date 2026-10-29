@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Compose validates the bot service's `env_file: .env` path even when an
+# alternate interpolation env file is supplied. Create an empty placeholder
+# only when needed, and remove only the file this check created.
+created_env_file=false
+if [[ ! -e .env ]]; then
+  : > .env
+  created_env_file=true
+fi
+
+cleanup() {
+  if [[ "$created_env_file" == true ]]; then
+    python3 -c 'from pathlib import Path; Path(".env").unlink(missing_ok=True)'
+  fi
+}
+trap cleanup EXIT
+
 compose=(docker compose --env-file /dev/null)
 
 for state in unset empty; do
