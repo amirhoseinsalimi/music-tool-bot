@@ -9,7 +9,7 @@ services:
       PGPORT: "6003"
       POSTGRES_DB: ${DB_DATABASE:-music_tool_bot_dev}
       POSTGRES_USER: ${DB_ADMIN_USERNAME:-${DB_USERNAME:-music_tool_bot}}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-music_tool_bot_dev}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
     # No host database port. Remote clients use the private SSH gateway.
     volumes:
       - postgres_data:/var/lib/postgresql/data

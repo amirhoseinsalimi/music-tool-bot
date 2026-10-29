@@ -1,0 +1,33 @@
+name: Compose configuration
+on:
+  push:
+    branches: [develop, master]
+    paths:
+      - docker-compose.yaml
+      - docker-compose.dev.yaml
+      - docker-compose.prod.yaml
+      - .env.example
+      - README.md
+      - scripts/check_compose_config.sh
+      - .github/workflows/compose-config.yml
+  pull_request:
+    branches: [develop, master]
+    paths:
+      - docker-compose.yaml
+      - docker-compose.dev.yaml
+      - docker-compose.prod.yaml
+      - .env.example
+      - README.md
+      - scripts/check_compose_config.sh
+      - .github/workflows/compose-config.yml
+permissions:
+  contents: read
+jobs:
+  config:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - run: bash scripts/check_compose_config.sh

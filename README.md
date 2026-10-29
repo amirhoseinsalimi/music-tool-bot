@@ -28,7 +28,7 @@ file with `cp .env.example .env` and fill in your credentials:
 | DB_PORT                    | `int`     | Database port (for postgres), default `6003`.                                                                                                       |
 | DB_DATABASE                | `str`     | Database name (for postgres).                                                                                                       |
 | DB_USERNAME                | `str`     | Database username (for postgres).                                                                                                   |
-| DB_PASSWORD                | `str`     | Database password (for postgres).                                                                                                   |
+| DB_PASSWORD                | `str`     | Required, unique database password. Compose fails if it is unset or empty instead of using a public default.                         |
 | OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.                                                                 |
 | MAX_DURATION_SECONDS       | `int`     | Maximum accepted audio duration in seconds. Defaults to `3600`; must be positive.                                                   |
 | DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                                                                                         |
