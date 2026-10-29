@@ -376,21 +376,6 @@ typing-extensions = {version = ">=4.6.0", markers = "python_version < \"3.13\""}
 test = ["pytest (>=6)"]
 
 [[package]]
-name = "faker"
-version = "13.16.0"
-description = "Faker is a Python package that generates fake data for you."
-optional = false
-python-versions = ">=3.6"
-groups = ["main"]
-files = [
-    {file = "Faker-13.16.0-py3-none-any.whl", hash = "sha256:920f94d5aa865fd922bc29f2cf75c75b4d86b30eec23e7174d7513241b759b05"},
-    {file = "Faker-13.16.0.tar.gz", hash = "sha256:25c5be99bc5fd8676eea8c1490e0de87f6d9734651c7af2cefc99b322b2936f4"},
-]
-
-[package.dependencies]
-python-dateutil = ">=2.4"
-
-[[package]]
 name = "h11"
 version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
@@ -531,23 +516,24 @@ develoop = ["giving (>=0.4.3,<0.5.0)", "rich (>=10.13.0)"]
 
 [[package]]
 name = "masonite-orm"
-version = "2.24.0"
+version = "3.0.0.post1"
 description = "The Official Masonite ORM"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "masonite-orm-2.24.0.tar.gz", hash = "sha256:fc840001c3bed88d130dceb4c434bd35c7371118c4713ead03d01ae2f4eb3155"},
+    {file = "masonite_orm-3.0.0.post1-py3-none-any.whl", hash = "sha256:e799732b4f489f53696cf0d34ead7d57d2afab5f6f39f827bc860e8702637fa6"},
+    {file = "masonite_orm-3.0.0.post1.tar.gz", hash = "sha256:5bd637e3b84c1128d9a8d1997035595e7da54a1887ab42f6254c9975558bde93"},
 ]
 
 [package.dependencies]
-cleo = ">=0.8.0,<0.9"
-faker = ">=4.1.0,<14.0"
+cleo = ">=0.8.0,<2.0"
 inflection = ">=0.3,<0.6"
-pendulum = ">=2.1,<3.1"
+pendulum = ">=3.0,<4.0"
 
 [package.extras]
-test = ["coverage", "pytest"]
+seeder = ["faker"]
+test = ["coverage", "faker", "pytest"]
 
 [[package]]
 name = "mccabe"
@@ -1375,4 +1361,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10.12"
-content-hash = "b89ce7135e0d3745f666dd6e8ec15f1049875e30eef669bdfbba0450514e909d"
+content-hash = "14cc9028060180587739afe61c034ab38fdd8aad171a7d9122cd650d0a7c9c9b"
