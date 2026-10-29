@@ -1,243 +1,85 @@
 # Music Tool Bot
 
-Music Tool Bot is the ultimate bot for managing your music files effortlessly! 🎵✨. Check it out here:
-[@MusicToolBot](https://t.me/MusicToolBot)
+Music Tool Bot is a Telegram bot for working with audio files. It runs in Docker and stores its database and persistent files in PostgreSQL and a Docker volume.
 
-Currently, supports 8 languages: **English**, **Persian**, **Russian**, **Spanish**, **French**, **Arabic**, **Hindi**, and **Indonesian**.
-([Add more if you want](#contribution))
+## Runtime services
 
-The bot runs in **Docker** - no need to install Python, Poetry, or ffmpeg on your machine.
+The production Compose stack can run these five services together:
 
-Start by filling in your [configuration](#configuration).
+| Service | Purpose |
+|---|---|
+| `bot` | Receives Telegram updates and processes requests. |
+| `postgres` | Stores bot records. |
+| `sweeper` | Removes downloaded files that have passed the configured retention period. |
+| `backup` | Writes compressed database and bot-data backups to `./backups/`. |
+| `alloy` | Optional log collector that forwards the bot container's logs to Grafana Cloud. |
 
----
+The first four services are defined by the base and production Compose files. Alloy is added with the Grafana Compose file. The complete command is in [Run the production stack](#run-the-production-stack).
+
+## Requirements
+
+- Docker Engine with Docker Compose
+- A Telegram bot token from [BotFather](https://t.me/BotFather)
 
 ## Configuration
 
-First, **register a Telegram bot** at [BotFather](https://t.me/BotFather) and grab its token. Then create your env
-file with `cp .env.example .env` and fill in your credentials:
-
-| Field                      | Type      | Description                                                                                                                         |
-|----------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------|
-| APP_ENV                    | `str`     | Defines the app environment (`development` by default; Compose sets `production` for the production overlay).                        |
-| BOT_NAME                   | `str`     | The name of the bot                                                                                                                 |
-| BOT_USERNAME               | `str`     | The username of the bot. This username is sent as signature in captions.                                                            |
-| BOT_TOKEN                  | `str`     | The bot token you grabbed from @BotFather                                                                                           |
-| BOT_EXTENSION              | `str`     | Optional installed Python callable in `module:function` form. Leave empty for standalone use; see [optional extensions](docs/optional-extensions.md). |
-| BOT_CONTROL_DATABASE_URL   | `str`     | Optional PostgreSQL URL for core runtime controls and the read-only admin bridge.                                                   |
-| BOT_PREMIUM_CONTROLS       | `boolean` | Set to `true` only when optional premium controls should appear in the bridge. Defaults to `false`.                                |
-| ADMIN_BRIDGE_TOKEN         | `str`     | Optional bearer token required by the read-only administrative bridge.                                                              |
-| ADMIN_BRIDGE_PORT          | `int`     | Port for the optional administrative bridge; defaults to `6004`.                                                                    |
-| ADMIN_CONTROL_TOKEN        | `str`     | Optional separate token used to authenticate requests to the read-only admin bridge.                                                |
-| DATA_DIR                   | `str`     | Directory for bot file persistence. In Docker this should be `/data` so the pickle and downloaded files survive container restarts. |
-| DB_HOST                    | `str`     | Database host (for postgres).                                                                                                       |
-| DB_PORT                    | `int`     | Database port (for postgres), default `6003`.                                                                                                       |
-| DB_DATABASE                | `str`     | Database name (for postgres).                                                                                                       |
-| DB_USERNAME                | `str`     | Database username (for postgres).                                                                                                   |
-| DB_PASSWORD                | `str`     | Required, unique database password. Compose fails if it is unset or empty instead of using a public default.                         |
-| DB_ADMIN_USERNAME          | `str`     | Optional PostgreSQL maintenance role used by Compose; defaults to `DB_USERNAME`.                                                    |
-| OWNER_USER_ID              | `int`     | The user ID of the owner of the bot. This user has more privileges.                                                                 |
-| MAX_DURATION_SECONDS       | `int`     | Maximum accepted audio duration in seconds. Defaults to `3600`; must be positive.                                                   |
-| DEBUGGER                   | `boolean` | Enables remote attach with `pydevd-pycharm`                                                                                         |
-| DEBUGGER_HOST              | `str`     | Optional PyCharm debug server host. Defaults to `127.0.0.1` locally and tries `host.docker.internal` in Docker                      |
-| DEBUGGER_PORT              | `int`     | PyCharm debug server port. Defaults to `6011`                                                                                       |
-| DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                                                                             |
-| BACKUP_RETENTION           | `int`     | Days to keep daily backups. Defaults to `7`.                                                                                        |
-| BACKUP_INTERVAL            | `int`     | Seconds between backups. Defaults to `86400` (24 hours).                                                                            |
-| SWEEPER_RETENTION_DAYS     | `int`     | Days to keep downloaded user files before automatic cleanup. Defaults to `30`.                                                      |
-| SWEEPER_INTERVAL           | `int`     | Seconds between sweeps. Defaults to `86400` (24 hours).                                                                             |
-| PTB_TIMEDELTA              | `boolean` | Compose sets this to `True` so Telegram `RetryAfter` values use timedeltas; it is set by the stack, not `.env`.                       |
-| COMPOSE_PROJECT_NAME       | `str`     | Optional Compose project name used as the prefix for container and volume names.                                                    |
-| GRAFANA_CLOUD_LOKI_URL     | `str`     | Optional Grafana Cloud Loki push URL, used only with the Grafana overlay.                                                           |
-| GRAFANA_CLOUD_LOKI_USERNAME| `str`     | Optional Grafana Cloud stack user ID, used only with the Grafana overlay.                                                           |
-| GRAFANA_CLOUD_API_KEY      | `str`     | Optional Grafana Cloud write token, used only with the Grafana overlay.                                                             |
-| BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                                                                            |
-| ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                                                                            |
-| TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                                                                            |
-| USDT_TRC20_WALLET_ADDRESS  | `str`     | USDT (TRC20) wallet address to receive donations.                                                                                   |
-| USDT_ERC20_WALLET_ADDRESS  | `str`     | USDT (ERC20) wallet address to receive donations.                                                                                   |
-| SHIBA_BEP20_WALLET_ADDRESS | `str`     | SHIBA (BEP20) wallet address to receive donations.                                                                                  |
-| SHIBA_ERC20_WALLET_ADDRESS | `str`     | SHIBA (ERC20) wallet address to receive donations.                                                                                  |
-| DOGE_WALLET_ADDRESS        | `str`     | DOGE wallet address to receive donations.                                                                                           |
-| ZARIN_LINK_ADDRESS         | `str`     | ZarinLink address to receive donations.                                                                                             |
-
----
-
-## Running the Bot (Docker needed)
-
-Stack ports default to the dedicated 6000–6100 range. PostgreSQL listens on 6003
-inside Docker and publishes to IPv4 loopback on 6003. Compose sets the bot and
-backup database endpoint to `postgres:6003`; for a host Python process use
-`DB_HOST=127.0.0.1` and `DB_PORT=6003`. Existing named volumes remain unchanged.
-
-Run the bot without installing Python, Poetry, or ffmpeg on your machine.
-
-**Requirements:** Docker and Docker Compose.
-
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/amirhoseinsalimi/music-tool-bot.git music-tool-bot
-   cd music-tool-bot
-   ```
-
-2. **Prepare your environment file** — see [Configuration](#configuration) (`cp .env.example .env` and fill it in).
-
-3. **Run database migrations and seeds**
-   ```bash
-   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml run --rm bot make db-migrate
-   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml run --rm bot make db-seed
-   ```
-   (For production, swap `docker-compose.dev.yaml` for `docker-compose.prod.yaml`.)
-
-4. **Development (hot reload)**
-   ```bash
-   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
-   ```
-   In dev mode, Docker Compose starts a local Postgres container and publishes it on `${DB_PORT:-6003}`.
-   The bot persistence file and downloaded files are stored under `/data` in the container, which maps to `./data` on the host.
-
-5. **Production**
-   ```bash
-   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
-   ```
-   The bot persistence file and downloaded files are stored under `/data` in the container, backed by the `bot_data` Docker volume.
-
-   To ship a new version afterwards, see [Deploying a New Version](#with-docker-near-zero-downtime).
-
----
-
-## Deploying a New Version
-
-### With Docker (near-zero downtime)
-
-To ship a code change, **do not** stop the stack and rebuild — that takes the bot
-down for the whole build. Instead, build the new image while the old container
-keeps running, then recreate only the bot in one fast step:
+Copy the example file and set the required values:
 
 ```bash
-make deploy
-# equivalent to:
-# docker compose -f docker-compose.yaml -f docker-compose.prod.yaml build bot
-# docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d bot
+cp .env.example .env
 ```
 
-`build` runs against the still-running bot, so the only outage is the recreate
-itself — a few seconds. On recreate the old container gets `SIGTERM`; PTB stops
-polling and lets the in-flight update (e.g. an ffmpeg job) finish within the
-`stop_grace_period` (30s) before exiting. Postgres is untouched.
+| Variable | Purpose | Default |
+|---|---|---|
+| `BOT_TOKEN` | Token issued by BotFather. | — |
+| `BOT_USERNAME` | Bot username used in generated captions. | — |
+| `BOT_NAME` | Name used by the Make commands for container naming. | `music-tool-bot` |
+| `OWNER_USER_ID` | Telegram numeric ID that receives owner privileges. | `0` |
+| `APP_ENV` | Runtime environment label. | `development` |
+| `DATA_DIR` | Persistent bot data directory inside the container. | `/data` |
+| `DB_HOST` | PostgreSQL host; Compose sets this to `postgres` for the bot container. | `localhost` |
+| `DB_PORT` | PostgreSQL port. | `6003` |
+| `DB_DATABASE` | PostgreSQL database name. | — |
+| `DB_USERNAME` | PostgreSQL username used by the bot. | — |
+| `DB_PASSWORD` | Required, non-empty PostgreSQL password. Compose fails if it is unset or empty. | — |
+| `DB_ADMIN_USERNAME` | Optional PostgreSQL maintenance username used by Compose. | `DB_USERNAME` |
+| `COMPOSE_PROJECT_NAME` | Optional prefix for Compose container and volume names. | `music-tool-bot` |
+| `PTB_TIMEDELTA` | Set internally by Compose for Telegram retry timing; do not set it in `.env`. | `True` in Compose |
+| `DEBUGGER` | Enable the PyCharm remote debugger. | `false` |
+| `DEBUGGER_HOST` | Debugger host; Docker uses `host.docker.internal` when available. | — |
+| `DEBUGGER_PORT` | Debugger port. | `6011` |
+| `DEBUGGER_SUSPEND` | Wait for a debugger connection before continuing. | `false` |
+| `SWEEPER_RETENTION_DAYS` | Age in days after which downloaded files are removed. | `30` |
+| `SWEEPER_INTERVAL` | Seconds between sweeps. | `86400` |
+| `BACKUP_RETENTION` | Days to keep backup files. | `7` |
+| `BACKUP_INTERVAL` | Seconds between backup runs. | `86400` |
+| `GRAFANA_CLOUD_LOKI_URL` | Grafana Cloud Loki push URL; required when Alloy is enabled. | — |
+| `GRAFANA_CLOUD_LOKI_USERNAME` | Grafana Cloud Loki username; required when Alloy is enabled. | — |
+| `GRAFANA_CLOUD_API_KEY` | Grafana Cloud token with log-write permission. | — |
+| `BTC_WALLET_ADDRESS` | Optional Bitcoin donation address. | — |
+| `ETH_WALLET_ADDRESS` | Optional Ethereum donation address. | — |
+| `TRX_WALLET_ADDRESS` | Optional TRX donation address. | — |
+| `USDT_TRC20_WALLET_ADDRESS` | Optional USDT TRC20 donation address. | — |
+| `USDT_ERC20_WALLET_ADDRESS` | Optional USDT ERC20 donation address. | — |
+| `SHIBA_BEP20_WALLET_ADDRESS` | Optional SHIBA BEP20 donation address. | — |
+| `SHIBA_ERC20_WALLET_ADDRESS` | Optional SHIBA ERC20 donation address. | — |
+| `DOGE_WALLET_ADDRESS` | Optional Dogecoin donation address. | — |
+| `ZARIN_LINK_ADDRESS` | Optional ZarinPal donation link. | — |
 
-> **Why only "near-zero", not truly zero:** the bot runs in **polling** mode, and
-> Telegram allows only one `getUpdates` consumer per token — so two bot instances
-> can't poll at once, and the new container must wait for the old one to stop. The
-> few-second gap is handed off cleanly: updates that arrive meanwhile are queued by
-> Telegram and delivered once the new instance starts polling, so nothing is lost.
-> True overlapping (blue-green) deploys would require switching to webhooks behind a
-> reverse proxy.
 
-If the new version includes database migrations, apply them before recreating:
+## Run the production stack
+
+Clone the repository and enter its directory, then create `.env` as shown above. Set the bot token and database values before starting the stack.
+
+Apply the database schema and seed the owner and language records:
 
 ```bash
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
-make deploy
 ```
 
-Run the seeder after migrations so the owner account and supported languages are
-present. Restart the bot after seeding or changing supported languages; language
-handlers are loaded from the database when the bot starts.
+To start the bot, database, sweeper, backup service, and Alloy together, set the three Grafana Cloud values in `.env` and run:
 
----
-
-## Make Commands
-
-| Command `make <cmd>` | Description |
-| -------------------- | ------------------------------------------------------------------------------------------ |
-| `dev`                | Start the bot for development with hot reload thanks to `jurigged`                         |
-| `deploy`             | Build the new Docker image, then recreate only the bot with near-zero downtime             |
-| `db-migrate`         | Run migrations                                                                             |
-| `db-refresh`         | Rollback all migrations and re-run them (Use with caution)                                 |
-| `db-status`          | Print the status of migrations                                                             |
-| `db-seed`            | Run seeds to create a user with owner privileges                                           |
-| `admin-bridge`       | Start the optional read-only administrative bridge on loopback                            |
-| `test-admin-bridge`  | Run isolated administrative bridge regression tests                                       |
-| `test`               | Run tests (Not implemented yet)                                                            |
-| `t`                  | Alias for `test` command                                                                   |
-
-Run `make help` to see this list from the terminal.
-
----
-
-## Optional Administrative Bridge
-
-The admin web API can read existing core users and current admin membership through a
-separate authenticated bridge process. The bot does not start this process automatically,
-and ordinary bot operation does not depend on it. Configure `ADMIN_BRIDGE_TOKEN` and,
-optionally, `ADMIN_BRIDGE_PORT`, then run `make admin-bridge`. Runtime controls are a
-separate optional feature: `BOT_CONTROL_DATABASE_URL` points to their PostgreSQL store,
-and `ADMIN_CONTROL_TOKEN` authorizes owner control changes. `BOT_PREMIUM_CONTROLS=true`
-enables reporting of installed premium tools. Leave these unset/false for a standalone bot.
-
-See [bridge setup and protocol](admin_bridge/README.md) for supported reads and the trust
-boundary. Use `make test-admin-bridge` for its isolated regression suite. These commands
-neither deploy a server nor change core schemas or user records.
-
----
-
-## Shipping Logs To Grafana Cloud
-
-This repo includes an optional Grafana Alloy setup that tails the bot container logs from Docker and forwards them to
-Grafana Cloud Logs. Configure `GRAFANA_CLOUD_LOKI_URL`, `GRAFANA_CLOUD_LOKI_USERNAME`,
-and `GRAFANA_CLOUD_API_KEY` as listed in [Configuration](#configuration).
-
-Why this uses a separate Compose file:
-- Grafana log shipping is optional, so it is kept as an overlay instead of being forced into every local run.
-- This lets you enable or disable log shipping by adding or removing one `-f docker-compose.grafana.yaml`.
-
-### Get your Grafana Cloud credentials
-
-You need three values:
-- Loki push URL
-- Loki username
-- Grafana Cloud API token
-
-How to find them in Grafana Cloud:
-
-1. Sign in to Grafana Cloud and open your stack.
-2. Select **Details** for the stack.
-3. Open the **Loki / Logs** section.
-4. Copy the stack URL and user ID from the Loki details page.
-   The push URL should look similar to:
-   ```dotenv
-   GRAFANA_CLOUD_LOKI_URL=https://logs-xxx.grafana.net/loki/api/v1/push
-   ```
-   The username is the numeric stack user / instance ID.
-5. Create a token:
-   - Open **Administration -> Cloud access policies** inside the stack, or use the Cloud Portal access policies page.
-   - Create an access policy scoped to your stack.
-   - Give it `logs:write` permission.
-   - Add a token under that policy and copy it immediately. Grafana only shows it once.
-
-Add these values to `.env`:
-```dotenv
-GRAFANA_CLOUD_LOKI_URL=https://logs-xxx.grafana.net/loki/api/v1/push
-GRAFANA_CLOUD_LOKI_USERNAME=123456
-GRAFANA_CLOUD_API_KEY=your-token
-```
-
-### Run with Grafana
-
-Add the `-f docker-compose.grafana.yaml` overlay to your normal run command.
-
-Development:
-```bash
-docker compose \
-  -f docker-compose.yaml \
-  -f docker-compose.dev.yaml \
-  -f docker-compose.grafana.yaml \
-  up
-```
-
-Production:
 ```bash
 docker compose \
   -f docker-compose.yaml \
@@ -246,156 +88,49 @@ docker compose \
   up -d
 ```
 
-### Check logs in Grafana
+If Alloy is not needed, omit `-f docker-compose.grafana.yaml`; the other four services still start. PostgreSQL is available to the bot on the internal Compose network at `postgres:6003`. The database port is not published on the host.
 
-Open Grafana Explore and query:
-```logql
-{app="music-tool-bot"}
-```
-
-You can also filter by environment:
-```logql
-{app="music-tool-bot", environment="development"}
-```
-
-or:
-```logql
-{app="music-tool-bot", environment="production"}
-```
-
-The included Alloy config only ships logs from the Compose service named `bot`, and adds these labels:
-- `app="music-tool-bot"`
-- `compose_project`
-- `compose_service`
-- `service_name`
-- `environment`
-
-Alloy's local debug UI is exposed on `http://local.musictoolbot.com:6010`.
-
----
-
-## Daily Backups
-
-A backup service is included in `docker-compose.prod.yaml` that automatically creates daily backups of:
-
-- **PostgreSQL database** — full dump (`pg_dump --clean`) of users, admins, and all data.
-- **Bot data** — compressed archive of the `DATA_DIR` volume (downloaded files, pickles, etc.).
-
-### How it works
-
-The backup service runs a dedicated container (`postgres:16-alpine`) that:
-1. Connects to the `postgres` container and dumps the database → gzipped.
-2. Archives the `bot_data` volume content → tar.gz.
-3. Saves both files to `./backups/` on the host machine.
-4. Deletes files older than `BACKUP_RETENTION` days (default: 7).
-
-The first backup runs immediately when the container starts, then repeats every `BACKUP_INTERVAL` seconds (default: 86400 = 24 hours).
-
-### Start the backup service
+Check service state and logs:
 
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d backup
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml -f docker-compose.grafana.yaml ps
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml -f docker-compose.grafana.yaml logs -f bot
 ```
 
-Check the logs:
+The Compose stack can also be run for local development with hot reload:
 
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml logs -f backup
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
 ```
 
-Example output:
-```
-[2026-06-27 11:25:00] Backup service started
-[2026-06-27 11:25:00]   Interval:  86400s (24h)
-[2026-06-27 11:25:00]   Retention: 7 days
-[2026-06-27 11:25:00] === Starting backup: 2026-06-27_11-25-00 ===
-[2026-06-27 11:25:02] PostgreSQL backup completed: 1.2M
-[2026-06-27 11:25:03] Bot data archive completed: 3.5M
-[2026-06-27 11:25:03] === Backup completed successfully ===
-```
+## Alloy log collection
 
-### Backup files
+Alloy is optional. It reads Docker container logs and sends the `bot` service logs to the configured Loki endpoint. Set `GRAFANA_CLOUD_LOKI_URL`, `GRAFANA_CLOUD_LOKI_USERNAME`, and `GRAFANA_CLOUD_API_KEY` in `.env`, then include `docker-compose.grafana.yaml` in the Compose command. Alloy's local status UI is bound to `127.0.0.1:6010`.
 
-Backups are written to `./backups/` on the host machine:
+## Backups and restore
 
-```
-backups/
-├── postgres_2026-06-27_11-25-00.sql.gz    (database dump)
-└── bot_data_2026-06-27_11-25-00.tar.gz    (bot data archive)
-```
+The production `backup` service starts a backup immediately, then repeats at `BACKUP_INTERVAL`. Each run writes a compressed PostgreSQL dump and an archive of `/data` into `./backups/`. Files older than `BACKUP_RETENTION` days are removed. The defaults are one run per day and seven days of local backup retention.
 
-This directory is on the **host filesystem** (not a Docker volume), so backups survive `docker system prune --volumes` and can be accessed, copied, or uploaded directly.
+Restore instructions are in [docker/backup/RESTORE.md](docker/backup/RESTORE.md).
 
-> **Note:** `backups/` is gitignored to prevent sensitive data from being committed to version control.
+## File cleanup
 
-### Configuration
+The `sweeper` service scans `/data/downloads` at startup and then every `SWEEPER_INTERVAL` seconds. It removes files older than `SWEEPER_RETENTION_DAYS` and deletes empty directories. The default sweeper interval is 24 hours and its file age threshold is 30 days. The bot also runs an hourly in-process cleanup with a 59-day threshold.
 
-| Env Variable       | Default | Description |
-|--------------------|---------|-------------|
-| `BACKUP_RETENTION` | `7`     | Days to keep backup files before automatic cleanup |
-| `BACKUP_INTERVAL`  | `86400` | Seconds between backups (86400 = 24 hours) |
+## Make commands
 
-### Restoring from a backup
+| Command | Purpose |
+|---|---|
+| `make dev` | Start the bot for development with hot reload. |
+| `make deploy` | Build the bot image and recreate the bot container. |
+| `make db-migrate` | Apply database migrations. |
+| `make db-refresh` | Roll back and reapply migrations. Use with care. |
+| `make db-status` | Show migration status. |
+| `make db-seed` | Seed the owner and language records. |
+| `make test` | Run the test command. |
 
-See [docker/backup/RESTORE.md](docker/backup/RESTORE.md) for step-by-step restore instructions covering:
+Run `make help` for the complete command list.
 
-- Restoring the PostgreSQL database
-- Restoring bot data files
-- Full disaster recovery on a fresh machine
+## Contributing
 
-### Why not in development?
-
-The backup service is only included in `docker-compose.prod.yaml` to avoid running unnecessary containers during local development. When running `docker-compose.dev.yaml`, the backup service is not started.
-
----
-
-## File Retention & Sweeper
-
-The dedicated **sweeper** service removes downloaded files after 30 days by default.
-The bot also runs an independent in-process purge after 59 days. Both cleanup paths
-currently apply, so the sweeper normally removes files first. The 30-day period is
-configurable with `SWEEPER_RETENTION_DAYS`.
-
-### How it works
-
-The sweeper service runs a separate container (`sweeper`) that:
-
-1. Scans the `DATA_DIR/downloads/` directory for files.
-2. Deletes any file older than `SWEEPER_RETENTION_DAYS` (default: 30).
-3. Removes empty user directories after deletion.
-4. Runs the first sweep immediately on startup, then repeats every `SWEEPER_INTERVAL` seconds (default: 86400 = 24 hours).
-
-### Start the sweeper service
-
-```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d sweeper
-```
-
-Check the logs:
-
-```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml logs -f sweeper
-```
-
-### Processing artifacts
-
-Temporary output files generated during processing (e.g., `_bitrate.mp3`, `_cut.mp3`, `.opus`, intermediate `.m4a`) are still deleted immediately after upload - only the original downloaded files are retained by the sweeper.
-
-### Why not in development?
-
-Like the backup service, the sweeper is only defined in `docker-compose.prod.yaml` to avoid unnecessary containers during local development.
-
-
-## Contribution
-
-In the beginning, I had written this bot in JavaScript, but due to a lack of quality packages, it was full of bugs. Then
-I decided to learn Python and thought: Why not re-write @MusicToolBot in Python? And then I began to revive the
-project. <br />
-
-This tiny bot is my first practical Python project. I tried to learn Python along with coding, so I could better wrap my
-head around the syntax and the built-in functionality of the language. However, as a novice Python developer, I know
-this bot can be written in a more smart way with better code structure. So, if you know Python, I would really
-appreciate any help to make this kid better. My main concern is the application structure, but please feel free to
-create PRs, open discussions and make small fixes (like typos). In addition, I have some plans and features for this
-bot, you can find them on the [issue board](https://github.com/amirhoseinsalimi/music-tool-bot/issues). Also, I'd really appreciate it if you can translate the bot to 
-your language.
+Keep changes focused and include the checks you ran in the pull request description. Do not commit `.env`, user files, database dumps, or backup archives.

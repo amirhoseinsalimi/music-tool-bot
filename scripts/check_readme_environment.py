@@ -9,6 +9,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ENV_NAME = re.compile(r"^[A-Z][A-Z0-9_]*$")
 COMPOSE_NAME = re.compile(r"\$\{([A-Z][A-Z0-9_]*)")
+OUT_OF_SCOPE_ENV = {
+    "ADMIN_BRIDGE_TOKEN",
+    "ADMIN_BRIDGE_PORT",
+    "ADMIN_CONTROL_TOKEN",
+    "BOT_CONTROL_DATABASE_URL",
+    "BOT_PREMIUM_CONTROLS",
+    "BOT_EXTENSION",
+}
 
 
 def python_environment_names(path: Path) -> set[str]:
@@ -29,7 +37,7 @@ def python_environment_names(path: Path) -> set[str]:
 
 def main() -> int:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    documented = set(re.findall(r"^\|\s*([A-Z][A-Z0-9_]*)\s*\|", readme, re.MULTILINE))
+    documented = set(re.findall(r"^\|\s*`?([A-Z][A-Z0-9_]*)`?\s*\|", readme, re.MULTILINE))
     required = set()
 
     for line in (ROOT / ".env.example").read_text(encoding="utf-8").splitlines():
@@ -46,6 +54,7 @@ def main() -> int:
         required.update(COMPOSE_NAME.findall(path.read_text(encoding="utf-8")))
     # Compose injects this value directly; it is not sourced from the operator's .env.
     required.add("PTB_TIMEDELTA")
+    required.difference_update(OUT_OF_SCOPE_ENV)
 
     missing = sorted(required - documented)
     private_links = re.findall(r"\]\((?:\.\./)+docs/[^)]*\)", readme)
@@ -57,7 +66,7 @@ def main() -> int:
         print("\n".join(f"  {link}" for link in private_links))
     if missing or private_links:
         return 1
-    print(f"README documents all {len(required)} environment variables; no private docs links found.")
+    print(f"README documents all {len(required)} runtime environment variables; no private docs links found.")
     return 0
 
 
