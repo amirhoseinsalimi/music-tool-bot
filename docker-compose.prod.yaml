@@ -4,7 +4,7 @@ services:
       APP_ENV: production
 
   backup:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-backup
     entrypoint: ["/bin/bash", "/scripts/backup.sh"]
     environment:
