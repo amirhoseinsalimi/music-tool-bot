@@ -19,7 +19,7 @@ TOOLS = {
     'artwork': ('Cover artwork', 'Generate artwork from a description.'),
 }
 
-DEFAULT_FILE_RETENTION_DAYS = 20
+DEFAULT_FILE_RETENTION_DAYS = 14
 MAX_FILE_RETENTION_DAYS = 60
 _last_admin_retention_days = None
 logger = logging.getLogger(__name__)
