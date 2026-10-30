@@ -10,8 +10,8 @@ from config.constants import DOWNLOAD_DIR_PATH
 
 logger = logging.getLogger(__name__)
 
-# Run hourly and leave a full day for scheduling interruptions before day 60.
-DEFAULT_FILE_RETENTION_DAYS = 20
+# The normal default is 14 days; the configurable maximum is a safety limit.
+DEFAULT_FILE_RETENTION_DAYS = 14
 MAX_FILE_RETENTION_DAYS = 60
 
 

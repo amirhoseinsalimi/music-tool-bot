@@ -36,7 +36,7 @@ file with `cp .env.example .env` and fill in your credentials:
 | DEBUGGER_SUSPEND           | `boolean` | Suspends on debugger attach when `true`                                                                                             |
 | BACKUP_RETENTION           | `int`     | Days to keep daily backups. Defaults to `7`.                                                                                        |
 | BACKUP_INTERVAL            | `int`     | Seconds between backups. Defaults to `86400` (24 hours).                                                                            |
-| FILE_RETENTION_DAYS        | `int`     | Fallback days to retain user files when the admin setting is unavailable. Defaults to `20`; valid range is `1`–`60`.                |
+| FILE_RETENTION_DAYS        | `int`     | Fallback days to retain user files when the admin setting is unavailable. Defaults to `14`; valid range is `1`–`60`.                |
 | BTC_WALLET_ADDRESS         | `str`     | BTC wallet address to receive donations.                                                                                            |
 | ETH_WALLET_ADDRESS         | `str`     | ETH wallet address to receive donations.                                                                                            |
 | TRX_WALLET_ADDRESS         | `str`     | TRX wallet address to receive donations.                                                                                            |
@@ -329,8 +329,9 @@ The backup service is only included in `docker-compose.prod.yaml` to avoid runni
 
 ## File retention
 
-Downloaded files are retained for 20 days by default. The admin panel can set a
-retention period from 1 to 60 days. `FILE_RETENTION_DAYS` is the fallback used
+Downloaded files are normally retained for 14 days. When needed, the admin panel
+can set a retention period from 1 to 60 days; 60 days is a maximum safety limit,
+not the routine retention period. `FILE_RETENTION_DAYS` is the fallback used
 when the shared admin setting cannot be read; the bot and premium worker use
 the same setting. The bot's hourly retention job removes expired files. The
 legacy production-only sweeper service has been removed so cleanup has one
