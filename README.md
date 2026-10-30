@@ -4,17 +4,16 @@ Music Tool Bot is a Telegram bot for working with audio files. It runs in Docker
 
 ## Runtime services
 
-The production Compose stack can run these five services together:
+The production Compose stack runs the bot, PostgreSQL, and backup service. The bot includes an hourly file sweeper; Alloy is optional:
 
 | Service | Purpose |
 |---|---|
-| `bot` | Receives Telegram updates and processes requests. |
+| `bot` | Receives Telegram updates, processes requests, and runs hourly cleanup of expired downloaded files. |
 | `postgres` | Stores bot records. |
-| `sweeper` | Removes downloaded files that have passed the configured retention period. |
 | `backup` | Writes compressed database and bot-data backups to `./backups/`. |
 | `alloy` | Optional log collector that forwards the bot container's logs to Grafana Cloud. |
 
-The first four services are defined by the base and production Compose files. Alloy is added with the Grafana Compose file. The complete command is in [Run the production stack](#run-the-production-stack).
+The bot, PostgreSQL, and backup services are defined by the base Compose file. Alloy is added with the Grafana Compose file. The complete command is in [Run the production stack](#run-the-production-stack).
 
 ## Requirements
 
@@ -43,14 +42,14 @@ cp .env.example .env
 | `DB_USERNAME` | PostgreSQL username used by the bot. | — |
 | `DB_PASSWORD` | Required, non-empty PostgreSQL password. Compose fails if it is unset or empty. | — |
 | `DB_ADMIN_USERNAME` | Optional PostgreSQL maintenance username used by Compose. | `DB_USERNAME` |
+| `MAX_DURATION_SECONDS` | Maximum accepted audio duration. Must be positive. | `3600` |
 | `COMPOSE_PROJECT_NAME` | Optional prefix for Compose container and volume names. | `music-tool-bot` |
 | `PTB_TIMEDELTA` | Set internally by Compose for Telegram retry timing; do not set it in `.env`. | `True` in Compose |
 | `DEBUGGER` | Enable the PyCharm remote debugger. | `false` |
 | `DEBUGGER_HOST` | Debugger host; Docker uses `host.docker.internal` when available. | — |
 | `DEBUGGER_PORT` | Debugger port. | `6011` |
 | `DEBUGGER_SUSPEND` | Wait for a debugger connection before continuing. | `false` |
-| `SWEEPER_RETENTION_DAYS` | Age in days after which downloaded files are removed. | `30` |
-| `SWEEPER_INTERVAL` | Seconds between sweeps. | `86400` |
+| `FILE_RETENTION_DAYS` | Fallback number of days to retain downloaded files. The bot normally uses 14 days; valid values are 1–60. | `14` |
 | `BACKUP_RETENTION` | Days to keep backup files. | `7` |
 | `BACKUP_INTERVAL` | Seconds between backup runs. | `86400` |
 | `GRAFANA_CLOUD_LOKI_URL` | Grafana Cloud Loki push URL; required when Alloy is enabled. | — |
@@ -78,7 +77,7 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot m
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
 ```
 
-To start the bot, database, sweeper, backup service, and Alloy together, set the three Grafana Cloud values in `.env` and run:
+To start the bot, database, backup service, and Alloy together, set the three Grafana Cloud values in `.env` and run:
 
 ```bash
 docker compose \
@@ -88,7 +87,7 @@ docker compose \
   up -d
 ```
 
-If Alloy is not needed, omit `-f docker-compose.grafana.yaml`; the other four services still start. PostgreSQL is available to the bot on the internal Compose network at `postgres:6003`. The database port is not published on the host.
+If Alloy is not needed, omit `-f docker-compose.grafana.yaml`; the bot, database, and backup service still start. PostgreSQL is available to the bot on the internal Compose network at `postgres:6003`. The database port is not published on the host.
 
 Check service state and logs:
 
@@ -115,7 +114,7 @@ Restore instructions are in [docker/backup/RESTORE.md](docker/backup/RESTORE.md)
 
 ## File cleanup
 
-The `sweeper` service scans `/data/downloads` at startup and then every `SWEEPER_INTERVAL` seconds. It removes files older than `SWEEPER_RETENTION_DAYS` and deletes empty directories. The default sweeper interval is 24 hours and its file age threshold is 30 days. The bot also runs an hourly in-process cleanup with a 59-day threshold.
+The bot runs an hourly in-process cleanup of downloaded files. Files are normally retained for 14 days. The effective setting can be changed from the admin panel; `FILE_RETENTION_DAYS` provides the fallback when that setting is unavailable. Retention can be configured up to 60 days as a safety maximum, not as the routine target.
 
 ## Make commands
 
