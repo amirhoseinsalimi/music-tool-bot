@@ -5,16 +5,19 @@ import tempfile
 import unittest
 from datetime import datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 from wsgiref.util import setup_testing_defaults
 
 import psycopg2
 from pg_support import PostgresFixture
+from psycopg2.extensions import make_dsn
 
 from postgres_storage import Database
 from admin_bridge.app import create_app
 from admin_bridge.exceptions import BridgeError
+from admin_bridge.files import FileStore
 from admin_bridge.service import CoreRepository
 from admin_bridge.utils import (
     parse_user_filters,
@@ -55,6 +58,7 @@ class BridgeTests(unittest.TestCase):
         # addCleanup keeps the fixture alive across setUp and the test, including failures.
         self.directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         fixture = PostgresFixture()
+        self.fixture = fixture
         self.addCleanup(fixture.close)
         self.path = fixture.dsn
         self.connections: list[PostgreSQLConnection] = []
@@ -220,6 +224,68 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(data['periods'][0]['period'], '2026-10-22')
         self.assertEqual(self.request(path=path, query=query, actor='999')[0], 403)
         self.assertEqual(self.request(path=path, query='from=2026-10-22&until=2026-10-21')[0], 400)
+
+    def test_restricted_role_can_run_every_bridge_read_path(self) -> None:
+        """Exercises every bridge query with only the production read grants."""
+        role = 'bridge_test_' + self.fixture.schema[-12:]
+        password = 'p' * 32
+        with psycopg2.connect(self.path) as connection:
+            connection.autocommit = True
+            with connection.cursor() as cursor:
+                cursor.execute(f'CREATE ROLE {role} LOGIN PASSWORD %s', (password,))
+                cursor.execute(f'GRANT USAGE ON SCHEMA {self.fixture.schema} TO {role}')
+                cursor.execute(
+                    f'GRANT SELECT ON users, admins, languages, user_statuses, '
+                    f'feature_usage_events, bot_start_events TO {role}'
+                )
+
+        def drop_role() -> None:
+            with psycopg2.connect(self.path) as connection:
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    cursor.execute(f'DROP OWNED BY {role}')
+                    cursor.execute(f'DROP ROLE IF EXISTS {role}')
+
+        self.addCleanup(drop_role)
+        with Database(self.path) as database:
+            database.execute(
+                "INSERT INTO feature_usage_events VALUES "
+                "('cutter',11,7000000001,'2026-10-22 00:00:00+00')"
+            )
+            database.execute(
+                "INSERT INTO bot_start_events(update_id,user_id,source_key,is_new_user) "
+                "VALUES (11,7000000001,'website',TRUE)"
+            )
+        root = Path(self.directory.name) / 'downloads'
+        (root / '7000000001').mkdir(parents=True)
+        (root / '7000000001' / 'track.mp3').write_bytes(b'audio')
+        restricted_dsn = make_dsn(
+            self.path, user=role, password=password,
+            options=f'-csearch_path={self.fixture.schema}',
+        )
+
+        def restricted_connect() -> PostgreSQLConnection:
+            return PostgreSQLConnection(path=restricted_dsn)
+
+        self.app = create_app(
+            token='s' * 32,
+            repository=CoreRepository(
+                connect=restricted_connect,
+                files=FileStore(root=root),
+            ),
+        )
+        requests = [
+            ('/v1/overview', ''),
+            ('/v1/users', ''),
+            ('/v1/users/7000000001', ''),
+            ('/v1/analytics/features', 'from=2026-10-22&until=2026-10-22'),
+            ('/v1/analytics/sources', ''),
+            ('/v1/files', 'telegramId=7000000001'),
+        ]
+        for path, query in requests:
+            with self.subTest(path=path):
+                status, _data = self.request(path=path, query=query)
+                self.assertEqual(status, 200)
 
     def test_source_keys_count_first_visits_and_repeated_starts(self) -> None:
         """First visit, unique user and repeat Start totals use one Tehran date range."""
