@@ -1,5 +1,6 @@
 """Optional core-owned controls. Standalone bots keep all core tools enabled."""
 import json
+import logging
 import os
 import re
 from postgres_storage import Database, Error, GUARD_SQL
@@ -18,6 +19,77 @@ TOOLS = {
     'artwork': ('Cover artwork', 'Generate artwork from a description.'),
 }
 
+DEFAULT_FILE_RETENTION_DAYS = 14
+MAX_FILE_RETENTION_DAYS = 60
+_last_admin_retention_days = None
+logger = logging.getLogger(__name__)
+
+
+def _environment_retention_days():
+    raw = os.getenv('FILE_RETENTION_DAYS')
+    if raw is None or raw == '':
+        return DEFAULT_FILE_RETENTION_DAYS, 'default'
+    try:
+        days = int(raw)
+    except (TypeError, ValueError):
+        logger.warning('Invalid FILE_RETENTION_DAYS; using default')
+        return DEFAULT_FILE_RETENTION_DAYS, 'default'
+    if days < 1:
+        logger.warning('FILE_RETENTION_DAYS below minimum; using 1')
+        days = 1
+    if days > MAX_FILE_RETENTION_DAYS:
+        logger.warning('FILE_RETENTION_DAYS above maximum; using %s', MAX_FILE_RETENTION_DAYS)
+        days = MAX_FILE_RETENTION_DAYS
+    return days, 'FILE_RETENTION_DAYS'
+
+
+def file_retention_days():
+    """Use the core admin override, then a bounded environment fallback."""
+    global _last_admin_retention_days
+    fallback, _source = _environment_retention_days()
+    path = os.getenv('BOT_CONTROL_DATABASE_URL', '')
+    if not path:
+        return fallback
+    try:
+        with closing(Database(path)) as db:
+            db.begin_write()
+            row = db.execute('SELECT revision,retention_days FROM configuration WHERE id=1').fetchone()
+            if row is None:
+                db.rollback()
+                return fallback
+            days = row['retention_days']
+            if days is None:
+                db.rollback()
+                return fallback
+            if type(days) is not int or not 1 <= days <= MAX_FILE_RETENTION_DAYS:
+                logger.error('Invalid core retention setting; using bounded fallback')
+                db.rollback()
+                return min(_last_admin_retention_days, fallback) if _last_admin_retention_days is not None else fallback
+            db.execute('INSERT INTO bot_observation VALUES (1,%s,%s) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,checked=excluded.checked',
+                       (row['revision'], time.time()))
+            db.commit()
+            _last_admin_retention_days = days
+            return days
+    except (OSError, Error, ValueError, TypeError):
+        return min(_last_admin_retention_days, fallback) if _last_admin_retention_days is not None else fallback
+
+
+def record_retention_sweep(files_deleted):
+    """Store the latest core cleanup result for the admin controls view."""
+    path = os.getenv('BOT_CONTROL_DATABASE_URL', '')
+    if not path:
+        return
+    try:
+        with closing(Database(path)) as db:
+            db.begin_write()
+            db.execute('''INSERT INTO retention_sweep (id,completed,files_deleted)
+                          VALUES (1,%s,%s) ON CONFLICT (id) DO UPDATE
+                          SET completed=excluded.completed,files_deleted=excluded.files_deleted''',
+                       (time.time(), max(0, int(files_deleted))))
+            db.commit()
+    except (OSError, Error, ValueError, TypeError):
+        logger.warning('Could not record the latest file retention sweep')
+
 class ControlError(Exception):
     def __init__(self, code, status=400):
         super().__init__(code)
@@ -30,14 +102,20 @@ class ControlsStore:
             db.begin_write()
             db.execute(GUARD_SQL)
             db.execute('''
-                CREATE TABLE IF NOT EXISTS configuration (id BIGINT PRIMARY KEY CHECK(id=1), revision BIGINT NOT NULL, settings TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS configuration (id BIGINT PRIMARY KEY CHECK(id=1), revision BIGINT NOT NULL, settings TEXT NOT NULL, retention_days BIGINT CHECK(retention_days IS NULL OR retention_days BETWEEN 1 AND 60));
+                ALTER TABLE configuration ADD COLUMN IF NOT EXISTS retention_days BIGINT;
                 CREATE TABLE IF NOT EXISTS control_audit (operation TEXT PRIMARY KEY, actor TEXT NOT NULL, feature TEXT NOT NULL, enabled BIGINT NOT NULL, previous BIGINT NOT NULL, reason TEXT NOT NULL, revision BIGINT NOT NULL, expected_revision BIGINT NOT NULL, created DOUBLE PRECISION NOT NULL);
+                CREATE TABLE IF NOT EXISTS retention_audit (operation TEXT PRIMARY KEY, actor TEXT NOT NULL, previous_days BIGINT NOT NULL, days BIGINT NOT NULL, reason TEXT NOT NULL, revision BIGINT NOT NULL, expected_revision BIGINT NOT NULL, created DOUBLE PRECISION NOT NULL);
                 CREATE TABLE IF NOT EXISTS bot_observation (id BIGINT PRIMARY KEY CHECK(id=1), revision BIGINT NOT NULL, checked DOUBLE PRECISION NOT NULL);
+                CREATE TABLE IF NOT EXISTS retention_sweep (id BIGINT PRIMARY KEY CHECK(id=1), completed DOUBLE PRECISION NOT NULL, files_deleted BIGINT NOT NULL);
                 CREATE OR REPLACE TRIGGER controls_no_update BEFORE UPDATE ON control_audit FOR EACH ROW EXECUTE FUNCTION reject_mutation();
                 CREATE OR REPLACE TRIGGER controls_no_delete BEFORE DELETE ON control_audit FOR EACH ROW EXECUTE FUNCTION reject_mutation();
 CREATE OR REPLACE TRIGGER controls_no_truncate BEFORE TRUNCATE ON control_audit FOR EACH STATEMENT EXECUTE FUNCTION reject_mutation();
+                CREATE OR REPLACE TRIGGER retention_no_update BEFORE UPDATE ON retention_audit FOR EACH ROW EXECUTE FUNCTION reject_mutation();
+                CREATE OR REPLACE TRIGGER retention_no_delete BEFORE DELETE ON retention_audit FOR EACH ROW EXECUTE FUNCTION reject_mutation();
+                CREATE OR REPLACE TRIGGER retention_no_truncate BEFORE TRUNCATE ON retention_audit FOR EACH STATEMENT EXECUTE FUNCTION reject_mutation();
             ''')
-            db.execute('INSERT INTO configuration VALUES (1,0,%s) ON CONFLICT DO NOTHING', (json.dumps({key:True for key in TOOLS}),))
+            db.execute('INSERT INTO configuration (id,revision,settings) VALUES (1,0,%s) ON CONFLICT DO NOTHING', (json.dumps({key:True for key in TOOLS}),))
             raw=db.execute('SELECT settings FROM configuration WHERE id=1').fetchone()[0]
             settings=json.loads(raw)
             for key in TOOLS:
@@ -54,9 +132,59 @@ CREATE OR REPLACE TRIGGER controls_no_truncate BEFORE TRUNCATE ON control_audit 
             row=db.execute('SELECT * FROM configuration WHERE id=1').fetchone()
             settings=json.loads(row['settings'])
             seen=db.execute('SELECT * FROM bot_observation WHERE id=1').fetchone()
+            sweep=db.execute('SELECT * FROM retention_sweep WHERE id=1').fetchone()
             audit=[dict(r) for r in db.execute('SELECT * FROM control_audit ORDER BY revision DESC LIMIT 20')]
+            retention_days, retention_source = _environment_retention_days()
+            if row['retention_days'] is not None:
+                configured_days = row['retention_days']
+                if type(configured_days) is int and 1 <= configured_days <= MAX_FILE_RETENTION_DAYS:
+                    retention_days, retention_source = configured_days, 'admin'
+                else:
+                    logger.error('Invalid core retention setting; displaying bounded fallback')
+                    retention_source = 'fallback'
+            retention_audit = [dict(r) for r in db.execute('SELECT * FROM retention_audit ORDER BY revision DESC LIMIT 5')]
             return dict(revision=row['revision'],features=[dict(id=k,name=TOOLS[k][0],description=TOOLS[k][1],enabled=settings[k]) for k in TOOLS if k not in {'recognition','separation','artwork'} or os.getenv('BOT_PREMIUM_CONTROLS')=='true'],
-                        botRevision=seen['revision'] if seen else None,botCheckedAt=seen['checked'] if seen else None,audit=audit)
+                        botRevision=seen['revision'] if seen else None,botCheckedAt=seen['checked'] if seen else None,audit=audit,
+                        retention=dict(days=retention_days,runtimeMutable=True,source=retention_source,audit=retention_audit,
+                                       lastSweepAt=sweep['completed'] if sweep else None,
+                                       lastSweepDeleted=sweep['files_deleted'] if sweep else None))
+
+    def read_retention(self):
+        result = self.read()['retention']
+        return {key: result[key] for key in ('days', 'source', 'runtimeMutable')}
+
+    def change_retention(self, actor, data):
+        if not isinstance(data, dict) or set(data) != {'days', 'reason', 'operationId', 'expectedRevision'}:
+            raise ControlError('invalid_retention')
+        days, reason, operation, revision = (data[key] for key in ('days', 'reason', 'operationId', 'expectedRevision'))
+        if (type(days) is not int or not 1 <= days <= MAX_FILE_RETENTION_DAYS
+                or not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 500
+                or not isinstance(operation, str) or not re.fullmatch('[a-zA-Z0-9_-]{16,128}', operation)
+                or type(revision) is not int or not 0 <= revision <= 2**53-1):
+            raise ControlError('invalid_retention')
+        reason = reason.strip()
+        with closing(self.connect()) as db:
+            db.begin_write()
+            prior = db.execute('SELECT * FROM retention_audit WHERE operation=%s', (operation,)).fetchone()
+            if prior:
+                if (prior['actor'], prior['days'], prior['reason'], prior['expected_revision']) != (actor, days, reason, revision):
+                    raise ControlError('operation_conflict', 409)
+                db.rollback()
+                return dict(prior), False
+            current = db.execute('SELECT * FROM configuration WHERE id=1').fetchone()
+            if current['revision'] != revision:
+                raise ControlError('configuration_conflict', 409)
+            previous_days = current['retention_days']
+            if previous_days is None:
+                previous_days = _environment_retention_days()[0]
+            if current['retention_days'] == days:
+                raise ControlError('no_change', 409)
+            db.execute('UPDATE configuration SET revision=%s,retention_days=%s WHERE id=1', (revision+1, days))
+            db.execute('INSERT INTO retention_audit VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
+                       (operation, actor, previous_days, days, reason, revision+1, revision, time.time()))
+            result = dict(db.execute('SELECT * FROM retention_audit WHERE operation=%s', (operation,)).fetchone())
+            db.commit()
+            return result, True
 
     def audit(self, params='1'):
         if params is None:
