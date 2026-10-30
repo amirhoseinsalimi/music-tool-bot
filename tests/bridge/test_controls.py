@@ -144,7 +144,8 @@ class ControlsTests(unittest.TestCase):
                                            'expectedRevision': 1}, path='/v1/controls/retention')
             self.assertEqual(denied[0], 403)
             for invalid in (0, 61, True, '14'):
-                bad = self.request('POST', {**payload, 'days': invalid}, path='/v1/controls/retention')
+                bad = self.request('POST', {**payload, 'days': invalid},
+                                   path='/v1/controls/retention')
                 self.assertEqual(bad[0], 400)
 
     def test_invalid_payloads_and_audit_are_immutable(self):
