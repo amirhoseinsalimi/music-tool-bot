@@ -13,7 +13,14 @@ from wsgiref.util import setup_testing_defaults
 import psycopg2
 from pg_support import PostgresFixture
 
-from runtime_controls import ControlsStore, ControlError, bot_settings, feature_gate, file_retention_days
+from runtime_controls import (
+    ControlError,
+    ControlsStore,
+    bot_settings,
+    feature_gate,
+    file_retention_days,
+    record_retention_sweep,
+)
 from admin_bridge.app import create_app
 
 
@@ -116,7 +123,11 @@ class ControlsTests(unittest.TestCase):
         self.assertEqual(self.store.read()['revision'], 1)
 
     def test_retention_override_is_bounded_owner_scoped_and_audited(self):
-        with patch.dict(os.environ, {'FILE_RETENTION_DAYS': '30', 'BOT_CONTROL_DATABASE_URL': str(self.path)}):
+        """Verify bounds, owner authorization, idempotency, and sweep history."""
+        with patch.dict(os.environ, {
+            'FILE_RETENTION_DAYS': '30',
+            'BOT_CONTROL_DATABASE_URL': str(self.path),
+        }):
             initial = self.store.read()['retention']
             self.assertEqual((initial['days'], initial['source']), (30, 'FILE_RETENTION_DAYS'))
             payload = {'days': 14, 'reason': 'Reduce stored file lifetime',
@@ -130,15 +141,16 @@ class ControlsTests(unittest.TestCase):
             # The admin bridge uses the same core-owned setting as the cleanup jobs.
             self.assertEqual(self.request()[1]['retention']['days'], 14)
             with patch('runtime_controls.time.time', return_value=1234.0):
-                from runtime_controls import record_retention_sweep
                 record_retention_sweep(3)
             reported = self.store.read()['retention']
             self.assertEqual((reported['lastSweepAt'], reported['lastSweepDeleted']), (1234.0, 3))
             replay = self.request('POST', payload, path='/v1/controls/retention')
             self.assertFalse(replay[1]['created'])
             audit = self.store.read()['retention']['audit'][0]
-            self.assertEqual((audit['actor'], audit['previous_days'], audit['days'], audit['reason']),
-                             ('42', 30, 14, payload['reason']))
+            self.assertEqual(
+                (audit['actor'], audit['previous_days'], audit['days'], audit['reason']),
+                ('42', 30, 14, payload['reason']),
+            )
             self.repo.dispatch.return_value['isOwner'] = False
             denied = self.request('POST', {**payload, 'operationId': 'retention-denied-operation',
                                            'expectedRevision': 1}, path='/v1/controls/retention')

@@ -124,7 +124,8 @@ def create_app(
         """Handles one authenticated read and returns a bounded JSON response."""
         try:
             writing = environ.get('PATH_INFO') in {
-                '/v1/controls', '/v1/controls/retention'} and environ.get('REQUEST_METHOD') == 'POST'
+                '/v1/controls', '/v1/controls/retention'
+            } and environ.get('REQUEST_METHOD') == 'POST'
             if writing and not control_token:
                 raise BridgeError(503, 'controls_unavailable')
             actor_id, params = _validate_request(
