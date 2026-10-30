@@ -231,14 +231,14 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
             await message.reply_photo(
                 photo=art_file,
                 caption=f"{generate_music_info(tag_editor_context, language)}"
-                        f"\n\n🆔 {BOT_USERNAME}",
+                        f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
                 reply_to_message_id=get_effective_message_id(update),
                 reply_markup=tag_editor_keyboard,
             )
     else:
         await message.reply_text(
             text=f"{generate_music_info(tag_editor_context, language)}"
-                 f"\n\n🆔 {BOT_USERNAME}",
+                 f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
             reply_to_message_id=get_effective_message_id(update),
             reply_markup=tag_editor_keyboard
         )
@@ -271,7 +271,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
                 photo=art_file,
                 caption=f"{generate_music_info(tag_editor_context, language)}"
                         f"\n\n{t(language, 'tagPreviewSaveHint')}"
-                        f"\n\n🆔 {BOT_USERNAME}",
+                        f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
                 reply_to_message_id=get_effective_message_id(update),
                 reply_markup=generate_tag_editor_keyboard(language),
             )
@@ -281,7 +281,7 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     await message.reply_text(
         text=f"{generate_music_info(tag_editor_context, language)}"
              f"\n\n{t(language, 'tagPreviewSaveHint')}"
-             f"\n\n🆔 {BOT_USERNAME}",
+             f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
         reply_to_message_id=get_effective_message_id(update),
         reply_markup=generate_tag_editor_keyboard(language),
     )
@@ -360,22 +360,23 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                 possible_art = art.read()
 
         extension, _audio_codec = probe_audio_format(music_path)
-        filename = f"{get_file_name(music_tags)}{extension}"
+        filename = f"{get_file_name(music_tags, language)}{extension}"
         with open(music_path, "rb") as music_file:
             if extension in {'.mp3', '.m4a'}:
                 await send_file_and_record_completion(
                     context.bot.send_audio(
-                    audio=music_file,
-                    thumbnail=possible_art,
-                    duration=user_data["music_duration"],
-                    chat_id=get_chat_id(update),
-                    performer=music_tags.get('artist') or 'Unknown',
-                    title=music_tags.get('title') or 'Unknown',
-                    filename=filename,
-                    caption=f"🆔 {BOT_USERNAME}",
-                    reply_markup=start_over_button_keyboard,
-                    reply_to_message_id=user_data["music_message_id"],
-                    ), 'tag_editor', user_id, getattr(update, 'update_id', None)
+                        audio=music_file,
+                        thumbnail=possible_art,
+                        duration=user_data["music_duration"],
+                        chat_id=get_chat_id(update),
+                        performer=music_tags.get('artist') or t(language, 'unknownMetadata'),
+                        title=music_tags.get('title') or t(language, 'unknownMetadata'),
+                        filename=filename,
+                        caption=t(language, 'botAttributionCaption', bot_name=BOT_USERNAME),
+                        reply_markup=start_over_button_keyboard,
+                        reply_to_message_id=user_data["music_message_id"],
+                    ),
+                    'tag_editor', user_id, getattr(update, 'update_id', None)
                 )
             else:
                 await send_file_and_record_completion(
@@ -384,7 +385,7 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
                         thumbnail=possible_art,
                         chat_id=get_chat_id(update),
                         filename=filename,
-                        caption=f"🆔 {BOT_USERNAME}",
+                        caption=t(language, 'botAttributionCaption', bot_name=BOT_USERNAME),
                         reply_markup=start_over_button_keyboard,
                         reply_to_message_id=user_data["music_message_id"],
                     ), 'tag_editor', user_id, getattr(update, 'update_id', None)

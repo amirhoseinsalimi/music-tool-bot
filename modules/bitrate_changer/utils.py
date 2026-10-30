@@ -16,13 +16,13 @@ def generate_bitrate_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
         ReplyKeyboardMarkup(
             keyboard=[
                 [
-                    '128 kb/s',
-                    '192 kb/s',
+                    t(language, 'bitrateOption128'),
+                    t(language, 'bitrateOption192'),
                 ],
                 [
 
-                    '256 kb/s',
-                    '320 kb/s',
+                    t(language, 'bitrateOption256'),
+                    t(language, 'bitrateOption320'),
                 ],
                 [
                     t(language, 'btnBack')

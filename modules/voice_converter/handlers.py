@@ -8,6 +8,7 @@ from telegram.constants import (
     ChatAction,
 )
 from telegram.error import (
+    BadRequest,
     TelegramError,
 )
 from telegram.ext import (
@@ -101,9 +102,9 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
             await send_file_and_record_completion(
                 context.bot.send_voice(
                     voice=voice_file,
-                    filename=f"{get_file_name(music_tags)}.opus",
+                    filename=f"{get_file_name(music_tags, language)}.opus",
                     chat_id=get_chat_id(update),
-                    caption=f"🆔 {BOT_USERNAME}",
+                    caption=t(language, 'botAttributionCaption', bot_name=BOT_USERNAME),
                     reply_markup=start_over_button_keyboard,
                     reply_to_message_id=user_data['music_message_id']
                 ),
@@ -114,8 +115,12 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
 
         logger.info("User %s completed voice conversion output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
+        error_key = 'errOnUploading'
+        if isinstance(error, BadRequest) and 'voice_messages_forbidden' in str(error).lower():
+            error_key = 'errVoiceMessagesForbidden'
+
         await message.reply_text(
-            text=t(language, 'errOnUploading'),
+            text=t(language, error_key),
             reply_markup=start_over_button_keyboard
         )
 

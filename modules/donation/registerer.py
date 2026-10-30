@@ -1,6 +1,9 @@
+import re
+
 from telegram.ext import CommandHandler, MessageHandler, BaseHandler, filters
 
 from .handlers import show_addresses, show_donation_methods
+from .utils import all_donation_method_labels
 
 
 def registry() -> list[BaseHandler]:
@@ -10,18 +13,9 @@ def registry() -> list[BaseHandler]:
     return [
         CommandHandler('donate', show_donation_methods),
 
-        MessageHandler(
-            (
-                    filters.Regex(r'^Bitcoin$') |
-                    filters.Regex(r'^Ethereum$') |
-                    filters.Regex(r'^TRON$') |
-                    filters.Regex(r'^Tether$') |
-                    filters.Regex(r'^Shiba$') |
-                    filters.Regex(r'^Dogecoin$') |
-                    filters.Regex(r'^ZarinPal$')
-            ),
-            show_addresses
-        )
+        MessageHandler(filters.Regex(
+            r'^(?:' + '|'.join(re.escape(label) for label in all_donation_method_labels()) + r')$'
+        ), show_addresses)
     ]
 
 
