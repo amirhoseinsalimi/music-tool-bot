@@ -4,9 +4,9 @@ import asyncio
 import logging
 import os
 import re
-from contextlib import closing
 
 import psycopg2
+from postgres_pool import pooled_connection
 
 logger = logging.getLogger(__name__)
 SOURCE_KEY = re.compile(r'[A-Za-z0-9_-]{1,64}\Z')
@@ -20,11 +20,11 @@ def source_key(args):
 
 
 def _record(update_id, user_id, key, is_new_user):
-    with closing(psycopg2.connect(
+    with pooled_connection(
         host=os.getenv('DB_HOST'), port=os.getenv('DB_PORT', '5432'),
         dbname=os.getenv('DB_DATABASE'), user=os.getenv('DB_USERNAME'),
         password=os.getenv('DB_PASSWORD'), connect_timeout=5,
-    )) as connection:
+    ) as connection:
         with connection:
             with connection.cursor() as cursor:
                 cursor.execute(
