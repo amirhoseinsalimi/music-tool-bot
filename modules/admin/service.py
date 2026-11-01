@@ -27,13 +27,6 @@ from .utils import (
     pretty_print_size,
 )
 
-SLEEP_TIME_TO_NEXT_USER_IN_SECONDS = 3
-
-AWAITING_MESSAGE = 1
-CONVERSATION_TIMEOUT = 10
-broadcasting_active = False
-broadcast_thread = None
-
 ACTIVE_DAYS = 90
 MONTHLY_ACTIVE_DAYS = 31
 CHURN_DAYS = 90
