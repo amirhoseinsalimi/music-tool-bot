@@ -4,6 +4,7 @@ import hmac
 import json
 import logging
 import os
+import uuid
 from typing import Any, Callable, Iterable
 from urllib.parse import quote
 
@@ -67,10 +68,48 @@ def _control_payload(environ):
         raise BridgeError(400, 'invalid_control') from None
 
 
+def _outbox_payload(environ):
+    """Read a bounded, exact JSON payload for one owner message."""
+    try:
+        length = int(environ.get('CONTENT_LENGTH', '0'))
+        if (not 0 < length <= 8192
+                or not environ.get('CONTENT_TYPE', '').startswith('application/json')):
+            raise ValueError()
+        body = environ['wsgi.input'].read(length)
+        if len(body) != length:
+            raise ValueError()
+        payload = json.loads(body)
+        if not isinstance(payload, dict) or set(payload) != {'id', 'targetUserId', 'text'}:
+            raise ValueError()
+        message_id = str(uuid.UUID(payload['id']))
+        target_user_id = validate_telegram_id(value=payload['targetUserId'])
+        message = payload['text']
+        if (not isinstance(message, str) or not message.strip() or len(message) > 4096
+                or any(ord(char) < 32 and char not in '\n\r\t' for char in message)
+                or any(ord(char) == 127 for char in message)):
+            raise ValueError()
+        return {'id': message_id, 'target_user_id': target_user_id, 'text': message}
+    except (ValueError, KeyError, TypeError):
+        raise BridgeError(400, 'invalid_message') from None
+
+
 def _dispatch_request(environ, actor_id, params, repository, control_settings):
     """Authorize current membership before health/control observations or changes."""
     controls, control_token = control_settings
     path = environ.get('PATH_INFO', '')
+    if path == '/v1/outbox/messages' and environ.get('REQUEST_METHOD') == 'POST':
+        membership = repository.dispatch(actor_id, '/v1/session', {})
+        if not membership['isOwner']:
+            raise BridgeError(403, 'owner_required')
+        if params:
+            raise BridgeError(400, 'invalid_message')
+        payload = _outbox_payload(environ)
+        return repository.enqueue_message(
+            actor_id=actor_id,
+            message_id=payload['id'],
+            target_user_id=payload['target_user_id'],
+            message=payload['text'],
+        )
     if path not in {'/v1/health', '/v1/controls', '/v1/controls/audit',
                     '/v1/controls/retention'}:
         return repository.dispatch(actor_id=actor_id, path=path, params=params)
@@ -124,7 +163,7 @@ def create_app(
         """Handles one authenticated read and returns a bounded JSON response."""
         try:
             writing = environ.get('PATH_INFO') in {
-                '/v1/controls', '/v1/controls/retention'
+                '/v1/controls', '/v1/controls/retention', '/v1/outbox/messages'
             } and environ.get('REQUEST_METHOD') == 'POST'
             if writing and not control_token:
                 raise BridgeError(503, 'controls_unavailable')

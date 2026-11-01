@@ -80,6 +80,48 @@ class AddTelegramNameColumnsTests(unittest.TestCase):
         self.assertFalse(self.schema.has_column('users', 'display_name'))
 
 
+class CreateOutboxMessagesMigrationTests(unittest.TestCase):
+    """Verify the programmatic outbox migration and rollback on PostgreSQL."""
+
+    def setUp(self):
+        self.fixture = PostgresFixture()
+        self.addCleanup(self.fixture.close)
+        options = psycopg2.extensions.parse_dsn(self.fixture.base)
+        connection_details = {
+            'test': {
+                'driver': 'postgres',
+                'host': options['host'],
+                'port': options['port'],
+                'database': options['dbname'],
+                'user': options['user'],
+                'password': options['password'],
+            },
+        }
+        module = importlib.import_module(
+            'database.migrations.2026_11_01_000002_create_outbox_messages')
+        self.migration = object.__new__(module.CreateOutboxMessages)
+        self.migration.schema = Schema(
+            connection='test', connection_details=connection_details,
+            connection_class=PostgresConnection, schema=self.fixture.schema,
+        )
+
+    def test_create_and_drop_outbox_schema(self):
+        self.migration.up()
+        self.assertTrue(self.migration.schema.has_table('outbox_messages'))
+        with self.fixture.connect() as db:
+            with db.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO outbox_messages (id, target_user_id, message_text)
+                    VALUES (%s, %s, %s)
+                    RETURNING status, attempts, message_text
+                """, ('71b9bd57-0a19-4f17-9389-88440f386a00', 42, 'hello'))
+                self.assertEqual(cursor.fetchone(), {
+                    'status': 'queued', 'attempts': 0, 'message_text': 'hello',
+                })
+        self.migration.down()
+        self.assertFalse(self.migration.schema.has_table('outbox_messages'))
+
+
 class DropUnusedTelegramNameColumnsTests(unittest.TestCase):
     """Exercise the programmatic, repeatable drop-column migration on PostgreSQL."""
 

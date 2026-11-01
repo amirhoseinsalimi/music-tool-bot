@@ -19,6 +19,7 @@ from modules.voice_converter import register as register_voice_converter
 from utils.logging import configure_logging, get_logger
 from utils.extensions import register_optional_extension
 from utils.retention import purge_expired_downloads, purge_expired_downloads_job
+from admin_bridge.outbox import cleanup_outbox_job, deliver_outbox_message
 
 logger = get_logger(__name__)
 
@@ -79,6 +80,8 @@ def main():
     logger.info("Starting bot polling")
     logger.info("Removed %s aged core media files", purge_expired_downloads())
     app.job_queue.run_repeating(purge_expired_downloads_job, interval=3600, first=3600)
+    app.job_queue.run_repeating(deliver_outbox_message, interval=1, first=5)
+    app.job_queue.run_repeating(cleanup_outbox_job, interval=3600, first=3600)
     # Temporary proxy outages must not leave startup permanently disconnected.
     app.run_polling(allowed_updates=Update.ALL_TYPES, bootstrap_retries=-1)
 

@@ -3,6 +3,7 @@
 from contextlib import closing
 from pathlib import Path
 from typing import Any, Callable, Mapping
+from uuid import UUID
 
 import psycopg2
 from psycopg2.extensions import (
@@ -121,6 +122,28 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         if path == '/v1/session':
             return dict(admin)
 
+        if path.startswith('/v1/outbox/messages/'):
+            message_id = path.removeprefix('/v1/outbox/messages/')
+            try:
+                message_id = str(UUID(message_id))
+            except (ValueError, TypeError, AttributeError):
+                raise BridgeError(status=400, message='Invalid message ID') from None
+            cursor.execute(
+                'SELECT id, status, created_at, sent_at, last_error '
+                'FROM outbox_messages WHERE id = %s',
+                (message_id,),
+            )
+            message = cursor.fetchone()
+            if message is None:
+                raise BridgeError(status=404, message='Message not found')
+            return {
+                'id': str(message['id']),
+                'status': message['status'],
+                'createdAt': message['created_at'].isoformat(),
+                'sentAt': message['sent_at'].isoformat() if message['sent_at'] else None,
+                'error': message['last_error'],
+            }
+
         if path in {'/v1/files', '/v1/files/download'}:
             files = self.files or create_file_store()
 
@@ -151,6 +174,42 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
             return self._get_user_profile(cursor=cursor, telegram_id=target_id)
 
         raise BridgeError(status=404, message='Not found')
+
+    def enqueue_message(
+        self, actor_id: str, message_id: str, target_user_id: str, message: str,
+    ) -> dict[str, Any]:
+        """Insert one owner-authorized outbox item using the bridge's narrow INSERT grant."""
+        with closing(self.connect()) as connection:
+            connection.set_session(readonly=False, isolation_level='READ COMMITTED')
+            with connection:
+                with connection.cursor(cursor_factory=RealDictCursor) as cursor:
+                    cursor.execute("SET LOCAL statement_timeout = '5000ms'")
+                    admin = self._get_admin(cursor=cursor, actor_id=actor_id)
+                    if not admin['isOwner']:
+                        raise BridgeError(status=403, message='owner_required')
+                    cursor.execute('SELECT 1 FROM users WHERE user_id = %s', (int(target_user_id),))
+                    if cursor.fetchone() is None:
+                        raise BridgeError(status=404, message='User not found')
+                    cursor.execute(
+                        'INSERT INTO outbox_messages (id, target_user_id, message_text) '
+                        'VALUES (%s, %s, %s) ON CONFLICT (id) DO NOTHING',
+                        (message_id, int(target_user_id), message),
+                    )
+                    cursor.execute(
+                        'SELECT id, target_user_id, status, created_at, sent_at, last_error '
+                        'FROM outbox_messages WHERE id = %s',
+                        (message_id,),
+                    )
+                    row = cursor.fetchone()
+                    if row is None or int(row['target_user_id']) != int(target_user_id):
+                        raise BridgeError(status=409, message='operation_conflict')
+                    return {
+                        'id': str(row['id']),
+                        'status': row['status'],
+                        'createdAt': row['created_at'].isoformat(),
+                        'sentAt': row['sent_at'].isoformat() if row['sent_at'] else None,
+                        'error': row['last_error'],
+                    }
 
     @staticmethod
     def _get_overview(cursor: PostgresCursor) -> dict[str, Any]:
