@@ -12,6 +12,7 @@ from wsgiref.util import setup_testing_defaults
 
 import psycopg2
 from pg_support import PostgresFixture
+import runtime_controls
 
 from runtime_controls import (
     ControlError,
@@ -189,9 +190,38 @@ class ControlsTests(unittest.TestCase):
             self.assertEqual(self.store.read()['botRevision'], 1)
             self.store.change('42', {**self.command, 'enabled': True,
                               'expectedRevision': 1, 'operationId': 'reenable-control-operation'})
+            runtime_controls._settings_cache['expires_at'] = 0
             asyncio.run(action(update, None))
             self.assertEqual(called, [True])
         unavailable = 'host=127.0.0.1 port=1 dbname=unavailable connect_timeout=1'
         with patch.dict(os.environ, {'BOT_CONTROL_DATABASE_URL': unavailable}):
             asyncio.run(action(update, None))
+            self.assertEqual(called, [True])
+
+    def test_free_tool_uses_last_known_setting_during_control_database_outage(self):
+        """Free gates reuse the same database's last setting after a read failure."""
+        update = SimpleNamespace(effective_message=SimpleNamespace(reply_text=AsyncMock()))
+        called = []
+
+        @feature_gate('cutter')
+        async def action(_update, _context):
+            called.append(True)
+
+        with patch.dict(os.environ, {'BOT_CONTROL_DATABASE_URL': str(self.path)}):
+            self.store.change('42', self.command)
+            runtime_controls._settings_cache['expires_at'] = 0
+            self.assertFalse(bot_settings()['cutter'])
+            runtime_controls._settings_cache['expires_at'] = 0
+            with patch('runtime_controls.Database', side_effect=psycopg2.OperationalError('offline')):
+                asyncio.run(action(update, None))
+            self.assertEqual(called, [])
+            update.effective_message.reply_text.assert_awaited_once()
+
+            self.store.change('42', {**self.command, 'enabled': True,
+                              'expectedRevision': 1, 'operationId': 'reenable-free-tool-outage'})
+            runtime_controls._settings_cache['expires_at'] = 0
+            self.assertTrue(bot_settings()['cutter'])
+            runtime_controls._settings_cache['expires_at'] = 0
+            with patch('runtime_controls.Database', side_effect=psycopg2.OperationalError('offline')):
+                asyncio.run(action(update, None))
             self.assertEqual(called, [True])

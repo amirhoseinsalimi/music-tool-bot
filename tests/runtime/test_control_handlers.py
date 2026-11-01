@@ -4,6 +4,8 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
+import psycopg2
+
 # Use the same import order as bot.py to satisfy the existing module imports.
 import modules.core.handlers
 from modules.tag_editor.registerer import registry as tags
@@ -14,6 +16,33 @@ from modules.tag_editor.handlers import handle_tag_editor
 from modules.cutter.handlers import handle_cutter
 
 class RegisteredControlTests(unittest.TestCase):
+    def test_control_database_outage_uses_cached_values_for_free_tools_only(self):
+        from runtime_controls import feature_gate
+
+        for feature, cached, expected in (
+                ('cutter', {'cutter': True}, True),
+                ('cutter', {'cutter': False}, False),
+                ('recognition', {'recognition': True}, False)):
+            with self.subTest(feature=feature, cached=cached):
+                reply = AsyncMock()
+                update = SimpleNamespace(effective_message=SimpleNamespace(reply_text=reply))
+                called = []
+
+                @feature_gate(feature)
+                async def action(_update, _context):
+                    called.append(True)
+
+                with patch('asyncio.to_thread',
+                           side_effect=psycopg2.OperationalError('control store unavailable')):
+                    with patch('runtime_controls._last_known_settings', return_value=cached):
+                        asyncio.run(action(update, None))
+
+                self.assertEqual(bool(called), expected)
+                if expected:
+                    reply.assert_not_awaited()
+                else:
+                    reply.assert_awaited_once()
+
     def test_every_registered_action_upserts_before_disabled_reply(self):
         for feature,registry in [('tag_editor',tags),('bitrate_changer',bitrate),('cutter',cutter),('voice_converter',voice)]:
             actions=[handler.callback for handler in registry()]
