@@ -9,6 +9,77 @@ from masoniteorm.schema import Schema
 from pg_support import PostgresFixture
 
 
+class AddTelegramNameColumnsTests(unittest.TestCase):
+    """Exercise the programmatic, repeatable Telegram-name schema migrations."""
+
+    def setUp(self):
+        self.fixture = PostgresFixture()
+        self.addCleanup(self.fixture.close)
+        with self.fixture.connect() as db:
+            with db.cursor() as cursor:
+                cursor.execute('CREATE TABLE users (id BIGINT PRIMARY KEY)')
+
+        options = psycopg2.extensions.parse_dsn(self.fixture.base)
+        connection_details = {
+            'test': {
+                'driver': 'postgres',
+                'host': options['host'],
+                'port': options['port'],
+                'database': options['dbname'],
+                'user': options['user'],
+                'password': options['password'],
+            },
+        }
+        self.schema = Schema(
+            connection='test',
+            connection_details=connection_details,
+            connection_class=PostgresConnection,
+            schema=self.fixture.schema,
+        )
+
+    def _migration(self, module_name, class_name):
+        migration_class = getattr(importlib.import_module(module_name), class_name)
+        migration = object.__new__(migration_class)
+        migration.schema = self.schema
+        migration.connection = 'test'
+        migration.schema_name = self.fixture.schema
+        return migration
+
+    def test_name_columns_are_added_and_display_name_is_backfilled(self):
+        """Create legacy columns with schema APIs and preserve PostgreSQL name normalization."""
+        names = self._migration(
+            'database.migrations.2026_10_23_000001_add_telegram_names_to_users',
+            'AddTelegramNamesToUsers',
+        )
+        display_name = self._migration(
+            'database.migrations.2026_10_23_000003_add_display_name_to_users',
+            'AddDisplayNameToUsers',
+        )
+
+        names.up()
+        names.up()
+        self.assertTrue(self.schema.has_column('users', 'first_name'))
+        self.assertTrue(self.schema.has_column('users', 'last_name'))
+        with self.fixture.connect() as db:
+            with db.cursor() as cursor:
+                cursor.execute(
+                    'INSERT INTO users (id, first_name, last_name) VALUES (%s, %s, %s)',
+                    (1, '  Ada ', ' Lovelace  '),
+                )
+
+        display_name.up()
+        display_name.up()
+        self.assertTrue(self.schema.has_column('users', 'display_name'))
+        with self.fixture.connect() as db:
+            with db.cursor() as cursor:
+                cursor.execute('SELECT display_name FROM users WHERE id=1')
+                self.assertEqual(cursor.fetchone()['display_name'], 'Ada Lovelace')
+
+        display_name.down()
+        display_name.down()
+        self.assertFalse(self.schema.has_column('users', 'display_name'))
+
+
 class DropUnusedTelegramNameColumnsTests(unittest.TestCase):
     """Exercise the programmatic, repeatable drop-column migration on PostgreSQL."""
 
