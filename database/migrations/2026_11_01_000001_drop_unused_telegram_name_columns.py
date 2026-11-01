@@ -12,6 +12,7 @@ class DropUnusedTelegramNameColumns(Migration):
     """Drop redundant columns created before the bot stored display_name directly."""
 
     def up(self):
+        """Drop legacy columns when present."""
         columns = [
             column for column in UNUSED_COLUMNS
             if self.schema.has_column(TABLE_NAME, column)
@@ -24,6 +25,7 @@ class DropUnusedTelegramNameColumns(Migration):
                 table.drop_column(column)
 
     def down(self):
+        """Restore nullable legacy columns when absent."""
         columns = [
             column for column in UNUSED_COLUMNS
             if not self.schema.has_column(TABLE_NAME, column)

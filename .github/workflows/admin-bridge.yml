@@ -8,6 +8,7 @@ on:
     paths:
       - runtime_controls.py
       - postgres_storage.py
+      - database/migrations/**
       - admin_bridge/**
       - tests/bridge/**
       - config/envs.py
@@ -59,6 +60,7 @@ jobs:
           core = project['dependencies']
           development = project['group']['dev']['dependencies']
           requirements = [
+              'masonite-orm' + core['masonite-orm'],
               'psycopg2-binary' + core['psycopg2-binary'],
               'autopep8' + development['autopep8'],
               'pylint' + development['pylint'],
@@ -67,8 +69,8 @@ jobs:
           PY
           .venv/bin/python -m pip install -r /tmp/bridge-requirements.txt
       - name: Check formatting
-        run: .venv/bin/python -m autopep8 --exit-code --diff --max-line-length 100 --recursive admin_bridge tests/bridge
+        run: .venv/bin/python -m autopep8 --exit-code --diff --max-line-length 100 --recursive admin_bridge tests/bridge database/migrations/2026_11_01_000001_drop_unused_telegram_name_columns.py
       - name: Check bridge code conventions
-        run: .venv/bin/python -m pylint --persistent=no --disable=useless-option-value,unknown-option-value admin_bridge tests/bridge
+        run: .venv/bin/python -m pylint --persistent=no --disable=useless-option-value,unknown-option-value admin_bridge tests/bridge database/migrations/2026_11_01_000001_drop_unused_telegram_name_columns.py
       - name: Run bridge tests
         run: .venv/bin/python -m unittest discover -s tests/bridge -v
