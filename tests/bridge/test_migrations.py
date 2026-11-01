@@ -3,7 +3,8 @@ import importlib
 import unittest
 
 import psycopg2
-from masoniteorm.connections import ConnectionResolver
+from masoniteorm.connections import PostgresConnection
+from masoniteorm.schema import Schema
 
 from pg_support import PostgresFixture
 
@@ -38,16 +39,15 @@ class DropUnusedTelegramNameColumnsTests(unittest.TestCase):
                 'password': options['password'],
             },
         }
-        self.resolver = ConnectionResolver()
-        self.original_connection_details = self.resolver.get_connection_details()
-        self.resolver.set_connection_details(connection_details)
-        self.addCleanup(self.resolver.set_connection_details, self.original_connection_details)
-
         migration_module = importlib.import_module(
             'database.migrations.2026_11_01_000001_drop_unused_telegram_name_columns')
         self.migration = object.__new__(migration_module.DropUnusedTelegramNameColumns)
-        self.migration.schema = self.resolver.get_schema_builder(
-            connection='test', schema=self.fixture.schema)
+        self.migration.schema = Schema(
+            connection='test',
+            connection_details=connection_details,
+            connection_class=PostgresConnection,
+            schema=self.fixture.schema,
+        )
 
     def test_up_drops_only_unused_columns_and_can_be_retried(self):
         """Preserve display_name and safely repeat the migration after its columns are gone."""
