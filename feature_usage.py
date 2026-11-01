@@ -7,12 +7,12 @@ never turn a successful Telegram delivery into an apparent user-facing failure.
 import asyncio
 import logging
 from collections.abc import Awaitable
-from contextlib import closing
 from typing import TypeVar
 
 import psycopg2
 
 from config.envs import DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USERNAME
+from postgres_pool import pooled_connection
 
 logger = logging.getLogger(__name__)
 FREE_FEATURES = frozenset({'cutter', 'bitrate_changer', 'voice_converter', 'tag_editor'})
@@ -20,10 +20,10 @@ _T = TypeVar('_T')
 
 
 def _record(feature: str, user_id: int, update_id: int) -> None:
-    with closing(psycopg2.connect(
+    with pooled_connection(
         host=DB_HOST, port=DB_PORT, dbname=DB_DATABASE,
         user=DB_USERNAME, password=DB_PASSWORD, connect_timeout=5,
-    )) as connection:
+    ) as connection:
         with connection:
             with connection.cursor() as cursor:
                 cursor.execute(

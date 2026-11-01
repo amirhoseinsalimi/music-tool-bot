@@ -41,6 +41,7 @@ cp .env.example .env
 | `DB_DATABASE` | PostgreSQL database name. | — |
 | `DB_USERNAME` | PostgreSQL username used by the bot. | — |
 | `DB_PASSWORD` | Required, non-empty PostgreSQL password. Compose fails if it is unset or empty. | — |
+| `TEST_DB_PORT` | Optional host port for the isolated PostgreSQL database used by `make test-admin-bridge`. | `6013` |
 | `DB_ADMIN_USERNAME` | Optional PostgreSQL maintenance username used by Compose. | `DB_USERNAME` |
 | `MAX_DURATION_SECONDS` | Maximum accepted audio duration. Must be positive. | `3600` |
 | `COMPOSE_PROJECT_NAME` | Optional prefix for Compose container and volume names. | `music-tool-bot` |

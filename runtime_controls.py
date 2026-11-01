@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import threading
 from postgres_storage import Database, Error, GUARD_SQL
 import time
 from contextlib import closing
@@ -23,6 +24,10 @@ DEFAULT_FILE_RETENTION_DAYS = 14
 MAX_FILE_RETENTION_DAYS = 60
 _last_admin_retention_days = None
 logger = logging.getLogger(__name__)
+_SETTINGS_CACHE_TTL_SECONDS = 5
+FAIL_OPEN_FEATURES = frozenset({'tag_editor', 'bitrate_changer', 'cutter', 'voice_converter'})
+_settings_cache_lock = threading.Lock()
+_settings_cache = {'database_url': None, 'expires_at': 0.0, 'settings': None}
 
 
 def _environment_retention_days():
@@ -250,16 +255,40 @@ def bot_settings():
     path=os.getenv('BOT_CONTROL_DATABASE_URL','')
     if not path:
         return {key:True for key in TOOLS}
-    # A configured but unavailable control store fails closed for these tools.
-    with closing(Database(path)) as db:
-        db.begin_write()
-        revision,raw=db.execute('SELECT revision,settings FROM configuration WHERE id=1').fetchone()
-        settings=json.loads(raw)
-        if not set(settings)<=set(TOOLS) or not {'tag_editor','bitrate_changer','cutter','voice_converter'}<=set(settings) or any(type(v) is not bool for v in settings.values()):
-            raise ValueError('Invalid runtime controls')
-        db.execute('INSERT INTO bot_observation VALUES (1,%s,%s) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,checked=excluded.checked',(revision,time.time()))
-        db.commit()
+    # Serialize refreshes so a burst of handlers performs only one read per TTL.
+    # An expired cache is never used after a database error: configured controls
+    # remain fail-closed, while normal reads avoid the global writer lock.
+    with _settings_cache_lock:
+        now=time.monotonic()
+        cached=_settings_cache['settings']
+        if (_settings_cache['database_url']==path and cached is not None
+                and now < _settings_cache['expires_at']):
+            return dict(cached)
+        with closing(Database(path)) as db:
+            db.execute('BEGIN ISOLATION LEVEL READ COMMITTED')
+            revision,raw=db.execute('SELECT revision,settings FROM configuration WHERE id=1').fetchone()
+            settings=json.loads(raw)
+            if not set(settings)<=set(TOOLS) or not {'tag_editor','bitrate_changer','cutter','voice_converter'}<=set(settings) or any(type(v) is not bool for v in settings.values()):
+                db.rollback()
+                raise ValueError('Invalid runtime controls')
+            # The single observation row is updated only when the cache refreshes,
+            # rather than for every gated interaction. Its upsert is row-safe and
+            # does not need the cross-process advisory writer lock.
+            db.execute('INSERT INTO bot_observation VALUES (1,%s,%s) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,checked=excluded.checked',(revision,time.time()))
+            db.commit()
+        _settings_cache.update(database_url=path,
+                               expires_at=time.monotonic()+_SETTINGS_CACHE_TTL_SECONDS,
+                               settings=dict(settings))
         return settings
+
+
+def _last_known_settings(database_url):
+    """Return settings from the same control database, even after cache expiry."""
+    with _settings_cache_lock:
+        settings = _settings_cache['settings']
+        if database_url and _settings_cache['database_url'] == database_url and settings is not None:
+            return dict(settings)
+    return None
 
 def disabled_message(language="en"):
     from config.pyi18n import i18n
@@ -277,8 +306,14 @@ def feature_gate(feature):
             import asyncio
             try:
                 enabled=(await asyncio.to_thread(bot_settings))[feature]
-            except (OSError,Error,ValueError,TypeError):
-                enabled=False
+            except (OSError,Error):
+                # The owner selected fail-open only for free tools. Premium
+                # callbacks that call bot_settings directly keep failing closed.
+                cached = _last_known_settings(os.getenv('BOT_CONTROL_DATABASE_URL', ''))
+                enabled = (feature in FAIL_OPEN_FEATURES and cached is not None
+                           and cached.get(feature) is True)
+            except (ValueError,TypeError,KeyError):
+                enabled = False
             if not enabled:
                 if update.effective_message:
                     data = getattr(context, 'user_data', None) or {}

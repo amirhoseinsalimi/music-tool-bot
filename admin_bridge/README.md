@@ -109,6 +109,11 @@ Optional runtime controls use `BOT_CONTROL_DATABASE_URL`. The bridge owns this
 core-controlled PostgreSQL store; the bot has settings-read/observation-write
 privileges and premium has a separate read-only role. No database file is shared.
 `postgres_storage.py` uses the same PostgreSQL driver as the core repository.
-Bridge tests require `TEST_DATABASE_URL` for an isolated `musictoolbot_tests`
-database and create/drop unique schemas with the real PostgreSQL driver. No SQL
-dialect adapter or in-memory database substitutes for PostgreSQL in these tests.
+Run `make test-admin-bridge` for the bridge tests. The standalone
+`docker-compose.test.yaml` starts a disposable `db_test` PostgreSQL service with
+temporary storage and a loopback-only port (default 6013; override with
+`TEST_DB_PORT`). It shares no volumes or networks with development or production.
+`make test-admin-bridge` points `TEST_DATABASE_URL` only at this container and
+removes it when the run exits. Tests create and drop unique schemas with the real
+PostgreSQL driver; no SQL dialect adapter or in-memory database substitutes for
+PostgreSQL.

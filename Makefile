@@ -5,6 +5,7 @@ SEEDS_DIR     ?= database/seeds
 
 COMPOSE       ?= docker compose
 COMPOSE_PROD  ?= $(COMPOSE) -f docker-compose.yaml -f docker-compose.prod.yaml
+TEST_DB_PORT  ?= 6013
 
 .DEFAULT_GOAL := help
 
@@ -50,5 +51,13 @@ t: test
 admin-bridge: ## Run the optional read-only admin bridge on loopback
 	poetry run python -m admin_bridge
 
-test-admin-bridge: ## Run isolated administrative bridge regression tests
-	poetry run python -m unittest discover -s tests/bridge -v
+test-admin-bridge: ## Run bridge tests with an isolated disposable PostgreSQL container
+	@set -eu; \
+	cleanup() { $(COMPOSE) -f docker-compose.test.yaml down --remove-orphans; }; \
+	trap cleanup EXIT INT TERM; \
+	$(COMPOSE) -f docker-compose.test.yaml up -d --wait db_test; \
+	TEST_DATABASE_URL=postgresql://musictoolbot_test:disposable-test-only@127.0.0.1:$(TEST_DB_PORT)/musictoolbot_tests \
+	PYTHONPATH=tests/runtime:tests poetry run python -m unittest discover -s tests/bridge -v; \
+	TEST_DATABASE_URL=postgresql://musictoolbot_test:disposable-test-only@127.0.0.1:$(TEST_DB_PORT)/musictoolbot_tests \
+	PYTHONPATH=tests/runtime:tests poetry run python -m unittest -v \
+	test_control_handlers.RegisteredControlTests.test_control_database_outage_uses_cached_values_for_free_tools_only
