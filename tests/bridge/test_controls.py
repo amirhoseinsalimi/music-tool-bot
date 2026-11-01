@@ -13,6 +13,7 @@ from wsgiref.util import setup_testing_defaults
 import psycopg2
 from pg_support import PostgresFixture
 import runtime_controls
+from postgres_pool import pooled_connection
 
 from runtime_controls import (
     ControlError,
@@ -152,14 +153,14 @@ class ControlsTests(unittest.TestCase):
                 (audit['actor'], audit['previous_days'], audit['days'], audit['reason']),
                 ('42', 30, 14, payload['reason']),
             )
-            self.repo.dispatch.return_value['isOwner'] = False
-            denied = self.request('POST', {**payload, 'operationId': 'retention-denied-operation',
-                                           'expectedRevision': 1}, path='/v1/controls/retention')
-            self.assertEqual(denied[0], 403)
             for invalid in (0, 61, True, '14'):
                 bad = self.request('POST', {**payload, 'days': invalid},
                                    path='/v1/controls/retention')
                 self.assertEqual(bad[0], 400)
+            self.repo.dispatch.return_value['isOwner'] = False
+            denied = self.request('POST', {**payload, 'operationId': 'retention-denied-operation',
+                                           'expectedRevision': 1}, path='/v1/controls/retention')
+            self.assertEqual(denied[0], 403)
 
     def test_invalid_payloads_and_audit_are_immutable(self):
         """Validate command fields and prevent rewriting old audit entries."""
@@ -225,3 +226,16 @@ class ControlsTests(unittest.TestCase):
             with patch('runtime_controls.Database', side_effect=psycopg2.OperationalError('offline')):
                 asyncio.run(action(update, None))
             self.assertEqual(called, [True])
+
+    def test_telemetry_pool_reuses_a_postgresql_connection(self):
+        """Sequential telemetry writes reuse the process-local pooled connection."""
+        options = psycopg2.extensions.parse_dsn(self.path)
+        options['connect_timeout'] = 5
+        backend_pids = []
+        for _ in range(2):
+            with pooled_connection(**options) as connection:
+                with connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute('SELECT pg_backend_pid()')
+                        backend_pids.append(cursor.fetchone()[0])
+        self.assertEqual(backend_pids[0], backend_pids[1])
