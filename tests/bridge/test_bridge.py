@@ -1,6 +1,7 @@
 """Isolated regression tests for the administrative bridge's public v1 contract."""
 
 import json
+from io import BytesIO
 import tempfile
 import unittest
 from datetime import datetime
@@ -35,9 +36,13 @@ class PostgreSQLConnection:
         self.closed = False
 
     def set_session(self, **kwargs):
-        """Require the production repeatable-read and read-only transaction."""
-        if kwargs != {'readonly': True, 'isolation_level': 'REPEATABLE READ'}:
-            raise AssertionError('Expected read-only repeatable-read PostgreSQL')
+        """Require readonly repeatable reads or the bridge's explicit outbox write transaction."""
+        allowed = (
+            {'readonly': True, 'isolation_level': 'REPEATABLE READ'},
+            {'readonly': False, 'isolation_level': 'READ COMMITTED'},
+        )
+        if kwargs not in allowed:
+            raise AssertionError('Unexpected PostgreSQL transaction mode')
         self.connection.set_session(**kwargs)
 
     def cursor(self, **kwargs):
@@ -48,6 +53,13 @@ class PostgreSQLConnection:
         """Close the connection and retain cleanup evidence."""
         self.connection.close()
         self.closed = True
+
+    def __enter__(self):
+        self.connection.__enter__()
+        return self
+
+    def __exit__(self, *args):
+        return self.connection.__exit__(*args)
 
 
 class BridgeTests(unittest.TestCase):
@@ -83,7 +95,15 @@ class BridgeTests(unittest.TestCase):
                     update_id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, source_key VARCHAR(64),
                     is_new_user BOOLEAN NOT NULL, started_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 );
+                CREATE TABLE outbox_messages(
+                    id CHAR(36) PRIMARY KEY, target_user_id BIGINT NOT NULL,
+                    message_text TEXT, status VARCHAR(32) NOT NULL DEFAULT 'queued',
+                    attempts INTEGER NOT NULL DEFAULT 0, last_error VARCHAR(64),
+                    created_at TIMESTAMP NOT NULL DEFAULT now(),
+                    available_at TIMESTAMP NOT NULL DEFAULT now(), sent_at TIMESTAMP
+                );
                 INSERT INTO admins VALUES(42, TRUE);
+                INSERT INTO admins VALUES(43, FALSE);
                 INSERT INTO languages VALUES(1, 'en', 'English'), (2, 'fa', 'Persian');
                 INSERT INTO user_statuses VALUES(1, 'active'), (2, 'blocked');
                 INSERT INTO users VALUES(
@@ -99,6 +119,7 @@ class BridgeTests(unittest.TestCase):
         self.app = create_app(
             token='s' * 32,
             repository=CoreRepository(connect=self._connect),
+            control_token='w' * 32,
         )
 
     def _connect(self) -> PostgreSQLConnection:
@@ -116,6 +137,7 @@ class BridgeTests(unittest.TestCase):
         actor: str = '42',
         token: str = 's' * 32,
         method: str = 'GET',
+        body: dict[str, Any] | None = None,
     ) -> tuple[int, dict[str, Any]]:
         """Calls the real WSGI app directly, without binding a network socket."""
         environ: dict[str, Any] = {}
@@ -127,6 +149,13 @@ class BridgeTests(unittest.TestCase):
             HTTP_AUTHORIZATION='Bearer ' + token,
             HTTP_X_ADMIN_TELEGRAM_ID=actor,
         )
+        if body is not None:
+            encoded = json.dumps(body).encode()
+            environ.update(
+                CONTENT_TYPE='application/json',
+                CONTENT_LENGTH=str(len(encoded)),
+                **{'wsgi.input': BytesIO(encoded)},
+            )
         status: list[int] = []
         body = b''.join(self.app(
             environ,
@@ -134,6 +163,33 @@ class BridgeTests(unittest.TestCase):
         ))
 
         return status[0], json.loads(body)
+
+    def test_owner_queues_idempotent_message_and_can_read_delivery_status(self) -> None:
+        """Only the control secret can queue, retries reuse an ID, and status omits text."""
+        message_id = '71b9bd57-0a19-4f17-9389-88440f386a00'
+        payload = {'id': message_id, 'targetUserId': '7000000001', 'text': 'hello'}
+        self.assertEqual(self.request(
+            path='/v1/outbox/messages', method='POST', body=payload,
+        )[0], 401)
+        status, queued = self.request(
+            path='/v1/outbox/messages', method='POST', token='w' * 32, body=payload,
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(queued['status'], 'queued')
+        self.assertEqual(self.request(
+            path='/v1/outbox/messages', method='POST', token='w' * 32, body=payload,
+        )[1]['id'], message_id)
+        self.assertEqual(self.request(
+            path='/v1/outbox/messages', method='POST', actor='43', token='w' * 32,
+            body={**payload, 'id': '71b9bd57-0a19-4f17-9389-88440f386a01'},
+        )[0], 403)
+        status, result = self.request(path='/v1/outbox/messages/' + message_id)
+        self.assertEqual(status, 200)
+        self.assertEqual(result['status'], 'queued')
+        self.assertNotIn('text', result)
+        with Database(self.path) as database:
+            rows = database.execute('SELECT COUNT(*) AS count FROM outbox_messages').fetchone()
+            self.assertEqual(rows['count'], 1)
 
     def test_authentication_membership_and_revocation(self) -> None:
         """Requires a bridge secret and denies every read after admin revocation."""
