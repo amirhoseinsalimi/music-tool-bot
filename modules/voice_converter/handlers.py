@@ -1,3 +1,5 @@
+import asyncio
+
 from runtime_controls import feature_gate
 from feature_usage import send_file_and_record_completion
 from telegram import (
@@ -37,7 +39,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     convert_to_voice,
 )
@@ -96,7 +98,7 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     )
 
     try:
-        convert_to_voice(input_path, output_path)
+        await asyncio.to_thread(convert_to_voice, input_path, output_path)
 
         with open(output_path, 'rb') as voice_file:
             await send_file_and_record_completion(
@@ -116,7 +118,9 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
         logger.info("User %s completed voice conversion output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
         error_key = 'errOnUploading'
-        if isinstance(error, BadRequest) and 'voice_messages_forbidden' in str(error).lower():
+        if isinstance(error, MediaProcessingTimeoutError):
+            error_key = 'errAudioProcessingTimeout'
+        elif isinstance(error, BadRequest) and 'voice_messages_forbidden' in str(error).lower():
             error_key = 'errVoiceMessagesForbidden'
 
         await message.reply_text(

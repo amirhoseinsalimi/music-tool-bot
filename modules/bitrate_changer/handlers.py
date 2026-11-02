@@ -1,3 +1,5 @@
+import asyncio
+
 from runtime_controls import feature_gate
 from feature_usage import send_file_and_record_completion
 from telegram import (
@@ -37,7 +39,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     convert_bitrate,
 )
@@ -124,13 +126,13 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     )
 
     try:
-        convert_bitrate(input_path, output_bitrate, output_path)
+        await asyncio.to_thread(convert_bitrate, input_path, output_bitrate, output_path)
 
         if art_path:
             original_art_path = art_path
             resized_art_path = f"{original_art_path}_resized.jpg"
 
-            resize_image(original_art_path, resized_art_path)
+            await asyncio.to_thread(resize_image, original_art_path, resized_art_path)
 
             with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
@@ -157,7 +159,12 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
         logger.info("User %s completed bitrate change output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(
-            text=t(language, 'errOnUploading'),
+            text=t(
+                language,
+                'errAudioProcessingTimeout'
+                if isinstance(error, MediaProcessingTimeoutError)
+                else 'errOnUploading',
+            ),
             reply_markup=start_over_button_keyboard
         )
 

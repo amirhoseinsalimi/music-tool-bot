@@ -1,3 +1,5 @@
+import asyncio
+
 from runtime_controls import feature_gate
 from feature_usage import send_file_and_record_completion
 import re
@@ -48,7 +50,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     ask_for_title,
     ask_for_year,
@@ -332,11 +334,19 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     )
 
     try:
-        save_tags_to_file(
-            file=music_path,
-            tags=music_tags,
-            new_art_path=new_art_path
+        await asyncio.to_thread(
+            save_tags_to_file,
+            music_path,
+            music_tags,
+            new_art_path,
         )
+    except MediaProcessingTimeoutError:
+        await message.reply_text(
+            text=t(language, 'errAudioProcessingTimeout'),
+            reply_markup=start_over_button_keyboard,
+        )
+        logger.exception("Media processing timed out while updating tags for %s", music_path)
+        return
     except Exception:
         await message.reply_text(
             text=t(language, 'errOnUpdatingTags'),
@@ -354,12 +364,12 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             original_art_path = new_art_path if new_art_path else art_path
             resized_art_path = f"{original_art_path}_resized.jpg"
 
-            resize_image(original_art_path, resized_art_path)
+            await asyncio.to_thread(resize_image, original_art_path, resized_art_path)
 
             with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
 
-        extension, _audio_codec = probe_audio_format(music_path)
+        extension, _audio_codec = await asyncio.to_thread(probe_audio_format, music_path)
         filename = f"{get_file_name(music_tags, language)}{extension}"
         with open(music_path, "rb") as music_file:
             if extension in {'.mp3', '.m4a'}:
@@ -394,6 +404,13 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
         await uploading_message.delete()
 
         logger.info("User %s finished tag editing for %s", user_id, music_path)
+    except MediaProcessingTimeoutError:
+        await message.reply_text(
+            text=t(language, 'errAudioProcessingTimeout'),
+            reply_markup=start_over_button_keyboard,
+        )
+        logger.exception("Media processing timed out for user %s", user_id)
+        return  # Keep the draft so a retry remains possible.
     except (TelegramError, OSError, ValueError) as error:
         await message.reply_text(
             text=t(language, 'errOnUploading'),

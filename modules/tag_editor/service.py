@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 from html import (
@@ -24,7 +25,7 @@ from utils import (
     get_user_language_or_fallback,
     t,
 )
-from utils.logging import get_logger, run_ffmpeg
+from utils.logging import MediaProcessingTimeoutError, get_logger, run_ffmpeg
 
 logger = get_logger(__name__)
 
@@ -183,7 +184,14 @@ async def remove_album_art(update: Update, user_data: UD, language: str) -> None
     user_data['tag_editor']['current_tag'] = 'remove_album'
 
     try:
-        extension, _audio_codec = probe_audio_format(music_path)
+        extension, _audio_codec = await asyncio.to_thread(probe_audio_format, music_path)
+    except MediaProcessingTimeoutError:
+        await update.message.reply_text(
+            text=t(language, 'errAudioProcessingTimeout'),
+            reply_markup=tag_editor_keyboard,
+        )
+        logger.exception("Timed out inspecting audio for %s", music_path)
+        return
     except ValueError:
         await update.message.reply_text(
             text=t(language, 'errOnUpdatingTags'),
@@ -194,7 +202,8 @@ async def remove_album_art(update: Update, user_data: UD, language: str) -> None
     temp_path = str(input_path.with_name(f"{input_path.stem}_temp{extension}"))
 
     try:
-        run_ffmpeg(
+        await asyncio.to_thread(
+            run_ffmpeg,
             [
                 "ffmpeg",
                 "-hide_banner",
@@ -211,6 +220,14 @@ async def remove_album_art(update: Update, user_data: UD, language: str) -> None
             ],
             "remove album art",
         )
+    except MediaProcessingTimeoutError:
+        logger.exception("Timed out removing album art for file %s", music_path)
+        Path(temp_path).unlink(missing_ok=True)
+        await update.message.reply_text(
+            text=t(language, 'errAudioProcessingTimeout'),
+            reply_markup=tag_editor_keyboard,
+        )
+        return
     except (RuntimeError, OSError):
         logger.exception("Failed to remove album art for file %s", music_path)
         Path(temp_path).unlink(missing_ok=True)
@@ -260,6 +277,36 @@ async def ask_for_tracknumber(update: Update, user_data: UD, language: str) -> N
     await update.message.reply_text(text=message_text)
 
 
+def _load_music_tag_data(file_path: str, user_id: int) -> dict:
+    """Read metadata and artwork without blocking the event loop."""
+    music = music_tag.load_file(file_path)
+    raw = getattr(music, 'raw', {}) or {}
+    art = None
+    try:
+        art = music['artwork'] or None
+    except KeyError:
+        pass
+    except Exception:
+        logger.warning(
+            "Failed to read embedded artwork for user %s file %s; "
+            "falling back to Telegram thumbnail",
+            user_id,
+            file_path,
+            exc_info=True,
+        )
+
+    return {
+        'artist': music.get('artist'),
+        'title': music.get('title'),
+        'album': music.get('album'),
+        'genre': music.get('genre'),
+        'year': raw.get('year'),
+        'disknumber': raw.get('disknumber'),
+        'tracknumber': raw.get('tracknumber'),
+        'art': art,
+    }
+
+
 async def read_and_store_music_tags(update: Update, user_data: UD) -> bool:
     """
     Reads the tags of a music file and stores them in the user's ``user_data`` dictionary.
@@ -272,7 +319,7 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> bool:
     language = get_user_language_or_fallback(user_data)
 
     try:
-        music = music_tag.load_file(file_download_path)
+        loaded_tags = await asyncio.to_thread(_load_music_tag_data, file_download_path, user_id)
     except (OSError, NotImplementedError):
         await update.effective_message.reply_text(
             text=t(language, 'errOnReadingTags'),
@@ -287,33 +334,14 @@ async def read_and_store_music_tags(update: Update, user_data: UD) -> bool:
 
         return False
 
-    artist = music.get('artist')
-    title = music.get('title')
-    album = music.get('album')
-    genre = music.get('genre')
-
-    raw = getattr(music, "raw", {}) or {}
-    year = raw.get('year')
-    disknumber = raw.get('disknumber')
-    tracknumber = raw.get('tracknumber')
-
-    art = None
-
-    try:
-        possible_art = music['artwork']
-
-        if possible_art:
-            art = possible_art
-    except KeyError:
-        pass
-    except Exception:
-        logger.warning(
-            "Failed to read embedded artwork for user %s file %s; "
-            "falling back to Telegram thumbnail",
-            user_id,
-            file_download_path,
-            exc_info=True,
-        )
+    artist = loaded_tags['artist']
+    title = loaded_tags['title']
+    album = loaded_tags['album']
+    genre = loaded_tags['genre']
+    year = loaded_tags['year']
+    disknumber = loaded_tags['disknumber']
+    tracknumber = loaded_tags['tracknumber']
+    art = loaded_tags['art']
 
     if not art:
         thumbnail = getattr(getattr(update.effective_message, "audio", None), "thumbnail", None)

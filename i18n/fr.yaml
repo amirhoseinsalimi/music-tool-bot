@@ -139,6 +139,7 @@ fr:
   errOnReadingTags: "Désolé, je n’ai pas pu lire les tags du fichier… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnUpdatingTags: "Désolé, je n’ai pas pu mettre à jour les tags du fichier… C’est mon erreur ! Envoie ton rapport de bug ici : @amirhoseinsalimi"
   errOnUploading: "Désolé, à cause d’un problème réseau, je n’ai pas pu envoyer ton fichier. Essaie encore."
+  errAudioProcessingTimeout: "Le traitement audio a pris trop de temps et a été arrêté. Essayez avec un fichier plus court."
   errNotImplemented: "Cette fonctionnalité n’est pas encore implémentée. Désolé !"
   errOutOfRange: "La plage saisie dépasse la durée réelle du fichier. La durée est de {length} secondes."
   errMalformedRange: "Tu as saisi un format invalide. Réessaie. {note}"

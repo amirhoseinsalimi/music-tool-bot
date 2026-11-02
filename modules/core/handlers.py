@@ -50,7 +50,7 @@ from utils import (
     t,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import convert_m4a_to_mp3
 from .utils import (
     generate_module_selector_keyboard,
@@ -329,6 +329,15 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
                 m4a_file_download_path,
                 file_download_path,
             )
+        except MediaProcessingTimeoutError:
+            delete_file(m4a_file_download_path)
+            delete_file(file_download_path)
+            await message.reply_text(
+                text=t(language, 'errAudioProcessingTimeout'),
+                reply_markup=generate_start_over_keyboard(language),
+            )
+            logger.exception("Timed out converting m4a for user %s", user_id)
+            return
         except Exception:
             delete_file(m4a_file_download_path)
 
@@ -350,6 +359,11 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     try:
         tags_loaded = await read_and_store_music_tags(update, user_data)
+    except MediaProcessingTimeoutError:
+        reset_user_data_context(user_id, user_data)
+        logger.exception("Timed out reading media for user %s", user_id)
+        await message.reply_text(text=t(language, 'errAudioProcessingTimeout'))
+        return
     except Exception:
         reset_user_data_context(user_id, user_data)
         logger.exception("Failed to read and store tags for user %s", user_id)

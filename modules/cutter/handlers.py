@@ -1,3 +1,5 @@
+import asyncio
+
 from runtime_controls import feature_gate
 from feature_usage import send_file_and_record_completion
 from persiantools import (
@@ -48,7 +50,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     cut,
 )
@@ -141,11 +143,12 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     new_art_path = music_tags.get('new_art_path')
 
     try:
-        cut(input_path, beginning_sec, diff_sec, output_path)
-        save_tags_to_file(
-            file=output_path,
-            tags=music_tags,
-            new_art_path=new_art_path
+        await asyncio.to_thread(cut, input_path, beginning_sec, diff_sec, output_path)
+        await asyncio.to_thread(
+            save_tags_to_file,
+            output_path,
+            music_tags,
+            new_art_path,
         )
 
         possible_art = None
@@ -154,7 +157,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
             original_art_path = art_path
             resized_art_path = f"{original_art_path}_resized.jpg"
 
-            resize_image(original_art_path, resized_art_path)
+            await asyncio.to_thread(resize_image, original_art_path, resized_art_path)
 
             with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
@@ -182,7 +185,12 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
         logger.info("User %s completed audio cut output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(
-            text=t(language, 'errOnUploading'),
+            text=t(
+                language,
+                'errAudioProcessingTimeout'
+                if isinstance(error, MediaProcessingTimeoutError)
+                else 'errOnUploading',
+            ),
             reply_markup=start_over_button_keyboard
         )
 

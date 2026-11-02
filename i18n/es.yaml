@@ -139,6 +139,7 @@ es:
   errOnReadingTags: "Lo siento, no pude leer las etiquetas del archivo… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnUpdatingTags: "Lo siento, no pude actualizar las etiquetas del archivo… ¡Ese es mi error! Envía tu reporte de bug aquí: @amirhoseinsalimi"
   errOnUploading: "Lo siento, debido a problemas de red, no pude subir tu archivo. Intenta nuevamente."
+  errAudioProcessingTimeout: "El procesamiento del audio tardó demasiado y se detuvo. Prueba con un archivo más corto."
   errNotImplemented: "Esta función aún no ha sido implementada. ¡Lo siento!"
   errOutOfRange: "El rango ingresado está fuera de la duración real del archivo. La duración es {length} segundos."
   errMalformedRange: "Ingresaste un formato incorrecto. Intenta de nuevo. {note}"
