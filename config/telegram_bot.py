@@ -4,6 +4,7 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, Defaults, PicklePersistence
 
 from utils.polling_health import PollingHealthRequest
+from utils.update_processor import UserUpdateProcessor
 from utils.error_handler import on_error
 
 from config.constants import PERSISTENCE_UPDATE_INTERVAL
@@ -22,7 +23,7 @@ app = (
     .get_updates_request(PollingHealthRequest(data_dir / "bot-health.json", connection_pool_size=1))
     .defaults(defaults)
     .persistence(pickle)
-    .concurrent_updates(False)
+    .concurrent_updates(UserUpdateProcessor(max_concurrent_updates=4))
     .build()
 )
 

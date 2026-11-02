@@ -139,6 +139,7 @@ fa:
   errOnReadingTags: "نتونستم تگ‌های فایل رو بخونم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errOnUpdatingTags: "نتونستم تگ‌ها رو آپدیت کنم… این از من بود! گزارشش کن: ‎@amirhoseinsalimi"
   errOnUploading: "مشکل شبکه بود، فایل آپلود نشد. دوباره امتحان کن."
+  errAudioProcessingTimeout: "پردازش صدا بیش از حد طول کشید و متوقف شد. لطفاً فایل کوتاه‌تری را امتحان کنید."
   errNotImplemented: "این قابلیت هنوز ساخته نشده!"
   errOutOfRange: "این بازه خارج از مدت اصلی فایله. مدت فایل {length} ثانیه‌ست."
   errMalformedRange: "فرمت رو اشتباه زدی. دوباره بزن. {note}"

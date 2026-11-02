@@ -2,6 +2,8 @@
 import json
 import subprocess
 
+from utils.logging import MEDIA_PROCESS_TIMEOUT_SECONDS, MediaProcessingTimeoutError
+
 
 _FORMAT_EXTENSIONS = {
     'mp3': '.mp3',
@@ -28,6 +30,7 @@ def probe_audio_format(file_path: str) -> tuple[str, str]:
             capture_output=True,
             check=True,
             text=True,
+            timeout=MEDIA_PROCESS_TIMEOUT_SECONDS,
         )
         data = json.loads(result.stdout)
         stream = data['streams'][0]
@@ -36,5 +39,7 @@ def probe_audio_format(file_path: str) -> tuple[str, str]:
         if extension is None:
             raise ValueError('Unsupported audio container')
         return extension, stream['codec_name']
+    except subprocess.TimeoutExpired as error:
+        raise MediaProcessingTimeoutError('inspect audio') from error
     except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, KeyError, IndexError) as error:
         raise ValueError('Unable to identify the audio container') from error

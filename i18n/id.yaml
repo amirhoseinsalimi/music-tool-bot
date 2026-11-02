@@ -139,6 +139,7 @@ id:
   errOnReadingTags: "Maaf, aku tidak bisa membaca tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnUpdatingTags: "Maaf, aku tidak bisa memperbarui tag berkas ini… Itu salahku! Silakan kirim laporan bug ke sini: @amirhoseinsalimi"
   errOnUploading: "Maaf, karena masalah jaringan, aku tidak bisa mengunggah berkasmu. Silakan coba lagi."
+  errAudioProcessingTimeout: "Pemrosesan audio memerlukan waktu terlalu lama dan telah dihentikan. Coba gunakan berkas yang lebih pendek."
   errNotImplemented: "Fitur ini belum diimplementasikan. Maaf!"
   errOutOfRange: "Rentang yang kamu masukkan melebihi durasi berkas yang sebenarnya. Durasi berkas adalah {length}."
   errMalformedRange: "Kamu memasukkan pola yang tidak valid. Silakan coba lagi. {note}"

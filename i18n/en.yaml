@@ -139,6 +139,7 @@ en:
   errOnReadingTags: "Sorry, I couldn't read the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnUpdatingTags: "Sorry, I couldn't update tags the tags of the file... That's my fault! Please send a bug report here: @amirhoseinsalimi"
   errOnUploading: "Sorry, due to network issues, I couldn't upload your file. Please try again."
+  errAudioProcessingTimeout: "Audio processing took too long and was stopped. Please try a shorter file."
   errNotImplemented: "This feature has not been implemented yet. Sorry!"
   errOutOfRange: "The range you entered is out of the actual file duration. The file length is {length}."
   errMalformedRange: "You have entered a malformed pattern. Please try again. {note}"

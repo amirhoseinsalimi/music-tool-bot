@@ -7,6 +7,7 @@ from datetime import datetime
 
 APP_LOGGER_NAME = "music_tool_bot"
 FFMPEG_LOGGER_NAME = f"{APP_LOGGER_NAME}.ffmpeg"
+MEDIA_PROCESS_TIMEOUT_SECONDS = 60
 
 logger = logging.getLogger(APP_LOGGER_NAME)
 logger.setLevel(logging.DEBUG)
@@ -14,6 +15,10 @@ ffmpeg_logger = logging.getLogger(FFMPEG_LOGGER_NAME)
 
 LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
 LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+class MediaProcessingTimeoutError(RuntimeError):
+    """Raised when a local media subprocess exceeds its hard time limit."""
 
 
 def get_logger(name: str | None = None) -> logging.Logger:
@@ -49,7 +54,20 @@ def configure_logging() -> None:
 
 def run_ffmpeg(cmd: list[str], operation: str) -> subprocess.CompletedProcess[str]:
     ffmpeg_logger.debug("Running ffmpeg for %s: %s", operation, shlex.join(cmd))
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=MEDIA_PROCESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as error:
+        ffmpeg_logger.error(
+            "ffmpeg timed out for %s after %s seconds",
+            operation,
+            MEDIA_PROCESS_TIMEOUT_SECONDS,
+        )
+        raise MediaProcessingTimeoutError(operation) from error
 
     for stream_name, output in (("stdout", result.stdout), ("stderr", result.stderr)):
         if not output:

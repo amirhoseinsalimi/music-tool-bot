@@ -24,6 +24,11 @@ def inner(handler):
     return handler
 
 
+async def await_sent_file(send_file, *_args):
+    """Keep delivery assertions active while skipping database telemetry."""
+    return await send_file
+
+
 @unittest.skipUnless(TOOLS_AVAILABLE, 'ffmpeg and ffprobe are required')
 class MediaContainerTests(unittest.TestCase):
     FORMATS = {
@@ -120,7 +125,11 @@ class MediaContainerTests(unittest.TestCase):
                 })()
                 context = type('Context', (), {'user_data': user_data, 'bot': bot})()
                 with patch('modules.tag_editor.handlers.save_tags_to_file'), \
-                     patch('modules.tag_editor.handlers.record_completion', new=AsyncMock()):
+                     patch('modules.tag_editor.handlers.require_active_music', new=AsyncMock(return_value=True)), \
+                     patch(
+                         'modules.tag_editor.handlers.send_file_and_record_completion',
+                         new=AsyncMock(side_effect=await_sent_file),
+                     ):
                     asyncio.run(inner(finish_editing_tags)(update, context))
                 expected_method = 'send_audio' if source.suffix in {'.mp3', '.m4a'} else 'send_document'
                 self.assertTrue(getattr(bot, expected_method).await_count == 1)
