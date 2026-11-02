@@ -9,7 +9,7 @@ TEST_DB_PORT  ?= 6013
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev deploy db-migrate db-refresh db-status db-seed test t show-python
+.PHONY: help install dev deploy db-migrate db-refresh db-status db-seed db-schema-check db-upgrade test t show-python
 .PHONY: admin-bridge test-admin-bridge
 
 help:
@@ -42,6 +42,14 @@ db-status: ## Print the status of migrations
 
 db-seed: ## Run all database seeders (DatabaseSeeder)
 	poetry run masonite-orm seed:run -d $(SEEDS_DIR)
+
+db-schema-check: ## Refuse to proceed unless every migration in this release is applied
+	poetry run python -m utils.schema_guard
+
+db-upgrade: ## Apply migrations, idempotent reference seeds, and verify the schema
+	$(MAKE) db-migrate
+	$(MAKE) db-seed
+	$(MAKE) db-schema-check
 
 test: ## Run the test suite (not implemented yet)
 	@echo "Not implemented yet"
