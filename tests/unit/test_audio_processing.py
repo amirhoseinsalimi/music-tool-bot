@@ -75,7 +75,7 @@ class AudioProcessingTests(unittest.TestCase):
                 probe_audio_format('audio.mp3')
         self.assertEqual(run.call_args.kwargs['timeout'], MEDIA_PROCESS_TIMEOUT_SECONDS)
 
-    def test_slow_ffmpeg_does_not_block_other_users_or_overlap_same_user(self):
+    def test_same_user_waiters_do_not_block_other_users_or_share_locks(self):
         async def scenario(fake_ffmpeg: Path) -> None:
             processor = UserUpdateProcessor(max_concurrent_updates=4)
             started = fake_ffmpeg.with_suffix('.started')
@@ -106,18 +106,24 @@ class AudioProcessingTests(unittest.TestCase):
                 await asyncio.sleep(0.01)
             self.assertTrue(started.exists(), 'fake ffmpeg did not start')
 
-            same_user_task = asyncio.create_task(
-                processor.process_update(update(1), mark_same_user())
-            )
-            other_user_task = asyncio.create_task(
-                processor.process_update(update(2), mark_other_user())
-            )
+            same_user_tasks = [
+                asyncio.create_task(processor.process_update(update(1), mark_same_user()))
+                for _ in range(3)
+            ]
+            # IDs 1 and 65 collided in the previous 64-lock stripe scheme.
+            other_user_task = asyncio.create_task(processor.process_update(update(65), mark_other_user()))
+            for _ in range(200):
+                if processor._user_locks.get(('user', 1), (None, 0))[1] == 4:
+                    break
+                await asyncio.sleep(0.001)
+            self.assertEqual(processor._user_locks[('user', 1)][1], 4)
             await asyncio.wait_for(other_user_finished.wait(), timeout=0.2)
             self.assertFalse(finished.exists(), 'fake ffmpeg finished before the concurrency assertion')
             self.assertFalse(same_user_finished.is_set(), 'same-user update overlapped media processing')
 
-            await asyncio.gather(slow_task, same_user_task, other_user_task)
+            await asyncio.gather(slow_task, *same_user_tasks, other_user_task)
             self.assertTrue(finished.exists())
+            self.assertFalse(processor._user_locks, 'idle user locks should be discarded')
 
         with tempfile.TemporaryDirectory() as directory:
             ffmpeg = Path(directory) / 'ffmpeg'
