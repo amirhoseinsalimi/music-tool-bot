@@ -42,4 +42,11 @@ env DB_PASSWORD=local-test-only DB_USERNAME=local_user DB_DATABASE=local_db \
   SWEEPER_RETENTION_DAYS=30 SWEEPER_INTERVAL=86400 "${compose[@]}" \
   -f docker-compose.yaml -f docker-compose.prod.yaml config --quiet
 
-echo "Compose rejects a missing database password and renders both overlays with one supplied."
+env DB_PASSWORD=local-test-only DB_USERNAME=local_user DB_DATABASE=local_db \
+  APP_ENV=production COMPOSE_PROJECT_NAME=music-tool-bot \
+  GRAFANA_CLOUD_LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
+  GRAFANA_CLOUD_LOKI_USERNAME=local-test-user GRAFANA_CLOUD_API_KEY=local-test-key \
+  DOCKER_CONTAINER_LOGS_DIR=/var/lib/docker/containers "${compose[@]}" \
+  -f docker-compose.yaml -f docker-compose.grafana.yaml config --quiet
+
+echo "Compose rejects a missing database password and renders development, production, and Grafana overlays."
