@@ -782,13 +782,13 @@ files = [
 
 [[package]]
 name = "pydevd-pycharm"
-version = "253.31033.139"
+version = "263.7307.50"
 description = "PyCharm Debugger (used in PyCharm and PyDev)"
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "pydevd_pycharm-253.31033.139.tar.gz", hash = "sha256:afb296dc0dda381e5931c82fde1ae53c0e406f126accb93149679bd666f1bed3"},
+    {file = "pydevd_pycharm-263.7307.50.tar.gz", hash = "sha256:d2d8e9bfa52f5c98b22d4af7388712c5a0903bd62ce5155e252077ae4b0dbab8"},
 ]
 
 [[package]]
@@ -1096,4 +1096,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14.0"
-content-hash = "a7002895853b302ae281698fa730d0fa651fe54827024e73069edd3e1521da6f"
+content-hash = "7413a8835b1cec8a7aea981adfd2e43d7a699278910d703afaa4cf9b289e840f"
