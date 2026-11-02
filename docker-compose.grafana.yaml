@@ -1,6 +1,6 @@
 services:
   alloy:
-    image: grafana/alloy:latest
+    image: grafana/alloy:latest@sha256:8ab871206bd2d8f89277f53abffee5f452a293980788d52f85fa183a87a505a4
     container_name: music-tool-bot-alloy
     environment:
       APP_ENV: ${APP_ENV}

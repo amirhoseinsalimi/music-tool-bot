@@ -35,7 +35,7 @@ jobs:
       TEST_DATABASE_URL: host=127.0.0.1 port=5432 dbname=musictoolbot_tests user=musictoolbot_tests password=isolated-ci-tests
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
         env:
           POSTGRES_USER: musictoolbot_tests
           POSTGRES_DB: musictoolbot_tests
