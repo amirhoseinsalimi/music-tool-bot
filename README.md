@@ -74,9 +74,14 @@ Clone the repository and enter its directory, then create `.env` as shown above.
 Apply the database schema and seed the owner and language records:
 
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-migrate
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-seed
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot make db-upgrade
 ```
+
+`db-upgrade` runs migrations, then idempotent reference-data seeders, then checks
+that every migration shipped with the bot is recorded as applied. Run it before
+starting a candidate bot. The bot repeats the read-only migration check before
+registering handlers and exits with the pending migration names if the database
+is behind.
 
 To start the bot, database, backup service, and Alloy together, set the three Grafana Cloud values in `.env` and run:
 
@@ -124,6 +129,7 @@ The bot runs an hourly in-process cleanup of downloaded files. Files are normall
 | `make dev` | Start the bot for development with hot reload. |
 | `make deploy` | Build the bot image and recreate the bot container. |
 | `make db-migrate` | Apply database migrations. |
+| `make db-upgrade` | Apply migrations, seed reference data, and verify the schema before bot startup. |
 | `make db-refresh` | Roll back and reapply migrations. Use with care. |
 | `make db-status` | Show migration status. |
 | `make db-seed` | Seed the owner and language records. |

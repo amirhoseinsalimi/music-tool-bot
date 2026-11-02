@@ -74,7 +74,7 @@ def registry() -> list[BaseHandler]:
     if language_button_filter:
         handlers.append(MessageHandler(language_button_filter, set_language))
     else:
-        logger.warning("The languages table is empty; language buttons will not be handled. Run `make db-seed`.")
+        logger.warning("The languages table is empty; language buttons will not be handled. Run `make db-upgrade`.")
 
     handlers.extend([
         MessageHandler(

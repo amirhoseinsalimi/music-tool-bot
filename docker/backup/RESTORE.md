@@ -94,15 +94,14 @@ docker compose up -d postgres
 
 docker compose exec postgres pg_isready -U "${DB_USERNAME}"
 
-docker compose run --rm bot make db-migrate
-docker compose run --rm bot make db-seed
+docker compose run --rm bot make db-upgrade
 docker compose up -d
 ```
 
 This public repository owns one PostgreSQL database and the bot's `/data` volume.
 This procedure restores those core bot resources; it does not cover databases
-owned by private sibling services. Seed after migrations, then start/restart the
-bot so it loads the supported languages and owner account.
+owned by private sibling services. `db-upgrade` applies migrations, seeds the
+owner/languages/statuses, and verifies migration history before the bot starts.
 
 ## Verify the Restore
 
