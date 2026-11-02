@@ -81,7 +81,8 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml run --rm bot m
 that every migration shipped with the bot is recorded as applied. Run it before
 starting a candidate bot. The bot repeats the read-only migration check before
 registering handlers and exits with the pending migration names if the database
-is behind.
+is behind. For an existing deployment, use the reviewed apply operator, which
+stops writers and takes its pre-migration backup before running this sequence.
 
 To start the bot, database, backup service, and Alloy together, set the three Grafana Cloud values in `.env` and run:
 
@@ -127,7 +128,7 @@ The bot runs an hourly in-process cleanup of downloaded files. Files are normall
 | Command | Purpose |
 |---|---|
 | `make dev` | Start the bot for development with hot reload. |
-| `make deploy` | Build the bot image and recreate the bot container. |
+| `make deploy` | Build the bot image and recreate the bot container; it does not apply database upgrades. Use the reviewed apply operator for schema-changing releases. |
 | `make db-migrate` | Apply database migrations. |
 | `make db-upgrade` | Apply migrations, seed reference data, and verify the schema before bot startup. |
 | `make db-refresh` | Roll back and reapply migrations. Use with care. |
