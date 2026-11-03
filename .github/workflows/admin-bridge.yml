@@ -62,6 +62,7 @@ jobs:
           requirements = [
               'masonite-orm' + core['masonite-orm'],
               'psycopg2-binary' + core['psycopg2-binary'],
+              'python-telegram-bot' + core['python-telegram-bot']['version'],
               'autopep8' + development['autopep8'],
               'pylint' + development['pylint'],
           ]

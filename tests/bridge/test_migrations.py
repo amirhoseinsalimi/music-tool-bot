@@ -106,6 +106,7 @@ class CreateOutboxMessagesMigrationTests(unittest.TestCase):
         )
 
     def test_create_and_drop_outbox_schema(self):
+        """Exercise outbox table creation and rollback against PostgreSQL."""
         self.migration.up()
         self.assertTrue(self.migration.schema.has_table('outbox_messages'))
         with self.fixture.connect() as db:
