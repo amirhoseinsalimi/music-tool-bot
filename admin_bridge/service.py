@@ -112,7 +112,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         return {'telegramId': actor_id, 'isOwner': bool(admin['is_owner'])}
 
     # Independent route branches keep the authenticated dispatch easy to audit.
-    # pylint: disable=too-many-return-statements
+    # pylint: disable=too-many-branches,too-many-return-statements
     def _dispatch_authorized(
         self,
         cursor: PostgresCursor,
@@ -219,7 +219,9 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
                         'error': row['last_error'],
                     }
 
-    def update_user_status(self, actor_id: str, telegram_id: str, status_slug: str) -> dict[str, Any]:
+    def update_user_status(
+        self, actor_id: str, telegram_id: str, status_slug: str,
+    ) -> dict[str, Any]:
         """Update one existing user's status with a narrowly granted core-column write."""
         with closing(self.connect()) as connection:
             connection.set_session(readonly=False, isolation_level='READ COMMITTED')

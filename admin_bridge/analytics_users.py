@@ -11,6 +11,7 @@ LANGUAGES = {'en', 'fa', 'ru', 'es', 'fr', 'ar', 'hi', 'id'}
 STATUSES = {'active', 'blocked', 'deleted'}
 
 
+# pylint: disable=too-many-boolean-expressions
 def _range(params):
     if set(params) - {'from', 'to', 'group', 'language', 'status'}:
         raise BridgeError(400, 'invalid_request')
@@ -61,6 +62,7 @@ def _user_filter(language, status):
     return (' AND ' + ' AND '.join(clauses) if clauses else ''), values
 
 
+# pylint: disable=too-many-locals
 def users_report(cursor, params):
     """Return bucketed user counts; pre-tracking activity periods remain null."""
     start, end, group, language, status, labels = _range(params)
@@ -194,8 +196,11 @@ def users_report(cursor, params):
             latest['monthly_active_users'] if latest else None)},
         'blockedDeleted': {'value': latest_blocked_deleted},
     }
-    return {'timezone': 'Asia/Tehran', 'historySince': tracking_from.isoformat() if tracking_from else None,
-            'totalBuckets': len(labels), 'summary': summary, 'periods': periods}
+    return {
+        'timezone': 'Asia/Tehran',
+        'historySince': tracking_from.isoformat() if tracking_from else None,
+        'totalBuckets': len(labels), 'summary': summary, 'periods': periods,
+    }
 
 
 def _change(current, previous):
@@ -233,9 +238,13 @@ def latest_snapshot(cursor, params):
         languages = json.loads(languages)
     return {
         'capturedAt': row['captured_at'].isoformat(), 'totalUsers': row['total_users'],
-        'status': {'active': row['active_users'], 'blocked': row['blocked_users'], 'deleted': row['deleted_users']},
+        'status': {
+            'active': row['active_users'], 'blocked': row['blocked_users'],
+            'deleted': row['deleted_users'],
+        },
         'activity': {'daily24h': row['daily_active_users'], 'weekly7d': row['weekly_active_users'],
-                     'monthly31d': row['monthly_active_users'], 'active90d': row['active_90d_users'],
+                     'monthly31d': row['monthly_active_users'],
+                     'active90d': row['active_90d_users'],
                      'inactive': row['inactive_users']},
         'languages': [{'language': language, **counts} for language, counts in languages.items()],
         'files': {'count': row['file_count'], 'downloadedMediaBytes': row['file_bytes']},

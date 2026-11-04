@@ -106,7 +106,8 @@ def _user_status_payload(environ):
         payload = json.loads(body)
         status = payload.get('status') if isinstance(
             payload, dict) and set(payload) == {'status'} else None
-        if (not isinstance(status, str) or not status or len(status) > 50 or status.strip() != status
+        if (not isinstance(status, str) or not status or len(status) > 50
+                or status.strip() != status
                 or any(ord(character) < 32 or ord(character) == 127 for character in status)):
             raise ValueError()
         return status
@@ -114,6 +115,7 @@ def _user_status_payload(environ):
         raise BridgeError(400, 'invalid_user_status') from None
 
 
+# pylint: disable=too-many-branches,too-many-locals,too-many-return-statements
 def _dispatch_request(environ, actor_id, params, repository, control_settings):
     """Authorize current membership before health/control observations or changes."""
     controls, control_token = control_settings
@@ -131,7 +133,8 @@ def _dispatch_request(environ, actor_id, params, repository, control_settings):
             target_user_id=payload['target_user_id'],
             message=payload['text'],
         )
-    if path.startswith('/v1/users/') and path.endswith('/status') and environ.get('REQUEST_METHOD') == 'POST':
+    if (path.startswith('/v1/users/') and path.endswith('/status')
+            and environ.get('REQUEST_METHOD') == 'POST'):
         if params:
             raise BridgeError(400, 'invalid_request')
         target_id = path.removeprefix('/v1/users/').removesuffix('/status')
