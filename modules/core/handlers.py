@@ -425,17 +425,9 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
         return
 
-    if not await require_active_music(update, context):
-        return
-
-    module_selector_keyboard = generate_module_selector_keyboard(language, update.effective_user.id)
-
-    await message.reply_text(
-        text=t(language, 'askWhichModule'),
-        reply_markup=module_selector_keyboard
-    )
-
-    return
+    # The tool selector is shown after successful audio intake, not as a
+    # response to arbitrary text while an earlier track remains in session.
+    await reply_default_message(update, language)
 
 
 @upsert_user
