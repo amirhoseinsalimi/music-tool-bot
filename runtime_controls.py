@@ -290,6 +290,23 @@ def _last_known_settings(database_url):
             return dict(settings)
     return None
 
+
+def menu_feature_settings():
+    """Return feature visibility settings, retaining the last successful read on outages."""
+    path = os.getenv('BOT_CONTROL_DATABASE_URL', '')
+    try:
+        return bot_settings()
+    except (OSError, Error):
+        cached = _last_known_settings(path)
+        if cached is not None:
+            return cached
+    except (ValueError, TypeError, KeyError):
+        pass
+
+    # With no shared controls database, standalone installations keep all tools.
+    # A configured but unreadable/invalid controls database hides controlled tools.
+    return {key: not bool(path) for key in TOOLS}
+
 def disabled_message(language="en"):
     from config.pyi18n import i18n
     if language not in {"en", "fa", "ru", "es", "fr", "ar", "hi", "id"}:

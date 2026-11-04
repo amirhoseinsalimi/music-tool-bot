@@ -25,10 +25,20 @@ def register_keyboard_provider(name, provider):
     _keyboard_providers[name] = provider
 
 
-def optional_keyboard_rows(language, user_id=None):
+def optional_keyboard_rows(language, user_id=None, feature_settings=None):
     """The standalone bot has no extra rows unless an extension registers them."""
-    return [row for provider in _keyboard_providers.values()
-            for row in provider(language, user_id)]
+    rows = []
+    for provider in _keyboard_providers.values():
+        try:
+            parameters = inspect.signature(provider).parameters
+        except (TypeError, ValueError):
+            parameters = {}
+        if 'feature_settings' in parameters:
+            provided_rows = provider(language, user_id, feature_settings=feature_settings)
+        else:
+            provided_rows = provider(language, user_id)
+        rows.extend(provided_rows)
+    return rows
 
 
 def register_optional_extension(application):

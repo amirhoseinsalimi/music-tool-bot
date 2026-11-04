@@ -216,7 +216,10 @@ async def show_module_selector(update: Update, context: CallbackContext) -> None
     if not await require_active_music(update, context):
         return
 
-    module_selector_keyboard = generate_module_selector_keyboard(language, update.effective_user.id)
+    from runtime_controls import menu_feature_settings
+    feature_settings = await asyncio.to_thread(menu_feature_settings)
+    module_selector_keyboard = generate_module_selector_keyboard(
+        language, update.effective_user.id, feature_settings)
 
     await update.message.reply_text(
         text=t(language, 'askWhichModule'),

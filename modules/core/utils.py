@@ -67,25 +67,30 @@ def generate_back_button_keyboard(language: str) -> ReplyKeyboardMarkup:
     )
 
 
-def generate_module_selector_keyboard(language: str, user_id=None) -> ReplyKeyboardMarkup:
+def generate_module_selector_keyboard(language: str, user_id=None, feature_settings=None) -> ReplyKeyboardMarkup:
     """
     Creates and returns an instance of ``module_selector_keyboard`` with the specified language
 
     :param language: str: The language to generate the labels
     :return: ReplyKeyboardMarkup: Module selector keyboard
     """
+    if feature_settings is None:
+        from runtime_controls import menu_feature_settings
+        feature_settings = menu_feature_settings()
+
+    core_rows = [
+        [('tag_editor', 'btnTagAndArtEditor'), ('voice_converter', 'btnMusicToVoiceConverter')],
+        [('cutter', 'btnMusicCutter'), ('bitrate_changer', 'btnBitrateChanger')],
+    ]
+    visible_core_rows = [
+        [t(language, label) for feature, label in row if feature_settings.get(feature) is True]
+        for row in core_rows
+    ]
+    visible_core_rows = [row for row in visible_core_rows if row]
+
     return (
         ReplyKeyboardMarkup(
-            keyboard=[
-                [
-                    t(language, 'btnTagAndArtEditor'),
-                    t(language, 'btnMusicToVoiceConverter')
-                ],
-                [
-                    t(language, 'btnMusicCutter'),
-                    t(language, 'btnBitrateChanger')
-                ]
-            ] + optional_keyboard_rows(language, user_id),
+            keyboard=visible_core_rows + optional_keyboard_rows(language, user_id, feature_settings),
             resize_keyboard=True,
             one_time_keyboard=True,
         )
