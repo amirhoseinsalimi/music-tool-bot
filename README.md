@@ -56,6 +56,7 @@ cp .env.example .env
 | `GRAFANA_CLOUD_LOKI_URL` | Grafana Cloud Loki push URL; required when Alloy is enabled. | — |
 | `GRAFANA_CLOUD_LOKI_USERNAME` | Grafana Cloud Loki username; required when Alloy is enabled. | — |
 | `GRAFANA_CLOUD_API_KEY` | Grafana Cloud token with log-write permission. | — |
+| `DOCKER_CONTAINER_LOGS_DIR` | Host Docker container log directory mounted read-only by Alloy. Set it to `<DockerRootDir>/containers` if Docker uses a custom data root. | `/var/lib/docker/containers` |
 | `BTC_WALLET_ADDRESS` | Optional Bitcoin donation address. | — |
 | `ETH_WALLET_ADDRESS` | Optional Ethereum donation address. | — |
 | `TRX_WALLET_ADDRESS` | Optional TRX donation address. | — |
@@ -111,7 +112,7 @@ docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
 
 ## Alloy log collection
 
-Alloy is optional. It reads Docker container logs and sends the `bot` service logs to the configured Loki endpoint. Set `GRAFANA_CLOUD_LOKI_URL`, `GRAFANA_CLOUD_LOKI_USERNAME`, and `GRAFANA_CLOUD_API_KEY` in `.env`, then include `docker-compose.grafana.yaml` in the Compose command. Alloy's local status UI is bound to `127.0.0.1:6010`.
+Alloy is optional. It reads Docker container logs and sends the `bot` service logs to the configured Loki endpoint. Set `GRAFANA_CLOUD_LOKI_URL`, `GRAFANA_CLOUD_LOKI_USERNAME`, and `GRAFANA_CLOUD_API_KEY` in `.env`, then include `docker-compose.grafana.yaml` in the Compose command. Set `DOCKER_CONTAINER_LOGS_DIR` when Docker's data root differs from its default. Alloy's local status UI is bound to `127.0.0.1:6010`.
 
 ## Backups and restore
 
