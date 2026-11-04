@@ -175,10 +175,10 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
         selected_language = Language.where('iso', '=', language_code).first()
         if selected_language:
             users_query = User.where('language_id', '=', selected_language.id)
-    if deleted_status and (not language_code or selected_language):
-        users_query = users_query.where('user_status_id', '!=', deleted_status.id) if users_query else \
-            User.where('user_status_id', '!=', deleted_status.id)
-    users = users_query.get() if users_query else (User.all() if not language_code else [])
+    if active_status and (not language_code or selected_language):
+        users_query = users_query.where('user_status_id', '=', active_status.id) if users_query else \
+            User.where('user_status_id', '=', active_status.id)
+    users = users_query.get() if users_query else []
 
     with broadcast_lock:
         already_active = broadcast_state['active']
@@ -208,7 +208,7 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
             )
 
     def broadcast():
-        sent_count = failed_count = newly_blocked = newly_active = 0
+        sent_count = failed_count = newly_blocked = 0
         try:
             for user in users:
                 if cancellation_requested():
@@ -238,10 +238,6 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
                     if not delivered:
                         break
                     sent_count += 1
-                    if blocked_status and active_status and user.user_status_id == blocked_status.id:
-                        user.user_status_id = active_status.id
-                        user.save()
-                        newly_active += 1
                 except Forbidden as error:
                     failed_count += 1
                     error_message = str(error).lower()
@@ -268,14 +264,14 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
                         'sent': sent_count, 'failed': failed_count,
                     })
             logger.info(
-                "Broadcast finished for admin %s: sent=%s failed=%s newly_blocked=%s newly_active=%s",
-                user_id, sent_count, failed_count, newly_blocked, newly_active,
+                "Broadcast finished for admin %s: sent=%s failed=%s newly_blocked=%s",
+                user_id, sent_count, failed_count, newly_blocked,
             )
             asyncio.run_coroutine_threadsafe(
                 bot.send_message(
                     chat_id=admin_chat_id,
                     text=t(language, 'broadcastComplete', sent=sent_count, failed=failed_count,
-                           blocked=newly_blocked, active=newly_active),
+                           blocked=newly_blocked),
                 ), loop,
             )
 

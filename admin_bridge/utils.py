@@ -226,6 +226,7 @@ def serialize_user_profile(row: Mapping[str, Any]) -> dict[str, Any]:
         'language': row['language_name'] or 'Not recorded',
         'languageIso': row['language_iso'],
         'status': row['status_slug'],
+        'statusName': row.get('status_name'),
         'audioSubmissions': row['number_of_files_sent'],
         'createdAt': serialize_timestamp(value=row['created_at']),
         'updatedAt': serialize_timestamp(value=row['updated_at']),

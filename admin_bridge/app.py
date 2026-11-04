@@ -1,4 +1,4 @@
-"""HTTP request handling for the optional read-only WSGI bridge."""
+"""HTTP request handling for the optional authenticated admin bridge."""
 
 import hmac
 import json
@@ -93,6 +93,26 @@ def _outbox_payload(environ):
         raise BridgeError(400, 'invalid_message') from None
 
 
+def _user_status_payload(environ):
+    """Read the exact status slug selected from the core status catalogue."""
+    try:
+        length = int(environ.get('CONTENT_LENGTH', '0'))
+        if (not 0 < length <= 1024
+                or not environ.get('CONTENT_TYPE', '').startswith('application/json')):
+            raise ValueError()
+        body = environ['wsgi.input'].read(length)
+        if len(body) != length:
+            raise ValueError()
+        payload = json.loads(body)
+        status = payload.get('status') if isinstance(payload, dict) and set(payload) == {'status'} else None
+        if (not isinstance(status, str) or not status or len(status) > 50 or status.strip() != status
+                or any(ord(character) < 32 or ord(character) == 127 for character in status)):
+            raise ValueError()
+        return status
+    except (ValueError, KeyError, TypeError):
+        raise BridgeError(400, 'invalid_user_status') from None
+
+
 def _dispatch_request(environ, actor_id, params, repository, control_settings):
     """Authorize current membership before health/control observations or changes."""
     controls, control_token = control_settings
@@ -110,6 +130,13 @@ def _dispatch_request(environ, actor_id, params, repository, control_settings):
             target_user_id=payload['target_user_id'],
             message=payload['text'],
         )
+    if path.startswith('/v1/users/') and path.endswith('/status') and environ.get('REQUEST_METHOD') == 'POST':
+        if params:
+            raise BridgeError(400, 'invalid_request')
+        target_id = path.removeprefix('/v1/users/').removesuffix('/status')
+        target_id = validate_telegram_id(value=target_id)
+        status_slug = _user_status_payload(environ)
+        return repository.update_user_status(actor_id, target_id, status_slug)
     if path not in {'/v1/health', '/v1/controls', '/v1/controls/audit',
                     '/v1/controls/retention'}:
         return repository.dispatch(actor_id=actor_id, path=path, params=params)
@@ -142,7 +169,7 @@ def create_app(
     controls: ControlsStore | None = None, control_token: str | None = None,
 ) -> WSGIApplication:
     """
-    Creates the read-only bridge without starting a server or the polling bot.
+    Creates the bridge without starting a server or the polling bot.
 
     :param token: str: The shared bridge secret, containing at least 32 characters
     :param repository: CoreRepository | None: An optional repository for isolated tests
@@ -162,9 +189,15 @@ def create_app(
     def app(environ: dict[str, Any], start_response: StartResponse) -> Iterable[bytes]:
         """Handles one authenticated read and returns a bounded JSON response."""
         try:
-            writing = environ.get('PATH_INFO') in {
+            path = environ.get('PATH_INFO', '')
+            writing = path in {
                 '/v1/controls', '/v1/controls/retention', '/v1/outbox/messages'
             } and environ.get('REQUEST_METHOD') == 'POST'
+            writing = writing or (
+                environ.get('REQUEST_METHOD') == 'POST'
+                and path.startswith('/v1/users/')
+                and path.endswith('/status')
+            )
             if writing and not control_token:
                 raise BridgeError(503, 'controls_unavailable')
             actor_id, params = _validate_request(

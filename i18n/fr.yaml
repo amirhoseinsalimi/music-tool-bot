@@ -245,7 +245,7 @@ fr:
   broadcastConfirm: "Voici l’aperçu. Envoie /send_broadcast pour diffuser ce message ou /cancel_broadcast pour annuler."
   broadcastNoPending: "Aucun message n’attend de confirmation."
   broadcastStarted: "La diffusion à {count} utilisateurs a commencé. Statut : /broadcast_status"
-  broadcastComplete: "Diffusion terminée : {sent} envoyés, {failed} échecs, {blocked} nouveaux blocages, {active} réactivés."
+  broadcastComplete: "Diffusion terminée : {sent} envoyés, {failed} échecs, {blocked} nouveaux blocages."
   broadcastStatusActive: "Diffusion lancée par l’admin {admin_id} : {sent} envoyés et {failed} échecs pour le moment."
   broadcastStatusIdle: "Aucune diffusion n’est en cours."
   broadcastNotOwner: "Seul l’administrateur à l’origine de cette diffusion peut l’annuler."
