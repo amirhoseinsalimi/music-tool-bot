@@ -15,6 +15,7 @@ from psycopg2.extras import RealDictCursor
 from .exceptions import BridgeError
 from .files import FileDownload, FileStore
 from .analytics import usage as feature_usage
+from .analytics_users import latest_snapshot, users_report
 from .attribution import sources as source_report, user_sources
 from .utils import (
     USER_DISPLAY_NAME_SQL,
@@ -34,7 +35,8 @@ USER_COLUMNS = (
     + USER_DISPLAY_NAME_SQL + ' AS display_name, '
     'u.number_of_files_sent, '
     'u.created_at, u.updated_at, u.last_interaction_at, '
-    'l.name AS language_name, l.iso AS language_iso, s.slug AS status_slug'
+    'l.name AS language_name, l.iso AS language_iso, '
+    's.slug AS status_slug, s.name AS status_name'
 )
 USER_SORT_SQL = {
     'displayName': f'LOWER(COALESCE({USER_DISPLAY_NAME_SQL}, \'\'))',
@@ -50,7 +52,7 @@ USER_SORT_SQL = {
 
 # Keep one public entry point so every read passes the same authorization gate.
 class CoreRepository:  # pylint: disable=too-few-public-methods
-    """Reads existing core records in transactions authorized by current admin membership."""
+    """Accesses core records through current admin membership and narrowly scoped writes."""
 
     def __init__(
         self,
@@ -110,7 +112,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         return {'telegramId': actor_id, 'isOwner': bool(admin['is_owner'])}
 
     # Independent route branches keep the authenticated dispatch easy to audit.
-    # pylint: disable=too-many-return-statements
+    # pylint: disable=too-many-branches,too-many-return-statements
     def _dispatch_authorized(
         self,
         cursor: PostgresCursor,
@@ -157,6 +159,12 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
 
         if path == '/v1/analytics/features':
             return feature_usage(cursor, params)
+
+        if path == '/v1/analytics/users':
+            return users_report(cursor, params)
+
+        if path == '/v1/analytics/snapshot':
+            return latest_snapshot(cursor, params)
 
         if path == '/v1/analytics/sources':
             return source_report(cursor, params)
@@ -210,6 +218,32 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
                         'sentAt': row['sent_at'].isoformat() if row['sent_at'] else None,
                         'error': row['last_error'],
                     }
+
+    def update_user_status(
+        self, actor_id: str, telegram_id: str, status_slug: str,
+    ) -> dict[str, Any]:
+        """Update one existing user's status with a narrowly granted core-column write."""
+        with closing(self.connect()) as connection:
+            connection.set_session(readonly=False, isolation_level='READ COMMITTED')
+            with connection:
+                with connection.cursor(cursor_factory=RealDictCursor) as cursor:
+                    cursor.execute("SET LOCAL statement_timeout = '5000ms'")
+                    self._get_admin(cursor=cursor, actor_id=actor_id)
+                    cursor.execute(
+                        'SELECT id FROM user_statuses WHERE slug = %s',
+                        (status_slug,),
+                    )
+                    status = cursor.fetchone()
+                    if status is None:
+                        raise BridgeError(status=400, message='invalid_user_status')
+                    cursor.execute(
+                        'UPDATE users SET user_status_id = %s, updated_at = now() '
+                        'WHERE user_id = %s RETURNING user_id',
+                        (status['id'], int(telegram_id)),
+                    )
+                    if cursor.fetchone() is None:
+                        raise BridgeError(status=404, message='User not found')
+                    return self._get_user_profile(cursor=cursor, telegram_id=telegram_id)
 
     @staticmethod
     def _get_overview(cursor: PostgresCursor) -> dict[str, Any]:
@@ -291,7 +325,19 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         if row is None:
             raise BridgeError(status=404, message='User not found')
 
-        return {**serialize_user_profile(row=row), **user_sources(cursor, int(telegram_id))}
+        cursor.execute(
+            "SELECT slug, name FROM user_statuses "
+            "WHERE slug IS NOT NULL AND slug <> '' ORDER BY id"
+        )
+        status_options = [
+            {'slug': option['slug'], 'name': option['name']}
+            for option in cursor.fetchall()
+        ]
+        return {
+            **serialize_user_profile(row=row),
+            **user_sources(cursor, int(telegram_id)),
+            'statusOptions': status_options,
+        }
 
 
 def create_file_store() -> FileStore:

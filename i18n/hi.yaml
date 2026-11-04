@@ -245,7 +245,7 @@ hi:
   broadcastConfirm: "यह संदेश का पूर्वावलोकन है। भेजने के लिए /send_broadcast या रद्द करने के लिए /cancel_broadcast भेजें।"
   broadcastNoPending: "पुष्टि के लिए कोई संदेश बाकी नहीं है।"
   broadcastStarted: "{count} उपयोगकर्ताओं के लिए ब्रॉडकास्ट शुरू हुआ। स्थिति: /broadcast_status"
-  broadcastComplete: "ब्रॉडकास्ट पूरा: {sent} भेजे गए, {failed} विफल, {blocked} नए ब्लॉक, {active} फिर सक्रिय।"
+  broadcastComplete: "ब्रॉडकास्ट पूरा: {sent} भेजे गए, {failed} विफल, {blocked} नए ब्लॉक।"
   broadcastStatusActive: "एडमिन {admin_id} का ब्रॉडकास्ट चल रहा है: अब तक {sent} भेजे गए, {failed} विफल।"
   broadcastStatusIdle: "कोई ब्रॉडकास्ट नहीं चल रहा है।"
   broadcastNotOwner: "केवल ब्रॉडकास्ट शुरू करने वाला एडमिन इसे रद्द कर सकता है।"

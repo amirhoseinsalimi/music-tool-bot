@@ -18,6 +18,7 @@ from modules.voice_converter import register as register_voice_converter
 from utils.logging import configure_logging, get_logger
 from utils.extensions import register_optional_extension
 from utils.retention import purge_expired_downloads, purge_expired_downloads_job
+from analytics_snapshots import schedule_daily_stats_snapshot
 from admin_bridge.outbox import cleanup_outbox_job, deliver_outbox_message
 from utils.schema_guard import SchemaGuardError, assert_database_schema_current
 
@@ -105,6 +106,7 @@ def main():
     app.job_queue.run_repeating(purge_expired_downloads_job, interval=3600, first=3600)
     app.job_queue.run_repeating(deliver_outbox_message, interval=1, first=5)
     app.job_queue.run_repeating(cleanup_outbox_job, interval=3600, first=3600)
+    schedule_daily_stats_snapshot(app.job_queue)
     # Temporary proxy outages must not leave startup permanently disconnected.
     app.run_polling(allowed_updates=Update.ALL_TYPES, bootstrap_retries=-1)
 

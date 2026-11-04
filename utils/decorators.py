@@ -4,6 +4,7 @@ from functools import wraps
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from analytics_snapshots import record_user_activity_day
 from database.models import Language, User
 from .context import SessionUser
 from .logging import get_logger
@@ -74,6 +75,8 @@ def upsert_user(function):
         # This value is only needed by the current update and must not be
         # persisted alongside the user's session.
         context._new_user_on_this_update = new_user
+
+        await record_user_activity_day(user_id, interaction_at)
 
         return await function(update, context, *args, **kwargs)
 

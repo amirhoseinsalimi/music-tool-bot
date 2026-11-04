@@ -80,7 +80,7 @@ class BridgeTests(unittest.TestCase):
             database.execute("""
                 CREATE TABLE admins(admin_user_id BIGINT, is_owner BOOLEAN);
                 CREATE TABLE languages(id BIGINT, iso TEXT, name TEXT);
-                CREATE TABLE user_statuses(id BIGINT, slug TEXT);
+                CREATE TABLE user_statuses(id BIGINT, slug TEXT, name TEXT);
                 CREATE TABLE users(
                     id BIGINT, user_id BIGINT, username TEXT, display_name TEXT,
                     number_of_files_sent BIGINT,
@@ -105,7 +105,8 @@ class BridgeTests(unittest.TestCase):
                 INSERT INTO admins VALUES(42, TRUE);
                 INSERT INTO admins VALUES(43, FALSE);
                 INSERT INTO languages VALUES(1, 'en', 'English'), (2, 'fa', 'Persian');
-                INSERT INTO user_statuses VALUES(1, 'active'), (2, 'blocked');
+                INSERT INTO user_statuses VALUES
+                    (1, 'active', 'Active'), (2, 'blocked', 'Blocked');
                 INSERT INTO users VALUES(
                     1, 7000000001, 'listener', 'Listener Example', 4, 1, 1,
                     '2026-10-10 12:00:00', '2026-10-10 12:00:00', NULL
@@ -426,6 +427,11 @@ class BridgeTests(unittest.TestCase):
             'language': 'English',
             'languageIso': 'en',
             'status': 'active',
+            'statusName': 'Active',
+            'statusOptions': [
+                {'slug': 'active', 'name': 'Active'},
+                {'slug': 'blocked', 'name': 'Blocked'},
+            ],
             'audioSubmissions': 4,
             'createdAt': '2026-10-10T12:00:00+00:00',
             'updatedAt': '2026-10-10T12:00:00+00:00',

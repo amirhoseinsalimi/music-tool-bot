@@ -1,6 +1,6 @@
 # Optional administrative bridge
 
-Read-only, core-owned WSGI service for authorized admin membership, user search/profiles, overview totals and filtered export. No User/Admin schema is duplicated in private services. The polling bot never imports this package and needs no new dependency or private service to run.
+Core-owned WSGI service for authorized admin membership, user search/profiles, status updates, overview totals and filtered export. Reads use read-only transactions. Writes are limited to enqueueing owner messages and changing a user's status through a dedicated control token and narrow database-column grant. No User/Admin schema is duplicated in private services. The polling bot never imports this package and needs no new dependency or private service to run.
 
 ## Local operation
 
@@ -12,17 +12,18 @@ make admin-bridge
 
 This development entry point listens only on `127.0.0.1:6004` by default; `ADMIN_BRIDGE_PORT` overrides the port. For later hosted use, run `create_app(token)` under a production WSGI server and keep it on a private network/HTTPS boundary. No host deployment has been installed here.
 
-The bridge connects to the configured core PostgreSQL database, with a read-only transaction, a connection timeout and statement timeout. Use a dedicated read-only database role when deployment is configured; the separate process can receive its own DB credentials through the existing DB environment fields. No migration or database refresh is required for these reads. Existing integer-ID schemas remain unchanged.
+The bridge connects to the configured core PostgreSQL database with connection and statement timeouts. Reads use read-only transactions. Its database role needs SELECT on the existing core tables and UPDATE only on `users.user_status_id` and `users.updated_at`; it retains the existing limited outbox insert permissions. No schema migration or database refresh is required. Existing integer-ID schemas remain unchanged.
 
 ## Protocol v1
 
-Every request requires `Authorization: Bearer <ADMIN_BRIDGE_TOKEN>` and `X-Admin-Telegram-ID: <verified Telegram ID>`. The trusted private API derives the actor from a verified login session; the browser never receives the bridge token. The bridge checks current `admins` membership in the same transaction as the requested read. All admins can perform these reads; `isOwner` is returned from core membership for later owner-only operations. There are no write operations.
+Read requests use `ADMIN_BRIDGE_TOKEN`; write requests use the separate `ADMIN_CONTROL_TOKEN`. Both include `X-Admin-Telegram-ID: <verified Telegram ID>`. The trusted private API derives the actor from a verified login session; the browser never receives either token. The bridge checks current `admins` membership in the same transaction as each read or status update. All admins can update a user's status; owner-only operations remain owner-gated. Status choices are read from `user_statuses` rather than hard-coded.
 
 | GET path | Response |
 | --- | --- |
 | `/v1/session` | Current actor Telegram ID and owner flag |
 | `/v1/users` | Paginated users, including recorded Telegram display name and username, total count, page/pageSize and language choices |
 | `/v1/users/<telegram_id>` | Available core user profile, including the recorded Telegram display name |
+| `POST /v1/users/<telegram_id>/status` | Set `{"status":"<existing slug>"}` and return the refreshed profile |
 | `/v1/overview` | User total, Active status count, audio submissions and language counts |
 | `/v1/users/export` | All matching profiles, bounded to 20000 rows; narrow filters beyond that |
 | `/v1/files` | Current retained files, filtered and paginated from the filesystem |
