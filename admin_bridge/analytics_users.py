@@ -139,7 +139,8 @@ def users_report(cursor, params):
             statuses = _snapshot_status(snapshot, language)
             filtered_statuses = ({status: statuses.get(status, 0)} if status else statuses)
             total = sum(filtered_statuses.values())
-            blocked_deleted = filtered_statuses.get('blocked', 0) + filtered_statuses.get('deleted', 0)
+            blocked_deleted = filtered_statuses.get(
+                'blocked', 0) + filtered_statuses.get('deleted', 0)
             if total:
                 blocked_deleted_percent = blocked_deleted / total * 100
         periods.append({

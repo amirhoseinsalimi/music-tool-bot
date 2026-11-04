@@ -104,7 +104,8 @@ def _user_status_payload(environ):
         if len(body) != length:
             raise ValueError()
         payload = json.loads(body)
-        status = payload.get('status') if isinstance(payload, dict) and set(payload) == {'status'} else None
+        status = payload.get('status') if isinstance(
+            payload, dict) and set(payload) == {'status'} else None
         if (not isinstance(status, str) or not status or len(status) > 50 or status.strip() != status
                 or any(ord(character) < 32 or ord(character) == 127 for character in status)):
             raise ValueError()
