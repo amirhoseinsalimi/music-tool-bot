@@ -1,62 +1,93 @@
 logging {
-  level  = "info"
-  format = "logfmt"
+	level  = "info"
+	format = "logfmt"
 }
 
-discovery.docker "music_tool_bot" {
-  host = "unix:///var/run/docker.sock"
+loki.source.file "docker_json" {
+	targets = [{__path__ = "/var/lib/docker/containers/*/*-json.log"}]
+
+	file_match {
+		enabled = true
+	}
+	tail_from_end = true
+	forward_to    = [loki.process.redact.receiver]
 }
 
-discovery.relabel "music_tool_bot" {
-  targets = discovery.docker.music_tool_bot.targets
+loki.process "redact" {
+	forward_to = [loki.write.grafana_cloud.receiver]
 
-  rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
-    regex         = "bot"
-    action        = "keep"
-  }
+	// Preserve Docker's logging-driver attributes before decoding the log line.
+	stage.json {
+		expressions = {attrs = "attrs"}
+	}
 
-  rule {
-    source_labels = ["__meta_docker_container_name"]
-    regex         = "/(.*)"
-    target_label  = "service_name"
-  }
+	stage.docker { }
 
-  rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
-    target_label  = "compose_project"
-  }
+	stage.json {
+		source      = "attrs"
+		expressions = {
+			compose_project = "\"com.docker.compose.project\"",
+			compose_service = "\"com.docker.compose.service\"",
+		}
+	}
 
-  rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
-    target_label  = "compose_service"
-  }
+	stage.labels {
+		values = {
+			compose_project = "compose_project",
+			compose_service = "compose_service",
+		}
+	}
 
-  rule {
-    target_label = "app"
-    replacement  = "music-tool-bot"
-  }
+	stage.label_keep {
+		values = ["compose_project", "compose_service"]
+	}
 
-  rule {
-    target_label = "environment"
-    replacement  = sys.env("APP_ENV")
-  }
-}
+	stage.match {
+		selector = "{compose_project!=\"" + sys.env("COMPOSE_PROJECT_NAME") + "\"}"
+		action   = "drop"
+	}
 
-loki.source.docker "music_tool_bot" {
-  host       = "unix:///var/run/docker.sock"
-  targets    = discovery.relabel.music_tool_bot.output
-  labels     = {source = "docker"}
-  forward_to = [loki.write.grafana_cloud.receiver]
+	stage.match {
+		selector = "{compose_service!=\"bot\"}"
+		action   = "drop"
+	}
+	// Keep only this project's bot logs. The bind-mounted host can contain other workloads.
+	stage.match {
+		selector = "{compose_project=\"" + sys.env("COMPOSE_PROJECT_NAME") + "\", compose_service=\"bot\"}"
+		action   = "keep"
+
+		// User-submitted text and username-change records are not needed for operations.
+		stage.drop {
+			expression = ".*sent message while in module=.*"
+		}
+
+		stage.drop {
+			expression = ".*username.*"
+		}
+		// Debug output includes full ffmpeg commands and file paths.
+		stage.drop {
+			expression = ".* DEBUG .*"
+		}
+
+		stage.replace {
+			expression = "(?i)(User\\s+[0-9]+|user(?:name|_id)?[ =:]*[^ ,]+)"
+			replace    = "[REDACTED_USER]"
+		}
+
+		stage.replace {
+			expression = "(/[^\\s]+)"
+			replace    = "[PATH]"
+		}
+	}
 }
 
 loki.write "grafana_cloud" {
-  endpoint {
-    url = sys.env("GRAFANA_CLOUD_LOKI_URL")
+	endpoint {
+		url = sys.env("GRAFANA_CLOUD_LOKI_URL")
 
-    basic_auth {
-      username = sys.env("GRAFANA_CLOUD_LOKI_USERNAME")
-      password = sys.env("GRAFANA_CLOUD_API_KEY")
-    }
-  }
+		basic_auth {
+			username = sys.env("GRAFANA_CLOUD_LOKI_USERNAME")
+			password = sys.env("GRAFANA_CLOUD_API_KEY")
+		}
+	}
 }

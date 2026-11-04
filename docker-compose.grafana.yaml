@@ -1,23 +1,22 @@
 services:
   alloy:
-    image: grafana/alloy:latest@sha256:8ab871206bd2d8f89277f53abffee5f452a293980788d52f85fa183a87a505a4
-    container_name: music-tool-bot-alloy
+    image: grafana/alloy:v1.20.0@sha256:f111cce835516c5f99166342be7038496b52ced16667be5a11e19258a3e4cd30
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-alloy
     environment:
       APP_ENV: ${APP_ENV}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-music-tool-bot}
       GRAFANA_CLOUD_LOKI_URL: ${GRAFANA_CLOUD_LOKI_URL}
       GRAFANA_CLOUD_LOKI_USERNAME: ${GRAFANA_CLOUD_LOKI_USERNAME}
       GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY}
     command:
       - run
-      - --server.http.listen-addr=0.0.0.0:6010
+      - --server.http.listen-addr=127.0.0.1:6010
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DOCKER_CONTAINER_LOGS_DIR:-/var/lib/docker/containers}:/var/lib/docker/containers:ro
       - ./docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data
-    ports:
-      - "127.0.0.1:6010:6010"
     restart: unless-stopped
 
 volumes:
