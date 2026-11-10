@@ -24,7 +24,7 @@ pyi18n-v2 = "^1.2.2"
 pylint = ">=3.3.6,<5.0.0"
 autopep8 = ">=2.3.1,<3.0.0"
 jurigged = ">=0.6.0,<0.7.0"
-pydevd-pycharm = "263.7307.50"
+pydevd-pycharm = "263.7307.206"
 
 [build-system]
 requires = ["poetry-core"]
