@@ -57,6 +57,8 @@ jobs:
           development = project['group']['dev']['dependencies']
           requirements = [
               'psycopg2-binary' + core['psycopg2-binary'],
+              'masonite-orm' + core['masonite-orm'],
+              'python-telegram-bot' + core['python-telegram-bot']['version'],
               'autopep8' + development['autopep8'],
               'pylint' + development['pylint'],
           ]
