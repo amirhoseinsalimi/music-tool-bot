@@ -1,0 +1,19 @@
+name: music-tool-bot-db-test
+
+services:
+  db_test:
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+    environment:
+      POSTGRES_DB: musictoolbot_tests
+      POSTGRES_USER: musictoolbot_test
+      POSTGRES_PASSWORD: disposable-test-only
+    ports:
+      - "127.0.0.1:${TEST_DB_PORT:-6013}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U musictoolbot_test -d musictoolbot_tests"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: "no"

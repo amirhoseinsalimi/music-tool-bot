@@ -1,16 +1,18 @@
 services:
-  postgres: {}
+  bot:
+    environment:
+      APP_ENV: production
 
   backup:
-    image: postgres:16-alpine
-    container_name: music-tool-bot-backup
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-backup
     entrypoint: ["/bin/bash", "/scripts/backup.sh"]
     environment:
       BACKUP_DIR: /backups
       BACKUP_RETENTION: ${BACKUP_RETENTION}
       BACKUP_INTERVAL: ${BACKUP_INTERVAL}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
+      DB_HOST: postgres
+      DB_PORT: "6003"
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -22,17 +24,4 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: unless-stopped
-
-  sweeper:
-    image: postgres:16-alpine
-    container_name: music-tool-bot-sweeper
-    entrypoint: ["/bin/bash", "/scripts/sweeper.sh"]
-    environment:
-      DATA_DIR: ${DATA_DIR}
-      SWEEPER_RETENTION_DAYS: ${SWEEPER_RETENTION_DAYS}
-      SWEEPER_INTERVAL: ${SWEEPER_INTERVAL}
-    volumes:
-      - ./docker/sweeper/sweeper.sh:/scripts/sweeper.sh:ro
-      - bot_data:/data:rw
     restart: unless-stopped

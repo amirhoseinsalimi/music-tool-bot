@@ -4,6 +4,9 @@ on:
   push:
     branches: [master, develop]
     paths:
+      - runtime_controls.py
+      - postgres_storage.py
+      - database/migrations/**
       - admin_bridge/**
       - tests/bridge/**
       - config/envs.py
@@ -13,10 +16,12 @@ on:
       - poetry.lock
       - .pylintrc
       - .github/workflows/admin-bridge.yml
-      - .github/workflows/release.yml
   pull_request:
     branches: [master, develop]
     paths:
+      - runtime_controls.py
+      - postgres_storage.py
+      - database/migrations/**
       - admin_bridge/**
       - tests/bridge/**
       - config/envs.py
@@ -26,7 +31,6 @@ on:
       - poetry.lock
       - .pylintrc
       - .github/workflows/admin-bridge.yml
-      - .github/workflows/release.yml
   workflow_dispatch:
 
 permissions:
@@ -40,6 +44,19 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    env:
+      TEST_DATABASE_URL: host=127.0.0.1 port=5432 dbname=musictoolbot_tests user=musictoolbot_tests password=isolated-ci-tests
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+        env:
+          POSTGRES_USER: musictoolbot_tests
+          POSTGRES_DB: musictoolbot_tests
+          POSTGRES_PASSWORD: isolated-ci-tests
+        ports: ["127.0.0.1:5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U musictoolbot_tests -d musictoolbot_tests"
+          --health-interval 5s --health-timeout 3s --health-retries 20
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -57,6 +74,8 @@ jobs:
           development = project['group']['dev']['dependencies']
           requirements = [
               'psycopg2-binary' + core['psycopg2-binary'],
+              'masonite-orm' + core['masonite-orm'],
+              'python-telegram-bot' + core['python-telegram-bot']['version'],
               'autopep8' + development['autopep8'],
               'pylint' + development['pylint'],
           ]
@@ -64,8 +83,8 @@ jobs:
           PY
           .venv/bin/python -m pip install -r /tmp/bridge-requirements.txt
       - name: Check formatting
-        run: .venv/bin/python -m autopep8 --exit-code --diff --max-line-length 100 --recursive admin_bridge tests/bridge
+        run: .venv/bin/python -m autopep8 --exit-code --diff --max-line-length 100 --recursive admin_bridge tests/bridge database/migrations/2026_11_01_000001_drop_unused_telegram_name_columns.py
       - name: Check bridge code conventions
-        run: .venv/bin/python -m pylint --persistent=no --disable=useless-option-value,unknown-option-value admin_bridge tests/bridge
+        run: .venv/bin/python -m pylint --persistent=no --disable=useless-option-value,unknown-option-value admin_bridge tests/bridge database/migrations/2026_11_01_000001_drop_unused_telegram_name_columns.py
       - name: Run bridge tests
         run: .venv/bin/python -m unittest discover -s tests/bridge -v

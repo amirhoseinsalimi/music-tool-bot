@@ -1,7 +1,9 @@
 """Core-owned database reads for the optional administrative bridge."""
 
 from contextlib import closing
+from pathlib import Path
 from typing import Any, Callable, Mapping
+from uuid import UUID
 
 import psycopg2
 from psycopg2.extensions import (
@@ -11,7 +13,12 @@ from psycopg2.extensions import (
 from psycopg2.extras import RealDictCursor
 
 from .exceptions import BridgeError
+from .files import FileDownload, FileStore
+from .analytics import usage as feature_usage
+from .analytics_users import latest_snapshot, users_report
+from .attribution import sources as source_report, user_sources
 from .utils import (
+    USER_DISPLAY_NAME_SQL,
     parse_user_filters,
     serialize_user_profile,
     validate_telegram_id,
@@ -24,30 +31,49 @@ USER_JOINS = (
     ' LEFT JOIN user_statuses s ON s.id = u.user_status_id'
 )
 USER_COLUMNS = (
-    'u.id, u.user_id, u.username, u.number_of_files_sent, '
+    'u.id, u.user_id, u.username, '
+    + USER_DISPLAY_NAME_SQL + ' AS display_name, '
+    'u.number_of_files_sent, '
     'u.created_at, u.updated_at, u.last_interaction_at, '
-    'l.name AS language_name, l.iso AS language_iso, s.slug AS status_slug'
+    'l.name AS language_name, l.iso AS language_iso, '
+    's.slug AS status_slug, s.name AS status_name'
 )
+USER_SORT_SQL = {
+    'displayName': f'LOWER(COALESCE({USER_DISPLAY_NAME_SQL}, \'\'))',
+    'username': 'LOWER(COALESCE(u.username, \'\'))',
+    'telegramId': 'u.user_id',
+    'language': 'LOWER(COALESCE(l.name, \'\'))',
+    'status': 'LOWER(COALESCE(s.slug, \'\'))',
+    'audioSubmissions': 'u.number_of_files_sent',
+    'lastInteractionAt': 'u.last_interaction_at',
+    'createdAt': 'u.created_at',
+}
 
 
 # Keep one public entry point so every read passes the same authorization gate.
 class CoreRepository:  # pylint: disable=too-few-public-methods
-    """Reads existing core records in transactions authorized by current admin membership."""
+    """Accesses core records through current admin membership and narrowly scoped writes."""
 
-    def __init__(self, connect: Callable[[], PostgresConnection]) -> None:
+    def __init__(
+        self,
+        connect: Callable[[], PostgresConnection],
+        files: FileStore | None = None,
+    ) -> None:
         """
         Creates the repository with a connection factory.
 
         :param connect: Callable: Creates a core connection that this repository will close
+        :param files: FileStore | None: An optional retained storage adapter for isolated tests
         """
         self.connect = connect
+        self.files = files
 
     def dispatch(
         self,
         actor_id: str,
         path: str,
         params: Mapping[str, str],
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | FileDownload:
         """
         Authorizes the actor and performs one read in the same database transaction.
 
@@ -55,7 +81,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         :param path: str: The requested v1 bridge endpoint
         :param params: Mapping[str, str]: The endpoint's query parameters
         :raises BridgeError: The actor is not an admin or the requested read is invalid
-        :return: dict[str, Any]: The endpoint's JSON-compatible response
+        :return: dict[str, Any] | FileDownload: JSON data or an authorized retained file
         """
         with closing(self.connect()) as connection:
             connection.set_session(readonly=True, isolation_level='REPEATABLE READ')
@@ -85,19 +111,63 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
 
         return {'telegramId': actor_id, 'isOwner': bool(admin['is_owner'])}
 
+    # Independent route branches keep the authenticated dispatch easy to audit.
+    # pylint: disable=too-many-branches,too-many-return-statements
     def _dispatch_authorized(
         self,
         cursor: PostgresCursor,
         admin: Mapping[str, Any],
         path: str,
         params: Mapping[str, str],
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | FileDownload:
         """Routes an authorized read without opening another transaction."""
         if path == '/v1/session':
             return dict(admin)
 
+        if path.startswith('/v1/outbox/messages/'):
+            message_id = path.removeprefix('/v1/outbox/messages/')
+            try:
+                message_id = str(UUID(message_id))
+            except (ValueError, TypeError, AttributeError):
+                raise BridgeError(status=400, message='Invalid message ID') from None
+            cursor.execute(
+                'SELECT id, status, created_at, sent_at, last_error '
+                'FROM outbox_messages WHERE id = %s',
+                (message_id,),
+            )
+            message = cursor.fetchone()
+            if message is None:
+                raise BridgeError(status=404, message='Message not found')
+            return {
+                'id': str(message['id']),
+                'status': message['status'],
+                'createdAt': message['created_at'].isoformat(),
+                'sentAt': message['sent_at'].isoformat() if message['sent_at'] else None,
+                'error': message['last_error'],
+            }
+
+        if path in {'/v1/files', '/v1/files/download'}:
+            files = self.files or create_file_store()
+
+            if path.endswith('/download'):
+                return files.open_download(params=params)
+
+            return files.list_files(params=params)
+
         if path == '/v1/overview':
             return self._get_overview(cursor=cursor)
+
+        if path == '/v1/analytics/features':
+            return feature_usage(cursor, params)
+
+        if path == '/v1/analytics/users':
+            return users_report(cursor, params)
+
+        if path == '/v1/analytics/snapshot':
+            return latest_snapshot(cursor, params)
+
+        if path == '/v1/analytics/sources':
+            return source_report(cursor, params)
 
         if path in {'/v1/users', '/v1/users/export'}:
             return self._list_users(
@@ -112,6 +182,68 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
             return self._get_user_profile(cursor=cursor, telegram_id=target_id)
 
         raise BridgeError(status=404, message='Not found')
+
+    def enqueue_message(
+        self, actor_id: str, message_id: str, target_user_id: str, message: str,
+    ) -> dict[str, Any]:
+        """Insert one owner-authorized outbox item using the bridge's narrow INSERT grant."""
+        with closing(self.connect()) as connection:
+            connection.set_session(readonly=False, isolation_level='READ COMMITTED')
+            with connection:
+                with connection.cursor(cursor_factory=RealDictCursor) as cursor:
+                    cursor.execute("SET LOCAL statement_timeout = '5000ms'")
+                    admin = self._get_admin(cursor=cursor, actor_id=actor_id)
+                    if not admin['isOwner']:
+                        raise BridgeError(status=403, message='owner_required')
+                    cursor.execute('SELECT 1 FROM users WHERE user_id = %s', (int(target_user_id),))
+                    if cursor.fetchone() is None:
+                        raise BridgeError(status=404, message='User not found')
+                    cursor.execute(
+                        'INSERT INTO outbox_messages (id, target_user_id, message_text) '
+                        'VALUES (%s, %s, %s) ON CONFLICT (id) DO NOTHING',
+                        (message_id, int(target_user_id), message),
+                    )
+                    cursor.execute(
+                        'SELECT id, target_user_id, status, created_at, sent_at, last_error '
+                        'FROM outbox_messages WHERE id = %s',
+                        (message_id,),
+                    )
+                    row = cursor.fetchone()
+                    if row is None or int(row['target_user_id']) != int(target_user_id):
+                        raise BridgeError(status=409, message='operation_conflict')
+                    return {
+                        'id': str(row['id']),
+                        'status': row['status'],
+                        'createdAt': row['created_at'].isoformat(),
+                        'sentAt': row['sent_at'].isoformat() if row['sent_at'] else None,
+                        'error': row['last_error'],
+                    }
+
+    def update_user_status(
+        self, actor_id: str, telegram_id: str, status_slug: str,
+    ) -> dict[str, Any]:
+        """Update one existing user's status with a narrowly granted core-column write."""
+        with closing(self.connect()) as connection:
+            connection.set_session(readonly=False, isolation_level='READ COMMITTED')
+            with connection:
+                with connection.cursor(cursor_factory=RealDictCursor) as cursor:
+                    cursor.execute("SET LOCAL statement_timeout = '5000ms'")
+                    self._get_admin(cursor=cursor, actor_id=actor_id)
+                    cursor.execute(
+                        'SELECT id FROM user_statuses WHERE slug = %s',
+                        (status_slug,),
+                    )
+                    status = cursor.fetchone()
+                    if status is None:
+                        raise BridgeError(status=400, message='invalid_user_status')
+                    cursor.execute(
+                        'UPDATE users SET user_status_id = %s, updated_at = now() '
+                        'WHERE user_id = %s RETURNING user_id',
+                        (status['id'], int(telegram_id)),
+                    )
+                    if cursor.fetchone() is None:
+                        raise BridgeError(status=404, message='User not found')
+                    return self._get_user_profile(cursor=cursor, telegram_id=telegram_id)
 
     @staticmethod
     def _get_overview(cursor: PostgresCursor) -> dict[str, Any]:
@@ -134,7 +266,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         return {
             'totalUsers': counts['total'],
             'activeStatus': active_status_count,
-            'audioSubmissions': counts['audio'],
+            'audioSubmissions': int(counts['audio']),
             'languages': list(cursor.fetchall()),
         }
 
@@ -145,7 +277,7 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         exporting: bool,
     ) -> dict[str, Any]:
         """Returns a filtered user page or a bounded collection for Excel export."""
-        conditions, values, page, page_size = parse_user_filters(params=params)
+        conditions, values, page, page_size, sort, direction = parse_user_filters(params=params)
 
         cursor.execute('SELECT COUNT(*) AS total' + USER_JOINS + conditions, values)
         total = cursor.fetchone()['total']
@@ -161,9 +293,12 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         limit = MAX_EXPORT_ROWS if exporting else page_size
         offset = 0 if exporting else (page - 1) * page_size
 
+        order = (
+            f' ORDER BY {USER_SORT_SQL[sort]} {direction.upper()} NULLS LAST, u.id ASC'
+            if sort else ' ORDER BY u.created_at DESC, u.id DESC'
+        )
         cursor.execute(
-            'SELECT ' + USER_COLUMNS + USER_JOINS + conditions
-            + ' ORDER BY u.created_at DESC, u.id DESC LIMIT %s OFFSET %s',
+            'SELECT ' + USER_COLUMNS + USER_JOINS + conditions + order + ' LIMIT %s OFFSET %s',
             [*values, limit, offset],
         )
         users = [serialize_user_profile(row=row) for row in cursor.fetchall()]
@@ -190,7 +325,30 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
         if row is None:
             raise BridgeError(status=404, message='User not found')
 
-        return serialize_user_profile(row=row)
+        cursor.execute(
+            "SELECT slug, name FROM user_statuses "
+            "WHERE slug IS NOT NULL AND slug <> '' ORDER BY id"
+        )
+        status_options = [
+            {'slug': option['slug'], 'name': option['name']}
+            for option in cursor.fetchall()
+        ]
+        return {
+            **serialize_user_profile(row=row),
+            **user_sources(cursor, int(telegram_id)),
+            'statusOptions': status_options,
+        }
+
+
+def create_file_store() -> FileStore:
+    """
+    Selects the existing core downloads directory without importing polling configuration.
+
+    :return: FileStore: The read-only filesystem adapter for retained inputs
+    """
+    from config.envs import DATA_DIR  # pylint: disable=import-outside-toplevel
+
+    return FileStore(root=Path(DATA_DIR) / 'downloads')
 
 
 def connect_core() -> PostgresConnection:

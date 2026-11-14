@@ -29,6 +29,7 @@ def generate_tag_editor_keyboard(language: str) -> ReplyKeyboardMarkup:
                     t(language, 'btnDiskNumber'),
                     t(language, 'btnTrackNumber')
                 ],
+                [t(language, 'btnPreviewTags'), t(language, 'btnSaveTags')],
                 [
                     t(language, 'btnBack')
                 ]

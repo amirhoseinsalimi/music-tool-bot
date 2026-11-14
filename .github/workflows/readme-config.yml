@@ -1,0 +1,31 @@
+name: README environment documentation
+on:
+  push:
+    branches: [develop, master]
+    paths:
+      - README.md
+      - .env.example
+      - '**/*.py'
+      - 'docker-compose*.yaml'
+      - scripts/check_readme_environment.py
+      - .github/workflows/readme-config.yml
+  pull_request:
+    branches: [develop, master]
+    paths:
+      - README.md
+      - .env.example
+      - '**/*.py'
+      - 'docker-compose*.yaml'
+      - scripts/check_readme_environment.py
+      - .github/workflows/readme-config.yml
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - run: python3 scripts/check_readme_environment.py

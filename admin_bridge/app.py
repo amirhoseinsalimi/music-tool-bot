@@ -1,16 +1,23 @@
-"""HTTP request handling for the optional read-only WSGI bridge."""
+"""HTTP request handling for the optional authenticated admin bridge."""
 
 import hmac
 import json
 import logging
-from typing import Any, Callable
+import os
+import uuid
+from typing import Any, Callable, Iterable
+from urllib.parse import quote
 
+from runtime_controls import ControlsStore, ControlError
+
+from .health import observation
 from .exceptions import BridgeError
+from .files import FileDownload
 from .service import CoreRepository, connect_core
 from .utils import parse_query_string, validate_telegram_id
 
 StartResponse = Callable[[str, list[tuple[str, str]]], object]
-WSGIApplication = Callable[[dict[str, Any], StartResponse], list[bytes]]
+WSGIApplication = Callable[[dict[str, Any], StartResponse], Iterable[bytes]]
 HTTP_STATUS_LABELS = {
     200: 'OK',
     400: 'Bad Request',
@@ -18,6 +25,7 @@ HTTP_STATUS_LABELS = {
     403: 'Forbidden',
     404: 'Not Found',
     405: 'Method Not Allowed',
+    409: 'Conflict',
     413: 'Content Too Large',
     503: 'Service Unavailable',
 }
@@ -25,7 +33,9 @@ HTTP_STATUS_LABELS = {
 logger = logging.getLogger('music_tool_bot.admin_bridge')
 
 
-def _validate_request(environ: dict[str, Any], token: str) -> tuple[str, dict[str, str]]:
+def _validate_request(
+    environ: dict[str, Any], token: str, allow_control_write: bool = False,
+) -> tuple[str, dict[str, str]]:
     """Authenticates the bridge caller and validates the actor and query parameters."""
     supplied_token = environ.get('HTTP_AUTHORIZATION', '')
     expected_token = 'Bearer ' + token
@@ -33,7 +43,8 @@ def _validate_request(environ: dict[str, Any], token: str) -> tuple[str, dict[st
     if not hmac.compare_digest(supplied_token.encode(), expected_token.encode()):
         raise BridgeError(status=401, message='Bridge authentication required')
 
-    if environ.get('REQUEST_METHOD') != 'GET':
+    method = environ.get('REQUEST_METHOD')
+    if method != 'GET' and not (allow_control_write and method == 'POST'):
         raise BridgeError(status=405, message='Only read operations are supported')
 
     actor_id = validate_telegram_id(value=environ.get('HTTP_X_ADMIN_TELEGRAM_ID', ''))
@@ -42,9 +53,127 @@ def _validate_request(environ: dict[str, Any], token: str) -> tuple[str, dict[st
     return actor_id, params
 
 
-def create_app(token: str, repository: CoreRepository | None = None) -> WSGIApplication:
+def _control_payload(environ):
+    """Read one small, exact-length JSON control command."""
+    try:
+        length = int(environ.get('CONTENT_LENGTH', '0'))
+        is_json = environ.get('CONTENT_TYPE', '').startswith('application/json')
+        if not 0 < length <= 4096 or not is_json:
+            raise ValueError()
+        payload = environ['wsgi.input'].read(length)
+        if len(payload) != length:
+            raise ValueError()
+        return json.loads(payload)
+    except (ValueError, KeyError):
+        raise BridgeError(400, 'invalid_control') from None
+
+
+def _outbox_payload(environ):
+    """Read a bounded, exact JSON payload for one owner message."""
+    try:
+        length = int(environ.get('CONTENT_LENGTH', '0'))
+        if (not 0 < length <= 8192
+                or not environ.get('CONTENT_TYPE', '').startswith('application/json')):
+            raise ValueError()
+        body = environ['wsgi.input'].read(length)
+        if len(body) != length:
+            raise ValueError()
+        payload = json.loads(body)
+        if not isinstance(payload, dict) or set(payload) != {'id', 'targetUserId', 'text'}:
+            raise ValueError()
+        message_id = str(uuid.UUID(payload['id']))
+        target_user_id = validate_telegram_id(value=payload['targetUserId'])
+        message = payload['text']
+        if (not isinstance(message, str) or not message.strip() or len(message) > 4096
+                or any(ord(char) < 32 and char not in '\n\r\t' for char in message)
+                or any(ord(char) == 127 for char in message)):
+            raise ValueError()
+        return {'id': message_id, 'target_user_id': target_user_id, 'text': message}
+    except (ValueError, KeyError, TypeError):
+        raise BridgeError(400, 'invalid_message') from None
+
+
+def _user_status_payload(environ):
+    """Read the exact status slug selected from the core status catalogue."""
+    try:
+        length = int(environ.get('CONTENT_LENGTH', '0'))
+        if (not 0 < length <= 1024
+                or not environ.get('CONTENT_TYPE', '').startswith('application/json')):
+            raise ValueError()
+        body = environ['wsgi.input'].read(length)
+        if len(body) != length:
+            raise ValueError()
+        payload = json.loads(body)
+        status = payload.get('status') if isinstance(
+            payload, dict) and set(payload) == {'status'} else None
+        if (not isinstance(status, str) or not status or len(status) > 50
+                or status.strip() != status
+                or any(ord(character) < 32 or ord(character) == 127 for character in status)):
+            raise ValueError()
+        return status
+    except (ValueError, KeyError, TypeError):
+        raise BridgeError(400, 'invalid_user_status') from None
+
+
+# pylint: disable=too-many-branches,too-many-locals,too-many-return-statements
+def _dispatch_request(environ, actor_id, params, repository, control_settings):
+    """Authorize current membership before health/control observations or changes."""
+    controls, control_token = control_settings
+    path = environ.get('PATH_INFO', '')
+    if path == '/v1/outbox/messages' and environ.get('REQUEST_METHOD') == 'POST':
+        membership = repository.dispatch(actor_id, '/v1/session', {})
+        if not membership['isOwner']:
+            raise BridgeError(403, 'owner_required')
+        if params:
+            raise BridgeError(400, 'invalid_message')
+        payload = _outbox_payload(environ)
+        return repository.enqueue_message(
+            actor_id=actor_id,
+            message_id=payload['id'],
+            target_user_id=payload['target_user_id'],
+            message=payload['text'],
+        )
+    if (path.startswith('/v1/users/') and path.endswith('/status')
+            and environ.get('REQUEST_METHOD') == 'POST'):
+        if params:
+            raise BridgeError(400, 'invalid_request')
+        target_id = path.removeprefix('/v1/users/').removesuffix('/status')
+        target_id = validate_telegram_id(value=target_id)
+        status_slug = _user_status_payload(environ)
+        return repository.update_user_status(actor_id, target_id, status_slug)
+    if path not in {'/v1/health', '/v1/controls', '/v1/controls/audit',
+                    '/v1/controls/retention'}:
+        return repository.dispatch(actor_id=actor_id, path=path, params=params)
+    allowed_params = {'page', 'sort', 'direction'} if path.endswith('/audit') else set()
+    if set(params) - allowed_params:
+        raise BridgeError(400, 'invalid_request')
+    membership = repository.dispatch(actor_id, '/v1/session', {})
+    if path == '/v1/health':
+        return observation()
+    if controls is None:
+        raise BridgeError(503, 'controls_unavailable')
+    if path.endswith('/audit'):
+        return controls.audit(params)
+    if environ.get('REQUEST_METHOD') == 'POST':
+        if not membership['isOwner']:
+            raise BridgeError(403, 'owner_required')
+        payload = _control_payload(environ)
+        if path == '/v1/controls/retention':
+            result, created = controls.change_retention(actor_id, payload)
+        else:
+            result, created = controls.change(actor_id, payload)
+        return {'change': result, 'created': created}
+    data = controls.read()
+    data['canChange'] = membership['isOwner'] and bool(control_token)
+    return data
+
+
+def create_app(
+    token: str, repository: CoreRepository | None = None,
+    controls: ControlsStore | None = None, control_token: str | None = None,
+) -> WSGIApplication:
     """
-    Creates the read-only bridge without starting a server or the polling bot.
+    Creates the bridge without starting a server or the polling bot.
 
     :param token: str: The shared bridge secret, containing at least 32 characters
     :param repository: CoreRepository | None: An optional repository for isolated tests
@@ -55,17 +184,52 @@ def create_app(token: str, repository: CoreRepository | None = None) -> WSGIAppl
         raise ValueError('ADMIN_BRIDGE_TOKEN must have at least 32 characters')
 
     repository = repository or CoreRepository(connect=connect_core)
+    control_token = control_token or os.getenv('ADMIN_CONTROL_TOKEN', '')
+    if control_token and (len(control_token) < 32 or control_token == token):
+        raise ValueError('Use a separate control token of at least 32 characters')
+    control_path = os.getenv('BOT_CONTROL_DATABASE_URL', '')
+    controls = controls or (ControlsStore(control_path) if control_path else None)
 
-    def app(environ: dict[str, Any], start_response: StartResponse) -> list[bytes]:
+    def app(environ: dict[str, Any], start_response: StartResponse) -> Iterable[bytes]:
         """Handles one authenticated read and returns a bounded JSON response."""
         try:
-            actor_id, params = _validate_request(environ=environ, token=token)
-            data = repository.dispatch(
-                actor_id=actor_id,
-                path=environ.get('PATH_INFO', ''),
-                params=params,
+            path = environ.get('PATH_INFO', '')
+            writing = path in {
+                '/v1/controls', '/v1/controls/retention', '/v1/outbox/messages'
+            } and environ.get('REQUEST_METHOD') == 'POST'
+            writing = writing or (
+                environ.get('REQUEST_METHOD') == 'POST'
+                and path.startswith('/v1/users/')
+                and path.endswith('/status')
             )
+            if writing and not control_token:
+                raise BridgeError(503, 'controls_unavailable')
+            actor_id, params = _validate_request(
+                environ=environ, token=control_token if writing else token,
+                allow_control_write=writing)
+            data = _dispatch_request(environ, actor_id, params,
+                                     repository, (controls, control_token))
+            if isinstance(data, FileDownload):
+                headers = [
+                    ('Content-Type', 'application/octet-stream'),
+                    ('Content-Length', str(data.size)),
+                    ('Content-Disposition', "attachment; filename*=UTF-8''" + quote(data.basename)),
+                    ('Cache-Control', 'no-store'),
+                    ('X-Content-Type-Options', 'nosniff'),
+                ]
+
+                try:
+                    start_response('200 OK', headers)
+                except BaseException:
+                    data.close()
+                    raise
+
+                return data
+
             status = 200
+        except ControlError as error:
+            status = error.status
+            data = {'error': error.code}
         except BridgeError as error:
             status = error.status
             data = {'error': str(error)}

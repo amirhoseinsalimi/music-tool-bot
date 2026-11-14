@@ -1,12 +1,11 @@
 services:
-  postgres: {}
-
   bot:
     image: music-tool-bot:dev
     build:
       context: .
       dockerfile: docker/Dockerfile.dev
     environment:
+      APP_ENV: development
       START_CMD: python -m jurigged -v bot.py
     volumes:
       - ./:/app

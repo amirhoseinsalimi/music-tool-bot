@@ -3,6 +3,10 @@ from pathlib import Path
 from telegram.constants import ParseMode
 from telegram.ext import Application, Defaults, PicklePersistence
 
+from utils.polling_health import PollingHealthRequest
+from utils.update_processor import UserUpdateProcessor
+from utils.error_handler import on_error
+
 from config.constants import PERSISTENCE_UPDATE_INTERVAL
 from config.envs import BOT_TOKEN, DATA_DIR
 
@@ -16,10 +20,13 @@ defaults = Defaults(parse_mode=ParseMode.HTML)
 app = (
     Application.builder()
     .token(BOT_TOKEN)
+    .get_updates_request(PollingHealthRequest(data_dir / "bot-health.json", connection_pool_size=1))
     .defaults(defaults)
     .persistence(pickle)
-    .concurrent_updates(False)
+    .concurrent_updates(UserUpdateProcessor(max_concurrent_updates=4))
     .build()
 )
+
+app.add_error_handler(on_error)
 
 add_handler = app.add_handler

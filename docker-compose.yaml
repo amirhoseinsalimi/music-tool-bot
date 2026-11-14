@@ -2,20 +2,19 @@ name: music-tool-bot
 
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: music-tool-bot-postgres
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-postgres
+    command: [postgres, -p, "6003"]
     environment:
+      PGPORT: "6003"
       POSTGRES_DB: ${DB_DATABASE:-music_tool_bot_dev}
-      POSTGRES_USER: ${DB_USERNAME:-music_tool_bot}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-music_tool_bot_dev}
-    ports:
-      # Bind to loopback only. Without the host IP Docker publishes on 0.0.0.0 and writes its own
-      # iptables rules, which bypass UFW and expose Postgres to the internet.
-      - "127.0.0.1:${DB_PORT:-5432}:5432"
+      POSTGRES_USER: ${DB_ADMIN_USERNAME:-${DB_USERNAME:-music_tool_bot}}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+    # No host database port. Remote clients use the private SSH gateway.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-music_tool_bot} -d ${DB_DATABASE:-music_tool_bot_dev}"]
+      test: ["CMD-SHELL", "pg_isready -p 6003 -U ${DB_USERNAME:-music_tool_bot} -d ${DB_DATABASE:-music_tool_bot_dev}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -23,13 +22,15 @@ services:
 
   bot:
     image: music-tool-bot:prod
-    container_name: music-tool-bot-bot
+    container_name: ${COMPOSE_PROJECT_NAME:-music-tool-bot}-bot
     build:
       context: .
       dockerfile: docker/Dockerfile
     env_file:
       - .env
     environment:
+      DB_HOST: postgres
+      DB_PORT: "6003"
       START_CMD: python bot.py
       PTB_TIMEDELTA: True
     depends_on:
@@ -39,6 +40,12 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - bot_data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: com.docker.compose.project,com.docker.compose.service
     stop_grace_period: 30s
     restart: unless-stopped
 

@@ -6,6 +6,7 @@ from telegram import (
     ReplyKeyboardRemove,
     Update,
 )
+from telegram.error import BadRequest
 from telegram.constants import (
     ChatAction,
 )
@@ -17,6 +18,7 @@ from database.models import (
     Language,
     User,
 )
+from config.envs import MAX_DURATION_SECONDS
 from modules.cutter.handlers import (
     handle_cutter,
 )
@@ -48,18 +50,19 @@ from utils import (
     t,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import convert_m4a_to_mp3
 from .utils import (
     generate_module_selector_keyboard,
     increment_file_counter_for_user,
     generate_start_over_keyboard,
     create_user_directory,
-    does_user_have_music_file,
+    require_active_music,
     get_app_version,
 )
 
 logger = get_logger(__name__)
+MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024
 
 
 @upsert_user
@@ -75,6 +78,10 @@ async def command_start(update: Update, context: CallbackContext) -> None:
     """
     user = context.user_data['user']
     user_id = user.user_id
+
+    from source_tracking import record_start  # pylint: disable=import-outside-toplevel
+    await record_start(update.update_id, user_id, context.args,
+                       getattr(context, '_new_user_on_this_update', False))
 
     user_data = get_user_data(context)
 
@@ -206,7 +213,13 @@ async def show_module_selector(update: Update, context: CallbackContext) -> None
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
-    module_selector_keyboard = generate_module_selector_keyboard(language)
+    if not await require_active_music(update, context):
+        return
+
+    from runtime_controls import menu_feature_settings
+    feature_settings = await asyncio.to_thread(menu_feature_settings)
+    module_selector_keyboard = generate_module_selector_keyboard(
+        language, update.effective_user.id, feature_settings)
 
     await update.message.reply_text(
         text=t(language, 'askWhichModule'),
@@ -232,10 +245,11 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     user_data = get_user_data(context)
 
     reset_user_data_context(user_id, user_data)
-    increment_file_counter_for_user(user_id=user_id)
 
-    music_duration = message.audio.duration.total_seconds()
-    music_file_size = message.audio.file_size
+    audio_file = message.audio or message.document
+    duration = getattr(audio_file, 'duration', 0) or 0
+    music_duration = duration.total_seconds() if hasattr(duration, 'total_seconds') else duration
+    music_file_size = audio_file.file_size
     logger.info(
         "User %s sent audio for processing duration=%ss size=%s",
         user_id,
@@ -245,15 +259,23 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
     language = get_user_language_or_fallback(user_data)
 
-    if music_duration >= 3600 and music_file_size > 48000000:
+    if music_file_size is not None and music_file_size > MAX_DOWNLOAD_BYTES:
         logger.warning(
-            "Rejected oversized audio from user %s duration=%ss size=%s",
+            "Rejected oversized audio from user %s size=%s",
             user_id,
-            music_duration,
             music_file_size
         )
         await message.reply_text(
             text=t(language, 'errTooLargeFile'),
+            reply_markup=generate_start_over_keyboard(language)
+        )
+
+        return
+
+    if music_duration > MAX_DURATION_SECONDS:
+        logger.warning("Rejected overlong audio from user %s duration=%ss", user_id, music_duration)
+        await message.reply_text(
+            text=t(language, 'errAudioTooLong', maxDuration=MAX_DURATION_SECONDS),
             reply_markup=generate_start_over_keyboard(language)
         )
 
@@ -276,10 +298,20 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     try:
         file_download_path = await download_file(
             user_id=user_id,
-            file_to_download=message.audio,
+            file_to_download=audio_file,
             file_type='audio',
             context=context
         )
+    except BadRequest as error:
+        if 'file is too big' not in str(error).lower():
+            raise
+        logger.warning("Telegram rejected audio download as too large for user %s", user_id)
+        await message.reply_text(
+            text=t(language, 'errTooLargeFile'),
+            reply_markup=generate_start_over_keyboard(language)
+        )
+
+        return
     except ValueError:
         await message.reply_text(
             text=t(language, 'errOnDownloadAudioMessage'),
@@ -300,6 +332,15 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
                 m4a_file_download_path,
                 file_download_path,
             )
+        except MediaProcessingTimeoutError:
+            delete_file(m4a_file_download_path)
+            delete_file(file_download_path)
+            await message.reply_text(
+                text=t(language, 'errAudioProcessingTimeout'),
+                reply_markup=generate_start_over_keyboard(language),
+            )
+            logger.exception("Timed out converting m4a for user %s", user_id)
+            return
         except Exception:
             delete_file(m4a_file_download_path)
 
@@ -320,8 +361,13 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
     logger.info("Stored audio for user %s at %s", user_id, file_download_path)
 
     try:
-        await read_and_store_music_tags(update, user_data)
-    except (KeyError, Exception):
+        tags_loaded = await read_and_store_music_tags(update, user_data)
+    except MediaProcessingTimeoutError:
+        reset_user_data_context(user_id, user_data)
+        logger.exception("Timed out reading media for user %s", user_id)
+        await message.reply_text(text=t(language, 'errAudioProcessingTimeout'))
+        return
+    except Exception:
         reset_user_data_context(user_id, user_data)
         logger.exception("Failed to read and store tags for user %s", user_id)
 
@@ -329,7 +375,12 @@ async def handle_music_message(update: Update, context: CallbackContext) -> None
 
         return
 
+    if not tags_loaded:
+        reset_user_data_context(user_id, user_data)
+        return
+
     logger.info("Audio intake completed for user %s", user_id)
+    increment_file_counter_for_user(user_id=user_id)
     await show_module_selector(update, context)
 
 
@@ -358,8 +409,6 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
         return
 
-    music_path = user_data['music_path']
-
     current_module = user_data['current_module']
     logger.info(
         "User %s sent message while in module=%s username=%s text=%s",
@@ -379,20 +428,9 @@ async def handle_responses(update: Update, context: CallbackContext) -> None:
 
         return
 
-    if not does_user_have_music_file(music_path):
-        await message.reply_text(text=t(language, 'startOverMessage'))
-
-        return
-
-    if does_user_have_music_file(music_path):
-        module_selector_keyboard = generate_module_selector_keyboard(language)
-
-        await message.reply_text(
-            text=t(language, 'askWhichModule'),
-            reply_markup=module_selector_keyboard
-        )
-
-        return
+    # The tool selector is shown after successful audio intake, not as a
+    # response to arbitrary text while an earlier track remains in session.
+    await reply_default_message(update, language)
 
 
 @upsert_user
@@ -403,12 +441,5 @@ async def ignore_file(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    user = context.user_data['user']
-    user_id = user.user_id
     user_data = get_user_data(context)
-    reset_user_data_context(user_id, user_data)
-
-    await update.message.reply_text(
-        text=t(get_user_language_or_fallback(user_data), 'startOverMessage'),
-        reply_markup=ReplyKeyboardRemove()
-    )
+    await update.message.reply_text(text=t(get_user_language_or_fallback(user_data), 'unsupportedFileMessage'))
