@@ -1,3 +1,7 @@
+import asyncio
+
+from runtime_controls import feature_gate
+from feature_usage import send_file_and_record_completion
 import re
 
 from persiantools import (
@@ -25,7 +29,9 @@ from config.modules import (
 )
 from modules.core.utils import (
     generate_start_over_keyboard,
+    require_active_music,
 )
+from modules.core.media import probe_audio_format
 from modules.tag_editor.utils import (
     generate_tag_editor_keyboard,
 )
@@ -37,8 +43,6 @@ from utils import (
     get_message_text,
     get_user_data,
     get_user_language_or_fallback,
-    is_user_data_empty,
-    reply_default_message,
     reset_user_data_context,
     set_current_module,
     t,
@@ -46,7 +50,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     ask_for_title,
     ask_for_year,
@@ -72,6 +76,7 @@ from .utils import (
 
 
 @upsert_user
+@feature_gate('tag_editor')
 async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the user's input when they are editing a tag. It first checks if the user
@@ -83,12 +88,15 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
     :param context: CallbackContext: The ``context`` object
     """
     user_data = get_user_data(context)
+    language = get_user_language_or_fallback(user_data)
+    if not await require_active_music(update, context):
+        return
+
     music_tags = user_data['tag_editor']
     message = get_message(update)
 
     current_tag = music_tags.get('current_tag')
 
-    language = get_user_language_or_fallback(user_data)
     tag_editor_keyboard = generate_tag_editor_keyboard(language)
 
     if not did_user_select_a_tag(current_tag):
@@ -126,6 +134,7 @@ async def handle_tag_editor(update: Update, context: CallbackContext) -> None:
 
 
 @upsert_user
+@feature_gate('tag_editor')
 async def handle_photo_message(update: Update, context: CallbackContext) -> None:
     """
     This function is responsible for handling the album arts that the user wants to be saved in their file.
@@ -140,17 +149,18 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     music_path = user_data.get('music_path')
     message = get_message(update)
 
-    if not music_path:
-        reply_message = t(language, 'defaultMessage')
-
-        await message.reply_text(text=reply_message, reply_markup=ReplyKeyboardRemove())
-
+    if not await require_active_music(update, context):
         return
 
     user_id = user.user_id
     current_module = user_data['current_module']
     current_tag = user_data['tag_editor']['current_tag']
     tag_editor_keyboard = generate_tag_editor_keyboard(language)
+
+    if message.document and (not is_current_module_tag_editor(current_module)
+                             or not is_current_tag_album_art(current_tag)):
+        await message.reply_text(text=t(language, 'unsupportedFileMessage'))
+        return
 
     if not is_current_module_tag_editor(current_module):
         return
@@ -165,7 +175,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
     try:
         file_download_path = await download_file(
             user_id=user_id,
-            file_to_download=message.photo[-1],
+            file_to_download=message.document or message.photo[-1],
             file_type='photo',
             context=context
         )
@@ -187,6 +197,7 @@ async def handle_photo_message(update: Update, context: CallbackContext) -> None
 
 
 @upsert_user
+@feature_gate('tag_editor')
 async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> None:
     """
     This function is called when the user has selected the `Module.TAG_EDITOR module`.
@@ -198,6 +209,9 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
     user_data = get_user_data(context)
     message = get_message(update)
     language = get_user_language_or_fallback(user_data)
+
+    if not await require_active_music(update, context):
+        return
 
     try:
         tag_editor_context = user_data['tag_editor']
@@ -219,20 +233,21 @@ async def ask_which_tag_to_edit(update: Update, context: CallbackContext) -> Non
             await message.reply_photo(
                 photo=art_file,
                 caption=f"{generate_music_info(tag_editor_context, language)}"
-                        f"\n\n🆔 {BOT_USERNAME}",
+                        f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
                 reply_to_message_id=get_effective_message_id(update),
                 reply_markup=tag_editor_keyboard,
             )
     else:
         await message.reply_text(
             text=f"{generate_music_info(tag_editor_context, language)}"
-                 f"\n\n🆔 {BOT_USERNAME}",
+                 f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
             reply_to_message_id=get_effective_message_id(update),
             reply_markup=tag_editor_keyboard
         )
 
 
 @upsert_user
+@feature_gate('tag_editor')
 async def display_preview(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/preview`` command. Displays a caption with all the information about the music file, and if there's
@@ -241,13 +256,11 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
     :param update: Update: The ``update`` object
     :param context: CallbackContext: The ``context`` object
     """
-    message = get_message(update)
+    message = update.effective_message
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
-    if not user_data.get('music_path'):
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     tag_editor_context = user_data['tag_editor']
@@ -259,22 +272,25 @@ async def display_preview(update: Update, context: CallbackContext) -> None:
             await message.reply_photo(
                 photo=art_file,
                 caption=f"{generate_music_info(tag_editor_context, language)}"
-                        f"\n\n{t(language, 'clickDoneMessage')}"
-                        f"\n\n🆔 {BOT_USERNAME}",
+                        f"\n\n{t(language, 'tagPreviewSaveHint')}"
+                        f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
                 reply_to_message_id=get_effective_message_id(update),
+                reply_markup=generate_tag_editor_keyboard(language),
             )
 
         return
 
     await message.reply_text(
         text=f"{generate_music_info(tag_editor_context, language)}"
-             f"\n\n{t(language, 'clickDoneMessage')}"
-             f"\n\n🆔 {BOT_USERNAME}",
+             f"\n\n{t(language, 'tagPreviewSaveHint')}"
+             f"\n\n{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
         reply_to_message_id=get_effective_message_id(update),
+        reply_markup=generate_tag_editor_keyboard(language),
     )
 
 
 @upsert_user
+@feature_gate('tag_editor')
 async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     """
     Handles ``/finish`` command.
@@ -293,9 +309,7 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if not music_path:
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     await context.bot.send_chat_action(
@@ -320,11 +334,19 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
     )
 
     try:
-        save_tags_to_file(
-            file=music_path,
-            tags=music_tags,
-            new_art_path=new_art_path
+        await asyncio.to_thread(
+            save_tags_to_file,
+            music_path,
+            music_tags,
+            new_art_path,
         )
+    except MediaProcessingTimeoutError:
+        await message.reply_text(
+            text=t(language, 'errAudioProcessingTimeout'),
+            reply_markup=start_over_button_keyboard,
+        )
+        logger.exception("Media processing timed out while updating tags for %s", music_path)
+        return
     except Exception:
         await message.reply_text(
             text=t(language, 'errOnUpdatingTags'),
@@ -342,39 +364,66 @@ async def finish_editing_tags(update: Update, context: CallbackContext) -> None:
             original_art_path = new_art_path if new_art_path else art_path
             resized_art_path = f"{original_art_path}_resized.jpg"
 
-            resize_image(original_art_path, resized_art_path)
+            await asyncio.to_thread(resize_image, original_art_path, resized_art_path)
 
             with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
 
+        extension, _audio_codec = await asyncio.to_thread(probe_audio_format, music_path)
+        filename = f"{get_file_name(music_tags, language)}{extension}"
         with open(music_path, "rb") as music_file:
-            await context.bot.send_audio(
-                audio=music_file,
-                thumbnail=possible_art,
-                duration=user_data["music_duration"],
-                chat_id=get_chat_id(update),
-                performer=music_tags.get('artist') or 'Unknown',
-                title=music_tags.get('title') or 'Unknown',
-                filename=f"{get_file_name(music_tags)}.mp3",
-                caption=f"🆔 {BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data["music_message_id"],
-            )
+            if extension in {'.mp3', '.m4a'}:
+                await send_file_and_record_completion(
+                    context.bot.send_audio(
+                        audio=music_file,
+                        thumbnail=possible_art,
+                        duration=user_data["music_duration"],
+                        chat_id=get_chat_id(update),
+                        performer=music_tags.get('artist') or t(language, 'unknownMetadata'),
+                        title=music_tags.get('title') or t(language, 'unknownMetadata'),
+                        filename=filename,
+                        caption=t(language, 'botAttributionCaption', bot_name=BOT_USERNAME),
+                        reply_markup=start_over_button_keyboard,
+                        reply_to_message_id=user_data["music_message_id"],
+                    ),
+                    'tag_editor', user_id, getattr(update, 'update_id', None)
+                )
+            else:
+                await send_file_and_record_completion(
+                    context.bot.send_document(
+                        document=music_file,
+                        thumbnail=possible_art,
+                        chat_id=get_chat_id(update),
+                        filename=filename,
+                        caption=t(language, 'botAttributionCaption', bot_name=BOT_USERNAME),
+                        reply_markup=start_over_button_keyboard,
+                        reply_to_message_id=user_data["music_message_id"],
+                    ), 'tag_editor', user_id, getattr(update, 'update_id', None)
+                )
 
         await uploading_message.delete()
 
         logger.info("User %s finished tag editing for %s", user_id, music_path)
-    except (TelegramError, OSError) as error:
+    except MediaProcessingTimeoutError:
+        await message.reply_text(
+            text=t(language, 'errAudioProcessingTimeout'),
+            reply_markup=start_over_button_keyboard,
+        )
+        logger.exception("Media processing timed out for user %s", user_id)
+        return  # Keep the draft so a retry remains possible.
+    except (TelegramError, OSError, ValueError) as error:
         await message.reply_text(
             text=t(language, 'errOnUploading'),
             reply_markup=start_over_button_keyboard
         )
         logger.exception("Failed to upload tag-edited audio for user %s: %s", user_id, error)
+        return  # Keep the draft so a failed Telegram upload can be retried.
 
     reset_user_data_context(user_id, user_data)
 
 
 @upsert_user
+@feature_gate('tag_editor')
 async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     """
     Asks the user to input a value based on the tag that they just selected.
@@ -388,9 +437,7 @@ async def ask_for_tag(update: Update, context: CallbackContext) -> None:
     user_data = get_user_data(context)
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     message_text = get_message_text(update)

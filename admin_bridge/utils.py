@@ -13,8 +13,81 @@ MAX_SEARCH_LENGTH = 80
 MAX_PAGE_NUMBER = 100000
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 10
-USER_FILTER_NAMES = {'q', 'status', 'language', 'page', 'pageSize'}
+USER_FILTER_NAMES = {'q', 'status', 'language', 'page', 'pageSize', 'sort', 'direction'}
 USER_STATUS_SLUGS = {'active', 'blocked', 'deleted'}
+USER_DISPLAY_NAME_SQL = 'u.display_name'
+USER_SORT_COLUMNS = {
+    'displayName', 'username', 'telegramId', 'language', 'status', 'audioSubmissions',
+    'lastInteractionAt', 'createdAt',
+}
+FILE_SORT_COLUMNS = {'basename', 'telegramId', 'bytes', 'modifiedAt'}
+
+
+def parse_sort(params: Mapping[str, str], columns: set[str]) -> tuple[str, str]:
+    """Validates an allowlisted sort key and direction, defaulting to no override."""
+    sort = params.get('sort', '')
+    direction = params.get('direction', '')
+    if not sort and not direction:
+        return '', ''
+    if sort not in columns or direction not in {'asc', 'desc'}:
+        raise BridgeError(status=400, message='Invalid sorting')
+    return sort, direction
+
+
+def validate_basename(value: str) -> str:
+    """
+    Validates one stored filename, excluding paths and header control characters.
+
+    :param value: str: The exact basename from a retained file listing
+    :raises BridgeError: The name is empty, unsafe or not valid UTF-8 text
+    :return: str: The unchanged safe basename
+    """
+    if not value or value in {'.', '..'} or any(
+        character in '/\\' or ord(character) < 32 or ord(character) == 127
+        for character in value
+    ):
+        raise BridgeError(status=400, message='Invalid stored basename')
+
+    try:
+        if len(value.encode('utf-8')) > 255:
+            raise BridgeError(status=400, message='Invalid stored basename')
+    except UnicodeError as error:
+        raise BridgeError(status=400, message='Invalid stored basename') from error
+
+    return value
+
+
+def parse_file_filters(params: Mapping[str, str]) -> tuple[str, str, int, int, str, str]:
+    """
+    Validates filesystem search, an exact owner filter and bounded pagination.
+
+    :param params: Mapping[str, str]: Search, Telegram ID, page and page size
+    :raises BridgeError: A filter is unknown, malformed or outside supported bounds
+    :return: tuple[str, str, int, int]: Casefolded search, owner ID, page and page size
+    """
+    if set(params) - {'q', 'telegramId', 'page', 'pageSize', 'sort', 'direction'}:
+        raise BridgeError(status=400, message='Unknown filter')
+
+    query = params.get('q', '').strip()
+    telegram_id = params.get('telegramId', '')
+
+    if len(query) > MAX_SEARCH_LENGTH:
+        raise BridgeError(status=400, message='Invalid file search')
+
+    if telegram_id:
+        telegram_id = validate_telegram_id(value=telegram_id)
+
+    try:
+        page = int(params.get('page', '1'))
+        page_size = int(params.get('pageSize', str(DEFAULT_PAGE_SIZE)))
+    except ValueError as error:
+        raise BridgeError(status=400, message='Invalid pagination') from error
+
+    if not 1 <= page <= MAX_PAGE_NUMBER or not 1 <= page_size <= MAX_PAGE_SIZE:
+        raise BridgeError(status=400, message='Invalid pagination')
+
+    sort, direction = parse_sort(params=params, columns=FILE_SORT_COLUMNS)
+    return query.casefold(), telegram_id, page, page_size, sort, direction
 
 
 def validate_telegram_id(value: str) -> str:
@@ -60,13 +133,13 @@ def parse_query_string(query: str) -> dict[str, str]:
     return {key: values[0] for key, values in parsed.items()}
 
 
-def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, int]:
+def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, int, str, str]:
     """
     Validates user filters and creates parameterized SQL conditions.
 
     :param params: Mapping[str, str]: Search, status, language and pagination parameters
     :raises BridgeError: A filter is unknown, malformed or outside the supported range
-    :return: tuple[str, list[str], int, int]: SQL conditions, bindings, page and page size
+    :return: tuple: SQL conditions, bindings, page, page size, allowlisted sort key and direction
     """
     if set(params) - USER_FILTER_NAMES:
         raise BridgeError(status=400, message='Unknown filter')
@@ -96,8 +169,11 @@ def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, 
     if query:
         # SQL LIKE wildcards are escaped so a search remains literal text.
         escaped = query.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
-        clauses.append('(u.username ILIKE %s OR CAST(u.user_id AS TEXT) LIKE %s)')
-        values.extend([f'%{escaped}%', f'%{escaped}%'])
+        clauses.append(
+            f'(u.username ILIKE %s OR {USER_DISPLAY_NAME_SQL} ILIKE %s '
+            'OR CAST(u.user_id AS TEXT) LIKE %s)'
+        )
+        values.extend([f'%{escaped}%'] * 3)
 
     if status:
         clauses.append('s.slug = %s')
@@ -109,7 +185,8 @@ def parse_user_filters(params: Mapping[str, str]) -> tuple[str, list[str], int, 
 
     conditions = ' WHERE ' + ' AND '.join(clauses) if clauses else ''
 
-    return conditions, values, page, page_size
+    sort, direction = parse_sort(params=params, columns=USER_SORT_COLUMNS)
+    return conditions, values, page, page_size, sort, direction
 
 
 def serialize_timestamp(value: datetime | str | None) -> str | None:
@@ -144,10 +221,12 @@ def serialize_user_profile(row: Mapping[str, Any]) -> dict[str, Any]:
     return {
         'id': row['id'],
         'telegramId': str(row['user_id']),
+        'displayName': row['display_name'] or None,
         'username': row['username'],
         'language': row['language_name'] or 'Not recorded',
         'languageIso': row['language_iso'],
         'status': row['status_slug'],
+        'statusName': row.get('status_name'),
         'audioSubmissions': row['number_of_files_sent'],
         'createdAt': serialize_timestamp(value=row['created_at']),
         'updatedAt': serialize_timestamp(value=row['updated_at']),

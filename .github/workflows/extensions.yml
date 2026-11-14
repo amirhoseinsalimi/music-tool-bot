@@ -1,0 +1,26 @@
+name: Optional extension checks
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [develop, master]
+    paths:
+      - bot.py
+      - utils/extensions.py
+      - utils/__init__.py
+      - config/pyi18n.py
+      - docs/extension-api.md
+      - tests/extensions/**
+      - i18n/**
+      - .github/workflows/extensions.yml
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s tests/extensions -v

@@ -1,13 +1,14 @@
 from pathlib import Path
 
+from modules.core.media import probe_audio_format
 from utils.logging import run_ffmpeg
 
 
 def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) -> None:
     """
-    Cuts a segment without re-encoding while preserving metadata and album art.
+    Cuts a segment while preserving metadata and album art when possible.
 
-    - Copies the first audio stream.
+    - Copies MP3 audio; converts other supported codecs to MP3.
     - Copies any attached picture streams (album art).
     - Copies container/global metadata.
 
@@ -31,6 +32,9 @@ def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) ->
     if duration <= 0:
         raise ValueError("duration must be > 0")
 
+    _extension, audio_codec = probe_audio_format(str(in_path))
+    copy_audio = audio_codec == 'mp3'
+
     cmd = [
         "ffmpeg",
         "-hide_banner",
@@ -41,10 +45,12 @@ def cut(input_path: str, beginning_sec: int, duration: int, output_path: str) ->
         "-map", "0:a:0",
         "-map", "0:v?",
         "-map_metadata", "0",
-        "-c", "copy",
-        "-disposition:v:0", "attached_pic",
-
-        str(out_path),
     ]
+
+    if copy_audio:
+        cmd.extend(["-c", "copy"])
+    else:
+        cmd.extend(["-c:a", "libmp3lame", "-q:a", "0", "-c:v", "copy"])
+    cmd.extend(["-disposition:v:0", "attached_pic", str(out_path)])
 
     run_ffmpeg(cmd, "cut audio")

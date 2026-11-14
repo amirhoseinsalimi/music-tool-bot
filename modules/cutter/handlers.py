@@ -1,3 +1,7 @@
+import asyncio
+
+from runtime_controls import feature_gate
+from feature_usage import send_file_and_record_completion
 from persiantools import (
     digits,
 )
@@ -27,6 +31,7 @@ from config.modules import (
 from modules.core.utils import (
     generate_start_over_keyboard,
     generate_back_button_keyboard,
+    require_active_music,
 )
 from modules.tag_editor.service import (
     save_tags_to_file,
@@ -41,12 +46,11 @@ from utils import (
     reset_user_data_context,
     set_current_module,
     t,
-    reply_default_message,
     resize_image,
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     cut,
 )
@@ -63,6 +67,7 @@ logger = get_logger(__name__)
 
 
 @upsert_user
+@feature_gate('cutter')
 async def handle_cutter(update: Update, context: CallbackContext) -> None:
     """
     Handles the cut functionality. When a user enters a cutting range, this function parses it, and acts upon
@@ -80,9 +85,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if not music_path:
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     message_text = digits.ar_to_fa(digits.fa_to_en(get_message_text(update)))
@@ -140,11 +143,12 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
     new_art_path = music_tags.get('new_art_path')
 
     try:
-        cut(input_path, beginning_sec, diff_sec, output_path)
-        save_tags_to_file(
-            file=output_path,
-            tags=music_tags,
-            new_art_path=new_art_path
+        await asyncio.to_thread(cut, input_path, beginning_sec, diff_sec, output_path)
+        await asyncio.to_thread(
+            save_tags_to_file,
+            output_path,
+            music_tags,
+            new_art_path,
         )
 
         possible_art = None
@@ -153,24 +157,27 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
             original_art_path = art_path
             resized_art_path = f"{original_art_path}_resized.jpg"
 
-            resize_image(original_art_path, resized_art_path)
+            await asyncio.to_thread(resize_image, original_art_path, resized_art_path)
 
             with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
 
         with open(output_path, 'rb') as music_file:
-            await context.bot.send_audio(
-                audio=music_file,
-                chat_id=get_chat_id(update),
-                thumbnail=possible_art,
-                duration=diff_sec,
-                performer=music_tags.get('artist'),
-                title=music_tags.get('title'),
-                filename=f"{get_file_name(music_tags)}.mp3",
-                caption=f"{t(language, 'fromTo', fromSecond=convert_seconds_to_human_readable_form(beginning_sec), toSecond=convert_seconds_to_human_readable_form(ending_sec))}\n"
-                        f"🆔 {BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data['music_message_id']
+            await send_file_and_record_completion(
+                context.bot.send_audio(
+                    audio=music_file,
+                    chat_id=get_chat_id(update),
+                    thumbnail=possible_art,
+                    duration=diff_sec,
+                    performer=music_tags.get('artist'),
+                    title=music_tags.get('title'),
+                    filename=f"{get_file_name(music_tags, language)}.mp3",
+                    caption=f"{t(language, 'fromTo', fromSecond=convert_seconds_to_human_readable_form(beginning_sec), toSecond=convert_seconds_to_human_readable_form(ending_sec))}\n"
+                            f"{t(language, 'botAttributionCaption', bot_name=BOT_USERNAME)}",
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data['music_message_id']
+                ),
+                'cutter', user_id, getattr(update, 'update_id', None)
             )
 
         await uploading_message.delete()
@@ -178,7 +185,12 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
         logger.info("User %s completed audio cut output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(
-            text=t(language, 'errOnUploading'),
+            text=t(
+                language,
+                'errAudioProcessingTimeout'
+                if isinstance(error, MediaProcessingTimeoutError)
+                else 'errOnUploading',
+            ),
             reply_markup=start_over_button_keyboard
         )
 
@@ -190,6 +202,7 @@ async def handle_cutter(update: Update, context: CallbackContext) -> None:
 
 
 @upsert_user
+@feature_gate('cutter')
 async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     """
     Displays the guide on how to use the cutter module, and set the current module to ``Module.CUTTER``.
@@ -202,9 +215,7 @@ async def show_cutter_help(update: Update, context: CallbackContext) -> None:
     music_path = user_data.get('music_path')
     language = get_user_language_or_fallback(user_data)
 
-    if not music_path:
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     back_button_keyboard = generate_back_button_keyboard(language)

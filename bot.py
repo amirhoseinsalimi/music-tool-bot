@@ -3,9 +3,11 @@
 import logging
 import os
 import socket
+from psycopg2 import Error as DatabaseError
+
+from telegram import Update
 
 from config.envs import APP_ENV, DEBUGGER, DEBUGGER_HOST, DEBUGGER_PORT, DEBUGGER_SUSPEND
-from config.telegram_bot import app
 from modules.admin import register as register_admin
 from modules.bitrate_changer import register as register_bitrate_changer
 from modules.core import register as register_core
@@ -14,6 +16,11 @@ from modules.donation import register as register_donation
 from modules.tag_editor import register as register_tag_editor
 from modules.voice_converter import register as register_voice_converter
 from utils.logging import configure_logging, get_logger
+from utils.extensions import register_optional_extension
+from utils.retention import purge_expired_downloads, purge_expired_downloads_job
+from analytics_snapshots import schedule_daily_stats_snapshot
+from admin_bridge.outbox import cleanup_outbox_job, deliver_outbox_message
+from utils.schema_guard import SchemaGuardError, assert_database_schema_current
 
 logger = get_logger(__name__)
 
@@ -35,6 +42,29 @@ def resolve_debugger_host() -> str:
 
 def main():
     configure_logging()
+
+    try:
+        assert_database_schema_current()
+    except SchemaGuardError as error:
+        logger.critical("%s", error)
+        raise SystemExit(1) from None
+    except DatabaseError:
+        logger.critical(
+            "Could not verify the database migration history; refusing to start. "
+            "Check database connectivity and run `make db-upgrade`."
+        )
+        raise SystemExit(1) from None
+
+    from config.telegram_bot import app  # pylint: disable=import-outside-toplevel
+
+    register_admin(app.add_handler)
+    register_bitrate_changer(app.add_handler)
+    register_cutter(app.add_handler)
+    register_donation(app.add_handler)
+    register_tag_editor(app.add_handler)
+    register_voice_converter(app.add_handler)
+    register_optional_extension(app)
+    register_core(app.add_handler)
 
     if DEBUGGER:
         debugger_host = resolve_debugger_host()
@@ -65,18 +95,21 @@ def main():
         logging.getLogger("httpx").setLevel(logging.WARNING)
         logging.getLogger("httpcore").setLevel(logging.WARNING)
 
+    from runtime_controls import bot_settings
+    try:
+        bot_settings()
+    except (OSError, ValueError, DatabaseError):
+        logger.error("Runtime controls unavailable; controlled tools will fail closed")
+
     logger.info("Starting bot polling")
-    app.run_polling()
-    app.idle()
+    logger.info("Removed %s aged core media files", purge_expired_downloads())
+    app.job_queue.run_repeating(purge_expired_downloads_job, interval=3600, first=3600)
+    app.job_queue.run_repeating(deliver_outbox_message, interval=1, first=5)
+    app.job_queue.run_repeating(cleanup_outbox_job, interval=3600, first=3600)
+    schedule_daily_stats_snapshot(app.job_queue)
+    # Temporary proxy outages must not leave startup permanently disconnected.
+    app.run_polling(allowed_updates=Update.ALL_TYPES, bootstrap_retries=-1)
 
 
 if __name__ == '__main__':
-    register_admin(app.add_handler)
-    register_bitrate_changer(app.add_handler)
-    register_cutter(app.add_handler)
-    register_donation(app.add_handler)
-    register_tag_editor(app.add_handler)
-    register_voice_converter(app.add_handler)
-    register_core(app.add_handler)
-
     main()

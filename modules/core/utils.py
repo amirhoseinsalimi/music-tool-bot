@@ -2,11 +2,12 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from config.constants import DOWNLOAD_DIR_PATH
 from database.models import User
-from utils import t
+from utils import get_user_language_or_fallback, reset_user_data_context, t
+from utils.extensions import optional_keyboard_rows
 
 PYPROJECT_PATH = Path(__file__).resolve().parents[2] / 'pyproject.toml'
 VERSION_PATTERN = re.compile(r'^\s*version\s*=\s*"([^"]+)"\s*$')
@@ -66,25 +67,30 @@ def generate_back_button_keyboard(language: str) -> ReplyKeyboardMarkup:
     )
 
 
-def generate_module_selector_keyboard(language: str) -> ReplyKeyboardMarkup:
+def generate_module_selector_keyboard(language: str, user_id=None, feature_settings=None) -> ReplyKeyboardMarkup:
     """
     Creates and returns an instance of ``module_selector_keyboard`` with the specified language
 
     :param language: str: The language to generate the labels
     :return: ReplyKeyboardMarkup: Module selector keyboard
     """
+    if feature_settings is None:
+        from runtime_controls import menu_feature_settings
+        feature_settings = menu_feature_settings()
+
+    core_rows = [
+        [('tag_editor', 'btnTagAndArtEditor'), ('voice_converter', 'btnMusicToVoiceConverter')],
+        [('cutter', 'btnMusicCutter'), ('bitrate_changer', 'btnBitrateChanger')],
+    ]
+    visible_core_rows = [
+        [t(language, label) for feature, label in row if feature_settings.get(feature) is True]
+        for row in core_rows
+    ]
+    visible_core_rows = [row for row in visible_core_rows if row]
+
     return (
         ReplyKeyboardMarkup(
-            keyboard=[
-                [
-                    t(language, 'btnTagAndArtEditor'),
-                    t(language, 'btnMusicToVoiceConverter')
-                ],
-                [
-                    t(language, 'btnMusicCutter'),
-                    t(language, 'btnBitrateChanger')
-                ]
-            ],
+            keyboard=visible_core_rows + optional_keyboard_rows(language, user_id, feature_settings),
             resize_keyboard=True,
             one_time_keyboard=True,
         )
@@ -98,7 +104,43 @@ def does_user_have_music_file(music_path: str) -> bool:
     :param music_path: str: The user's current music_path
     :return: bool: Whether the user has a music path
     """
-    return bool(music_path)
+    return bool(music_path and Path(music_path).is_file())
+
+
+def has_active_music_file(user_data: dict, user_id: int) -> bool:
+    """Return whether the current session points to an existing file owned by this user."""
+    music_path = user_data.get('music_path')
+    if not music_path:
+        return False
+
+    try:
+        user_directory = (DOWNLOAD_DIR_PATH / str(user_id)).resolve()
+        source_path = Path(music_path).resolve(strict=True)
+        source_path.relative_to(user_directory)
+    except (OSError, RuntimeError, TypeError, ValueError):
+        return False
+
+    return source_path.is_file()
+
+
+async def require_active_music(update, context) -> bool:
+    """Stop a music feature unless this user has a retained current track."""
+    user_data = getattr(context, 'user_data', None) or {}
+    user = user_data.get('user')
+    user_id = getattr(user, 'user_id', None) or getattr(update.effective_user, 'id', None)
+    language = get_user_language_or_fallback(user_data)
+
+    if user_id is not None and has_active_music_file(user_data, user_id):
+        return True
+
+    if user_id is not None and user is not None:
+        reset_user_data_context(user_id, user_data)
+
+    await update.effective_message.reply_text(
+        text=t(language, 'startOverMessage'),
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return False
 
 
 def increment_file_counter_for_user(user_id: int) -> None:

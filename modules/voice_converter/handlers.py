@@ -1,3 +1,7 @@
+import asyncio
+
+from runtime_controls import feature_gate
+from feature_usage import send_file_and_record_completion
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -6,6 +10,7 @@ from telegram.constants import (
     ChatAction,
 )
 from telegram.error import (
+    BadRequest,
     TelegramError,
 )
 from telegram.ext import (
@@ -20,6 +25,7 @@ from config.modules import (
 )
 from modules.core.utils import (
     generate_start_over_keyboard,
+    require_active_music,
 )
 from utils import (
     delete_file,
@@ -33,7 +39,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     convert_to_voice,
 )
@@ -42,6 +48,7 @@ logger = get_logger(__name__)
 
 
 @upsert_user
+@feature_gate('voice_converter')
 async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     """
     Handles the voice conversion functionality. This is the main function of the ``voice_converter`` module that
@@ -55,6 +62,9 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     user_id = user.user_id
     message = get_message(update)
     user_data = get_user_data(context)
+
+    if not await require_active_music(update, context):
+        return
 
     await context.bot.send_chat_action(
         chat_id=get_chat_id(update),
@@ -88,24 +98,33 @@ async def send_file_as_voice(update: Update, context: CallbackContext) -> None:
     )
 
     try:
-        convert_to_voice(input_path, output_path)
+        await asyncio.to_thread(convert_to_voice, input_path, output_path)
 
         with open(output_path, 'rb') as voice_file:
-            await context.bot.send_voice(
-                voice=voice_file,
-                filename=f"{get_file_name(music_tags)}.opus",
-                chat_id=get_chat_id(update),
-                caption=f"🆔 {BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data['music_message_id']
+            await send_file_and_record_completion(
+                context.bot.send_voice(
+                    voice=voice_file,
+                    filename=f"{get_file_name(music_tags, language)}.opus",
+                    chat_id=get_chat_id(update),
+                    caption=t(language, 'botAttributionCaption', bot_name=BOT_USERNAME),
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data['music_message_id']
+                ),
+                'voice_converter', user_id, getattr(update, 'update_id', None)
             )
 
         await uploading_message.delete()
 
         logger.info("User %s completed voice conversion output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
+        error_key = 'errOnUploading'
+        if isinstance(error, MediaProcessingTimeoutError):
+            error_key = 'errAudioProcessingTimeout'
+        elif isinstance(error, BadRequest) and 'voice_messages_forbidden' in str(error).lower():
+            error_key = 'errVoiceMessagesForbidden'
+
         await message.reply_text(
-            text=t(language, 'errOnUploading'),
+            text=t(language, error_key),
             reply_markup=start_over_button_keyboard
         )
 

@@ -1,3 +1,7 @@
+import asyncio
+
+from runtime_controls import feature_gate
+from feature_usage import send_file_and_record_completion
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -20,6 +24,7 @@ from config.modules import (
 )
 from modules.core.utils import (
     generate_start_over_keyboard,
+    require_active_music,
 )
 from utils import (
     delete_file,
@@ -27,8 +32,6 @@ from utils import (
     get_message,
     get_user_data,
     get_user_language_or_fallback,
-    is_user_data_empty,
-    reply_default_message,
     reset_user_data_context,
     set_current_module,
     t,
@@ -36,7 +39,7 @@ from utils import (
     get_file_name,
     upsert_user,
 )
-from utils.logging import get_logger
+from utils.logging import MediaProcessingTimeoutError, get_logger
 from .service import (
     convert_bitrate,
 )
@@ -49,6 +52,7 @@ logger = get_logger(__name__)
 
 
 @upsert_user
+@feature_gate('bitrate_changer')
 async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext) -> None:
     """
     sets the current module to `Module.BITRATE_CHANGER`, and displays a keyboard with buttons for each bitrate option.
@@ -59,6 +63,9 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
     user_data = get_user_data(context)
 
     language = get_user_language_or_fallback(user_data)
+    if not await require_active_music(update, context):
+        return
+
     bitrate_selector_keyboard = generate_bitrate_selector_keyboard(language)
 
     set_current_module(user_data, Module.BITRATE_CHANGER)
@@ -71,6 +78,7 @@ async def show_bitrate_changer_keyboard(update: Update, context: CallbackContext
 
 
 @upsert_user
+@feature_gate('bitrate_changer')
 async def change_bitrate(update: Update, context: CallbackContext) -> None:
     """
     Handles the change bitrate functionality.
@@ -88,9 +96,7 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     message = get_message(update)
     language = get_user_language_or_fallback(user_data)
 
-    if is_user_data_empty(user_data):
-        await reply_default_message(update, language)
-
+    if not await require_active_music(update, context):
         return
 
     start_over_button_keyboard = generate_start_over_keyboard(language)
@@ -120,29 +126,32 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
     )
 
     try:
-        convert_bitrate(input_path, output_bitrate, output_path)
+        await asyncio.to_thread(convert_bitrate, input_path, output_bitrate, output_path)
 
         if art_path:
             original_art_path = art_path
             resized_art_path = f"{original_art_path}_resized.jpg"
 
-            resize_image(original_art_path, resized_art_path)
+            await asyncio.to_thread(resize_image, original_art_path, resized_art_path)
 
             with open(resized_art_path, "rb") as art:
                 possible_art = art.read()
 
         with open(output_path, 'rb') as music_file:
-            await context.bot.send_audio(
-                audio=music_file,
-                chat_id=get_chat_id(update),
-                thumbnail=possible_art,
-                duration=music_duration,
-                performer=music_tags.get('artist'),
-                title=music_tags.get('title'),
-                filename=f"{get_file_name(music_tags)}.mp3",
-                caption=f"🆔 {BOT_USERNAME}",
-                reply_markup=start_over_button_keyboard,
-                reply_to_message_id=user_data['music_message_id']
+            await send_file_and_record_completion(
+                context.bot.send_audio(
+                    audio=music_file,
+                    chat_id=get_chat_id(update),
+                    thumbnail=possible_art,
+                    duration=music_duration,
+                    performer=music_tags.get('artist'),
+                    title=music_tags.get('title'),
+                    filename=f"{get_file_name(music_tags, language)}.mp3",
+                    caption=t(language, 'botAttributionCaption', bot_name=BOT_USERNAME),
+                    reply_markup=start_over_button_keyboard,
+                    reply_to_message_id=user_data['music_message_id']
+                ),
+                'bitrate_changer', user_id, getattr(update, 'update_id', None)
             )
 
         await uploading_message.delete()
@@ -150,7 +159,12 @@ async def change_bitrate(update: Update, context: CallbackContext) -> None:
         logger.info("User %s completed bitrate change output=%s", user_id, output_path)
     except (TelegramError, RuntimeError, OSError) as error:
         await message.reply_text(
-            text=t(language, 'errOnUploading'),
+            text=t(
+                language,
+                'errAudioProcessingTimeout'
+                if isinstance(error, MediaProcessingTimeoutError)
+                else 'errOnUploading',
+            ),
             reply_markup=start_over_button_keyboard
         )
 
