@@ -106,3 +106,14 @@ class PublicContractTests(unittest.IsolatedAsyncioTestCase):
                 for invalid in (None,'42',True,0,-1,2**63):
                     with self.assertRaises(ValueError):module.user_storage_root(invalid)
             self.assertFalse((Path(tmp)/'downloads').exists())
+
+
+class PublicImportTests(unittest.TestCase):
+    def test_actual_package_import_needs_only_standard_library(self):
+        import subprocess,sys
+        result=subprocess.run([sys.executable,'-S','-c',
+            "import sys; import utils.extensions as api; assert api.API_VERSION == 1; "
+            "assert 'utils.decorators' not in sys.modules; assert 'config.pyi18n' not in sys.modules; "
+            "assert 'telegram' not in sys.modules; assert 'masoniteorm' not in sys.modules"],
+            cwd=path.parents[1],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
