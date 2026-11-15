@@ -21,3 +21,12 @@ Run here: `make install` for Poetry dependencies; `make dev` for hot reload with
 ## Review and Data Accuracy
 
 Use focused Conventional Commits and describe validation in PRs. Audio counts are submissions, filesystem timestamps are modification times, and latest interaction cannot reconstruct historical daily activity. Preserve current retention unless a change is authorized. Keep tokens, user files and backups out of commits; check public staging before adding optional integrations.
+
+## Branch and Release Invariant
+
+Do all bot implementation, fixes and release metadata on branches from `develop`
+and merge to `develop` after review and CI. Do not commit product changes directly
+to `master`. Promote only owner-accepted, verified development through a merge PR
+from `develop` to `master`. `master` must have no exclusive non-merge commit; if
+one exists, merge it back into `develop` before continuing. Production deployment
+is a separate owner-run gate. Follow the workspace [release cycle](../docs/release-cycle.md).
