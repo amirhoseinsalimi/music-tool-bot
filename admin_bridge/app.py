@@ -236,9 +236,10 @@ def create_app(
         except ValueError:
             status = 400
             data = {'error': 'Invalid query'}
-        except Exception:  # pylint: disable=broad-exception-caught
+        except Exception as error:  # pylint: disable=broad-exception-caught
             # The HTTP boundary must not disclose database errors or credentials.
-            logger.error('Core bridge read failed')
+            logger.error('Core bridge request failed: type=%s sqlstate=%s',
+                         type(error).__name__, getattr(error, 'pgcode', None))
             status = 503
             data = {'error': 'Core data unavailable'}
 
