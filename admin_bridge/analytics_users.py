@@ -4,6 +4,8 @@ import json
 from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+from user_stats import stats_counts
+
 from .exceptions import BridgeError
 
 ZONE = ZoneInfo('Asia/Tehran')
@@ -249,4 +251,33 @@ def latest_snapshot(cursor, params):
         'languages': [{'language': language, **counts} for language, counts in languages.items()],
         'files': {'count': row['file_count'], 'downloadedMediaBytes': row['file_bytes']},
         'disk': {'usedBytes': row['disk_used_bytes'], 'totalBytes': row['disk_total_bytes']},
+    }
+
+
+def current_user_stats(cursor, params, now=None):
+    """Read the same rolling user counts as the Telegram /stats command."""
+    if params:
+        raise BridgeError(400, 'invalid_request')
+    instant = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    cursor.execute("""
+        SELECT s.slug, l.iso, u.last_interaction_at FROM users u
+        LEFT JOIN user_statuses s ON s.id = u.user_status_id
+        LEFT JOIN languages l ON l.id = u.language_id
+    """)
+    statuses, activity, languages = stats_counts(instant.replace(tzinfo=None), (
+        (row['slug'], row['iso'] if row['iso'] in LANGUAGES else None,
+         row['last_interaction_at']) for row in cursor.fetchall()
+    ), sorted(LANGUAGES))
+    return {
+        'capturedAt': instant.isoformat(), 'totalUsers': sum(statuses.values()),
+        'status': statuses,
+        'activity': {
+            'daily24h': activity['daily_active_users'],
+            'weekly7d': activity['weekly_active_users'],
+            'monthly31d': activity['monthly_active_users'],
+            'active90d': activity['active_90d_users'],
+            'inactive': activity['inactive_users'],
+            'churned90d': activity['churned_90d_users'],
+        },
+        'languages': [{'language': language, **counts} for language, counts in languages.items()],
     }
