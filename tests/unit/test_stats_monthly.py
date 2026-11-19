@@ -29,4 +29,4 @@ class StatsMonthTests(unittest.TestCase):
                 patch.object(service.psutil, 'disk_usage', return_value=(0, 0, 0)):
             asyncio.run(service.show_stats(update))
         message = update.message.reply_text.call_args.kwargs['text']
-        self.assertIn('Monthly Active (31d): 1', message)
+        self.assertIn('Monthly active (31d): 1', message)

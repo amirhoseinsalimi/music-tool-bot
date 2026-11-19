@@ -165,6 +165,18 @@ class BridgeTests(unittest.TestCase):
 
         return status[0], json.loads(body)
 
+    def test_live_stats_are_aggregated_for_current_admins(self) -> None:
+        """Expose rolling counters without user records and enforce current membership."""
+        path = '/v1/analytics/live'
+        code, payload = self.request(path=path, actor='43')
+        self.assertEqual(code, 200)
+        self.assertEqual(payload['totalUsers'], 2)
+        self.assertEqual(payload['status'], {'active': 1, 'blocked': 1, 'deleted': 0})
+        self.assertEqual(payload['activity']['inactive'], 1)
+        self.assertTrue(payload['capturedAt'].endswith('+00:00'))
+        self.assertEqual(self.request(path=path, actor='100')[0], 403)
+        self.assertEqual(self.request(path=path, query='extra=1')[0], 400)
+
     def test_owner_queues_idempotent_message_and_can_read_delivery_status(self) -> None:
         """Only the control secret can queue, retries reuse an ID, and status omits text."""
         message_id = '71b9bd57-0a19-4f17-9389-88440f386a00'
