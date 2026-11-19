@@ -15,7 +15,7 @@ from psycopg2.extras import RealDictCursor
 from .exceptions import BridgeError
 from .files import FileDownload, FileStore
 from .analytics import usage as feature_usage
-from .analytics_users import latest_snapshot, users_report
+from .analytics_users import current_user_stats, latest_snapshot, users_report
 from .attribution import sources as source_report, user_sources
 from .utils import (
     USER_DISPLAY_NAME_SQL,
@@ -162,6 +162,9 @@ class CoreRepository:  # pylint: disable=too-few-public-methods
 
         if path == '/v1/analytics/users':
             return users_report(cursor, params)
+
+        if path == '/v1/analytics/live':
+            return current_user_stats(cursor, params)
 
         if path == '/v1/analytics/snapshot':
             return latest_snapshot(cursor, params)
