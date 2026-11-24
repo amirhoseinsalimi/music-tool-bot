@@ -2,7 +2,7 @@ import asyncio
 import threading
 import unittest
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, call, patch
 
 # Match the application import order to resolve feature package imports.
 import modules.core.handlers
@@ -91,8 +91,10 @@ class AdminBroadcastTests(unittest.TestCase):
             deleted = SimpleNamespace(id=3, slug='deleted')
             blocked_user = Mock(user_id=101, user_status_id=blocked.id)
             active_user = Mock(user_id=102, user_status_id=active.id)
-            deleted_user = Mock(user_id=103, user_status_id=deleted.id)
-            users = [blocked_user, active_user]
+            idle_user = Mock(user_id=103, user_status_id=active.id, last_interaction_at=0)
+            unknown_status_user = Mock(user_id=104, user_status_id=None)
+            deactivated_user = Mock(user_id=105, user_status_id=blocked.id)
+            users = [blocked_user, active_user, idle_user, unknown_status_user, deactivated_user]
             users_query = Mock()
             users_query.where.return_value = users_query
             users_query.get.return_value = users
@@ -101,6 +103,8 @@ class AdminBroadcastTests(unittest.TestCase):
             async def copy_message(**kwargs):
                 if kwargs['chat_id'] == active_user.user_id:
                     raise Forbidden('bot was blocked by the user')
+                if kwargs['chat_id'] == deactivated_user.user_id:
+                    raise Forbidden('user is deactivated')
             update = make_update(text='/send_broadcast')
             context = SimpleNamespace(
                 user_data={
@@ -122,13 +126,23 @@ class AdminBroadcastTests(unittest.TestCase):
                     await asyncio.sleep(0.01)
                 self.assertFalse(worker.is_alive())
 
-            self.assertEqual([call.kwargs['chat_id'] for call in context.bot.copy_message.await_args_list], [101, 102])
-            self.assertEqual(blocked_user.user_status_id, active.id)
-            blocked_user.save.assert_called_once_with()
+            self.assertEqual([call.kwargs['chat_id'] for call in context.bot.copy_message.await_args_list], [101, 102, 103, 104, 105])
+            users_query_factory.assert_any_call('user_id', blocked_user.user_id)
+            users_query.where.assert_has_calls([call('user_status_id', blocked.id)])
+            users_query.update.assert_called_once_with({'user_status_id': active.id})
             self.assertEqual(active_user.user_status_id, blocked.id)
             active_user.save.assert_called_once_with()
-            deleted_user.save.assert_not_called()
-            users_query_factory.assert_called_once_with('user_status_id', '!=', deleted.id)
+            idle_user.save.assert_not_called()
+            unknown_status_user.save.assert_not_called()
+            self.assertEqual(deactivated_user.user_status_id, deleted.id)
+            deactivated_user.save.assert_called_once_with()
+            self.assertEqual(users_query_factory.call_count, 2)
+            group, = users_query_factory.call_args_list[0].args
+            eligibility = Mock()
+            eligibility.where.return_value = eligibility
+            group(eligibility)
+            eligibility.where.assert_called_once_with('user_status_id', '!=', deleted.id)
+            eligibility.or_where_null.assert_called_once_with('user_status_id')
             self.assertFalse(handlers.broadcast_state['active'])
 
         asyncio.run(run())

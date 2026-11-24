@@ -96,10 +96,10 @@ async def list_users_if_user_is_admin(update: Update, context: CallbackContext) 
 @upsert_user
 async def broadcast_command(update: Update, context: CallbackContext) -> int:
     """
-    Starts the process of sending a message to all users, optionally filtered by language.
+    Starts a broadcast to non-deleted users, optionally filtered by language.
 
     Usage:
-        /broadcast      - broadcast to all users
+        /broadcast      - broadcast to all non-deleted users
         /broadcast en   - broadcast only to users with language 'en'
         /broadcast ru   - broadcast only to users with language 'ru'
 
@@ -169,16 +169,15 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
     deleted_status = UserStatus.where('slug', 'deleted').first()
     active_status = UserStatus.where('slug', 'active').first()
 
-    users_query = None
-    selected_language = None
-    if language_code:
-        selected_language = Language.where('iso', '=', language_code).first()
+    users = []
+    selected_language = Language.where('iso', '=', language_code).first() if language_code else None
+    if deleted_status and (not language_code or selected_language):
+        users_query = User.where(lambda query: query
+                                 .where('user_status_id', '!=', deleted_status.id)
+                                 .or_where_null('user_status_id'))
         if selected_language:
-            users_query = User.where('language_id', '=', selected_language.id)
-    if active_status and (not language_code or selected_language):
-        users_query = users_query.where('user_status_id', '=', active_status.id) if users_query else \
-            User.where('user_status_id', '=', active_status.id)
-    users = users_query.get() if users_query else []
+            users_query = users_query.where('language_id', '=', selected_language.id)
+        users = users_query.get()
 
     with broadcast_lock:
         already_active = broadcast_state['active']
@@ -237,7 +236,6 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
                             time.sleep(delay)
                     if not delivered:
                         break
-                    sent_count += 1
                 except Forbidden as error:
                     failed_count += 1
                     error_message = str(error).lower()
@@ -250,6 +248,15 @@ async def send_broadcast(update: Update, context: CallbackContext) -> int:
                 except Exception as error:
                     logger.warning("Broadcast delivery to user %s failed: %s", user.user_id, error)
                     failed_count += 1
+                else:
+                    sent_count += 1
+                    if active_status and blocked_status and user.user_status_id == blocked_status.id:
+                        try:
+                            User.where('user_id', user.user_id).where(
+                                'user_status_id', blocked_status.id
+                            ).update({'user_status_id': active_status.id})
+                        except Exception as error:
+                            logger.warning("Could not restore status for user %s: %s", user.user_id, error)
                 with broadcast_lock:
                     if broadcast_state['job_token'] is job_token:
                         broadcast_state['sent'] = sent_count
